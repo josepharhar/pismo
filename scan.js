@@ -16,16 +16,26 @@ async function main() {
     process.exit(1);
   }
 
-  /*if (process.argv.length != 4) {
+  if (process.argv.length != 4) {
     printUsageAndExit();
   }
 
   const mode = process.argv[2].toLowerCase();
+
   if (mode == 'gen') {
+    await gen(process.argv[3]);
   } else if (mode == 'update') {
-  }*/
+    await update(process.argv[3]);
+  } else {
+    console.log('unrecognized mode: ' + process.argv[2]);
+    process.exit(1);
+  }
+}
 
-
+/**
+ * @param {!string} basepath
+ */
+async function gen(basepath) {
   const basepath = path.resolve(process.argv[2]);
   if (!path.isAbsolute(basepath)) {
     console.log('Provided path must be absolute. given: ' + basepath);
@@ -40,6 +50,14 @@ async function main() {
     'file_info_array': file_info_array
   };
   await writeFile('output.json', JSON.stringify(output, null, 2));
+}
+
+/**
+ * @param {!string} filepath
+ */
+async function update(filepath) {
+  const stat = await lstat(filepath);
+  throw new Error('update not implemented yet');
 }
 
 /**
