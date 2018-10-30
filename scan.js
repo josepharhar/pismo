@@ -7,12 +7,57 @@ const readdir = util.promisify(fs.readdir);
 const lstat = util.promisify(fs.lstat);
 const writeFile = util.promisify(fs.writeFile);
 
+const Entry = class {
+  /**
+   * @param {!string} name
+   */
+  constructor(name) {
+    this.name = name;
+  }
+};
+
+const File = class extends Entry {
+  /**
+   * @param {!string} name
+   */
+  constructor(name) {
+    super(name);
+  }
+};
+
+const Directory = class extends Entry {
+  /**
+   * @param {!string} name
+   * @param {!Array<!Entry>} entries
+   */
+  constructor(name, entries) {
+    super(name);
+    this.entries = entries;
+  }
+};
+
+const FileTree = class {
+  /**
+   * @param {!string} absolute_filepath
+   * @return {!FileTree}
+   */
+  static FromFile(absolute_filepath) {
+  }
+
+  /**
+   * @param {?FileTree} cached_file_tree
+   */
+  constructor(cached_file_tree) {
+    this._root = null;
+  }
+};
+
 async function main() {
   console.log('process.argv: ' + JSON.stringify(process.argv));
 
   function printUsageAndExit() {
-    console.log('usage: node scan.js gen </path/to/scandir>');
-    console.log('       node scan.js update <file.json>');
+    console.log('usage: node scan.js </path/to/scandir> <output.json>');
+    console.log('   if output.json already exists, it will be used as a cache');
     process.exit(1);
   }
 
@@ -20,7 +65,10 @@ async function main() {
     printUsageAndExit();
   }
 
-  const mode = process.argv[2];
+  const scandir_path process.argv[2];
+  const output_path = process.argv[3];
+
+  /*const mode = process.argv[2];
   const argpath = process.argv[3];
   switch (mode.toLowerCase()) {
     case 'gen':
@@ -33,7 +81,7 @@ async function main() {
       console.log('unrecognized mode: ' + mode);
       process.exit(1);
       break;
-  }
+  }*/
 }
 
 /**
