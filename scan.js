@@ -11,8 +11,8 @@ async function main() {
   console.log('process.argv: ' + JSON.stringify(process.argv));
 
   function printUsageAndExit() {
-    console.log('usage: node scan.js gen <absolute path>');
-    console.log('       node scan.js update <file>');
+    console.log('usage: node scan.js gen </path/to/scandir>');
+    console.log('       node scan.js update <file.json>');
     process.exit(1);
   }
 
@@ -20,15 +20,19 @@ async function main() {
     printUsageAndExit();
   }
 
-  const mode = process.argv[2].toLowerCase();
-
-  if (mode == 'gen') {
-    await gen(process.argv[3]);
-  } else if (mode == 'update') {
-    await update(process.argv[3]);
-  } else {
-    console.log('unrecognized mode: ' + process.argv[2]);
-    process.exit(1);
+  const mode = process.argv[2];
+  const argpath = process.argv[3];
+  switch (mode.toLowerCase()) {
+    case 'gen':
+      await gen(argpath);
+      break;
+    case 'update':
+      await update(argpath);
+      break;
+    default:
+      console.log('unrecognized mode: ' + mode);
+      process.exit(1);
+      break;
   }
 }
 
