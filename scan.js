@@ -52,6 +52,14 @@ async function main() {
   const file_info_array = [];
   await scandir(basepath, '/', file_info_array);
 
+  file_info_array.sort((a, b) => {
+    if (a.path < b.path)
+      return -1;
+    if (a.path > b.path)
+      return 1;
+    return 0;
+  });
+
   const output = {
     'basepath': basepath,
     'file_info_array': file_info_array
@@ -82,6 +90,7 @@ async function scandir(basepath, relative_dirpath, file_info_array) {
       await scandir(basepath, relative_filepath, file_info_array);
     } else if (stat.isFile()) {
       const file_info = await scanfile(basepath, relative_filepath);
+      //file_info.name = filename;
       file_info_array.push(file_info);
     }
   }

@@ -1,7 +1,8 @@
 {
   "name": "transfer",
   "scripts": {
-    "scan": "node scan.js"
+    "scan": "node scan.js",
+    "diff": "node diff.js"
   },
   "devDependencies": {
     "md5-file": "^4.0.0"
