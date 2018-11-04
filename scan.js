@@ -3,43 +3,40 @@ const path = require('path');
 const util = require('util');
 const crypto = require('crypto');
 
-const md5file = require('md5-file/promise');
-
 const readFile = util.promisify(fs.readFile);
 const readdir = util.promisify(fs.readdir);
 const lstat = util.promisify(fs.lstat);
 const writeFile = util.promisify(fs.writeFile);
 
-/**
- * Tree structure vs flat structure:
- * flat structure makes it easy to read the file just by looking at it
- * tree structure makes it easy to track directories
- *
- * lets just start with flat structure and see how it ends up
- */
-
 async function main() {
   function printUsageAndExit() {
-    console.log('usage: node scan.js </path/to/scandir> <output.json>');
-    console.log('   if output.json already exists, it will be used as a cache');
+    console.log('usage: node scan.js <output.json> [/path/to/scandir]');
+    console.log('   If output.json already exists, it will be updated');
+    console.log('   to reflect the changes in the directory it originally');
+    console.log('   scanned, and file hashes will be reused.');
     process.exit(1);
   }
 
-  if (process.argv.length != 4) {
+  if (process.argv.length < 3) {
     printUsageAndExit();
   }
 
-  const basepath = path.resolve(process.argv[2]);
-  const outpath = path.resolve(process.argv[3]);
+  const outpath = path.resolve(process.argv[2]);
 
-  // TODO i think this is useless and should be deleted
-  if (!path.isAbsolute(basepath)) {
-    console.log('Provided path must be absolute. given: ' + basepath);
-    process.exit(1);
+  let {cache, basepath} = await readcache(outpath);
+  if (!basepath) {
+    if (process.argv.length < 4) {
+      console.log('Path to scan could not be determined from cache file');
+      console.log('  and was not passed as a command line parameter.');
+      printUsageAndExit();
+    }
+    basepath = path.resolve(process.argv[3]);
+  } else if (process.argv.length > 3) {
+    console.log('Using scan path ' + basepath + ' from cache file instead of supplied ' + process.argv[3]);
   }
 
   const file_info_array = [];
-  await scandir(basepath, '/', file_info_array, await readcache(outpath));
+  await scandir(basepath, '/', file_info_array, cache);
 
   file_info_array.sort((a, b) => {
     if (a.path < b.path)
@@ -67,7 +64,7 @@ async function readcache(cache_filepath) {
   } catch (e) {
     // failed to read cache, probably there is none.
     console.log('no cache file found');
-    return null;
+    return {cache: null, basepath: null};
   }
 
   const cache_tree = JSON.parse(filedata);
@@ -77,7 +74,7 @@ async function readcache(cache_filepath) {
     console.log('putting path in cache: ' + file_info.path + ' -> ' + file_info.hash);
     cache[file_info.path] = file_info;
   });
-  return cache;
+  return {cache: cache, basepath: cache_tree.basepath};
 }
 
 /**
@@ -146,7 +143,7 @@ async function scanfile(basepath, relative_filepath, cache) {
   if (!file_info.hash) {
     console.log('calculating new hash for file: ' + file_info.path);
     try {
-      file_info.hash = await md5file(absolute_filepath);
+      file_info.hash = await fileHash(absolute_filepath);
     } catch (e) {
       console.log('failed to get hash for file: ' + absolute_filepath);
     }
@@ -163,23 +160,17 @@ function pathToUnix(path) {
 }
 
 function fileHash(absolute_filepath) {
-  /*return new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     const output = crypto.createHash('md5');
     const input = fs.createReadStream(absolute_filepath);
-    input.on('error', error => reject(error));
+    input.on('error', err => {
+      reject(err);
+    });
     output.once('readable', () => {
-      resolve(null, output.read().toString('hex'));
+      resolve(output.read().toString('hex'));
     });
     input.pipe(output);
-  });*/
-  /*return new Promise((resolve, reject) => {
-    md5file(absolute_path, (err, hash) => {
-      if (err)
-        reject(err)
-      resolve(hash);
-    });
-  });*/
-  //return md5file.sync(absolute_filepath);
+  });
 }
 
 main().catch(error => {
