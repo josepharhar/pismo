@@ -38,19 +38,8 @@ async function main() {
     process.exit(1);
   }
 
-  let cached_file = null;
-  try {
-    cached_file = await readFile(outpath);
-  } catch (e) {
-    // if the file doesnt exist thats ok
-    // TODO check to see if the error is something else?
-  }
-  if (cached_file) {
-    // TODO use as a cache for file hashes
-  }
-
   const file_info_array = [];
-  await scandir(basepath, '/', file_info_array);
+  await scandir(basepath, '/', file_info_array, await readcache(outpath));
 
   file_info_array.sort((a, b) => {
     if (a.path < b.path)
@@ -68,11 +57,36 @@ async function main() {
 }
 
 /**
+ * Cache maps from relative filepath to full FileInfo
+ * @return {?object<string, FileInfo>}
+ */
+async function readcache(cache_filepath) {
+  let filedata = null;
+  try {
+    filedata = await readFile(cache_filepath);
+  } catch (e) {
+    // failed to read cache, probably there is none.
+    console.log('no cache file found');
+    return null;
+  }
+
+  const cache_tree = JSON.parse(filedata);
+  console.log('found cache file with basepath: ' + cache_tree.basepath);
+  const cache = {};
+  cache_tree.file_info_array.forEach(file_info => {
+    console.log('putting path in cache: ' + file_info.path + ' -> ' + file_info.hash);
+    cache[file_info.path] = file_info;
+  });
+  return cache;
+}
+
+/**
  * @param {!string} basepath Platform specific absolute path
  * @param {!string} relative_dirpath Path relative to basepath
  * @param {!Array<FileInfo>} file_info_array
+ * @param {?object<string, FileInfo>} cache
  */
-async function scandir(basepath, relative_dirpath, file_info_array) {
+async function scandir(basepath, relative_dirpath, file_info_array, cache) {
   const absolute_dirpath = path.join(basepath, relative_dirpath);
   const dir_filenames = await readdir(absolute_dirpath);
   dir_filenames.sort();
@@ -87,9 +101,10 @@ async function scandir(basepath, relative_dirpath, file_info_array) {
     const stat = await lstat(absolute_filepath);
 
     if (stat.isDirectory()) {
-      await scandir(basepath, relative_filepath, file_info_array);
+      await scandir(basepath, relative_filepath, file_info_array, cache);
+
     } else if (stat.isFile()) {
-      const file_info = await scanfile(basepath, relative_filepath);
+      const file_info = await scanfile(basepath, relative_filepath, cache);
       //file_info.name = filename;
       file_info_array.push(file_info);
     }
@@ -99,22 +114,45 @@ async function scandir(basepath, relative_dirpath, file_info_array) {
 /**
  * @param {!string} basepath
  * @param {!string} relative_filepath
+ * @param {?object<string, FileInfo>} cache
+ * @return {!FileInfo}
  */
-async function scanfile(basepath, relative_filepath) {
+async function scanfile(basepath, relative_filepath, cache) {
+  const file_info = {};
+
   const absolute_filepath = path.join(basepath, relative_filepath);
+  file_info.path = pathToUnix(relative_filepath);
+
   const stat = await lstat(absolute_filepath);
-  let hash = null;
-  try {
-    hash = await md5file(absolute_filepath);
-  } catch (e) {
-    console.log('failed to get hash for file: ' + absolute_filepath);
+  file_info.mtime = stat.mtime;
+  file_info.size = stat.size;
+
+  // compute hash, using cache if available
+  if (cache) {
+    const cache_result = cache[file_info.path];
+    if (cache_result) {
+      const cache_result_copy = JSON.parse(JSON.stringify(cache_result));
+      delete cache_result_copy.hash;
+      const file_info_copy = JSON.parse(JSON.stringify(file_info));
+      delete file_info_copy.hash;
+
+      if (JSON.stringify(file_info_copy) == JSON.stringify(cache_result_copy)) {
+        // cache hit!
+        file_info.hash = cache_result.hash;
+        console.log('used cache for file: ' + file_info.path);
+      }
+    }
   }
-  return {
-    path: pathToUnix(relative_filepath),
-    mtime: stat.mtime,
-    size: stat.size,
-    hash: hash
-  };
+  if (!file_info.hash) {
+    console.log('calculating new hash for file: ' + file_info.path);
+    try {
+      file_info.hash = await md5file(absolute_filepath);
+    } catch (e) {
+      console.log('failed to get hash for file: ' + absolute_filepath);
+    }
+  }
+
+  return file_info;
 }
 
 /**
