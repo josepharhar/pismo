@@ -49,14 +49,15 @@ async function main() {
     const bfileinfo = bfiles[bindex];
 
     if (afileinfo.path < bfileinfo.path) {
-      console.log('- b' + bfileinfo.path);
+      // b does not have file in a
+      console.log('- a' + afileinfo.path);
       if (interactive_mode)
         await copyFile(a.basepath + afileinfo.path, b.basepath + bfileinfo.path);
 
       aindex++;
 
     } else if (afileinfo.path > bfileinfo.path) {
-      console.log('+ a' + afileinfo.path);
+      console.log('+ b' + bfileinfo.path);
       if (interactive_mode)
         await copyFile(b.basepath + bfileinfo.path, a.basepath + afileinfo.path);
 
