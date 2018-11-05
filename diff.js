@@ -2,18 +2,32 @@ const fs = require('fs');
 const path = require('path');
 const util = require('util');
 const crypto = require('crypto');
+const child_process = require('child_process');
 
 const readFile = util.promisify(fs.readFile);
 const lstat = util.promisify(fs.lstat);
 const writeFile = util.promisify(fs.writeFile);
+const exec = util.promisify(child_process.exec);
 
 async function main() {
   function printUsageAndExit() {
-    console.log('usage: node diff.js <a.js> <b.js>');
+    console.log('usage: node diff.js <a.js> <b.js> [i|interactive]');
+    process.exit(1);
   }
 
-  if (process.argv.length != 4) {
+  if (process.argv.length < 4) {
     printUsageAndExit();
+  }
+
+  let interactive_mode = false;
+  if (process.argv.length > 4) {
+    const mode = process.argv[4].toLowerCase();
+    if (mode == 'i' || mode == 'interactive') {
+      interactive_mode = true;
+    } else {
+      console.log('unrecognized mode: ' + process.argv[4]);
+      printUsageAndExit();
+    }
   }
 
   const apath = path.resolve(process.argv[2]);
@@ -35,11 +49,17 @@ async function main() {
     const bfileinfo = bfiles[bindex];
 
     if (afileinfo.path < bfileinfo.path) {
-      console.log('- ' + bfileinfo.path);
+      console.log('- b' + bfileinfo.path);
+      if (interactive_mode)
+        await copyFile(a.basepath + afileinfo.path, b.basepath + bfileinfo.path);
+
       aindex++;
 
     } else if (afileinfo.path > bfileinfo.path) {
-      console.log('+ ' + afileinfo.path);
+      console.log('+ a' + afileinfo.path);
+      if (interactive_mode)
+        await copyFile(b.basepath + bfileinfo.path, a.basepath + afileinfo.path);
+
       bindex++;
 
     } else {
@@ -93,6 +113,26 @@ async function readToJson(absolute_filepath) {
   } catch (e) {
     console.log('failed to parse file to json: ' + absolute_filepath);
     throw e;
+  }
+}
+
+async function copyFile(src_path, dest_path) {
+  const command = `cp "${a.basepath}${afileinfo.path}" "${b.basepath}${bfileinfo.path}"`;
+  let answer = null;
+  while (answer != 'y' && answer != 'n') {
+    answer = await readline.question(command + ' (y/n) ');
+  }
+  if (answer == 'y') {
+    console.log(command);
+    try {
+      const {stdout, stderr} = await exec(command);
+    } catch (e) {
+      console.log('  exec error: ' + e);
+    }
+    if (stdout)
+      console.log('  stdout: ' + stdout);
+    if (stderr)
+      console.log('  stderr: ' + stderr);
   }
 }
 

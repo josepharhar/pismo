@@ -2,11 +2,15 @@ const fs = require('fs');
 const path = require('path');
 const util = require('util');
 const crypto = require('crypto');
+const child_process = require('child_process');
+
+const filesize = require('filesize');
 
 const readFile = util.promisify(fs.readFile);
 const readdir = util.promisify(fs.readdir);
 const lstat = util.promisify(fs.lstat);
 const writeFile = util.promisify(fs.writeFile);
+const exec = util.promisify(child_process.exec);
 
 async function main() {
   function printUsageAndExit() {
@@ -123,23 +127,30 @@ async function scanfile(basepath, relative_filepath, cache) {
   const stat = await lstat(absolute_filepath);
   file_info.mtime = stat.mtime;
   file_info.size = stat.size;
+  file_info.size_human = filesize(file_info.size);
+
+  const fields_for_comparing = ['path', 'mtime', 'size'];
 
   // compute hash, using cache if available
   if (cache) {
     const cache_result = cache[file_info.path];
     if (cache_result) {
-      const cache_result_copy = JSON.parse(JSON.stringify(cache_result));
-      delete cache_result_copy.hash;
-      const file_info_copy = JSON.parse(JSON.stringify(file_info));
-      delete file_info_copy.hash;
+      const cache_result_copy = {};
+      const file_info_copy = {};
+      fields_for_comparing.forEach(field => {
+        cache_result_copy[field] = cache_result[field];
+        file_info_copy[field] = file_info[field];
+      });
 
       if (JSON.stringify(file_info_copy) == JSON.stringify(cache_result_copy)) {
         // cache hit!
         file_info.hash = cache_result.hash;
+        file_info.ffprobe = cache_result.ffprobe;
         console.log('used cache for file: ' + file_info.path);
       }
     }
   }
+
   if (!file_info.hash) {
     console.log('calculating new hash for file: ' + file_info.path);
     try {
@@ -147,6 +158,10 @@ async function scanfile(basepath, relative_filepath, cache) {
     } catch (e) {
       console.log('failed to get hash for file: ' + absolute_filepath);
     }
+  }
+
+  if (!file_info.ffprobe) {
+    file_info.ffprobe = await ffprobe(absolute_filepath);
   }
 
   return file_info;
@@ -171,6 +186,25 @@ function fileHash(absolute_filepath) {
     });
     input.pipe(output);
   });
+}
+
+async function ffprobe(absolute_filepath) {
+  const command =
+    `ffprobe -of json -v error -show_entries stream=width,height,index,codec_name,bit_rate "${absolute_filepath}"`;
+  console.log(command);
+  try {
+    const {stdout, stderr} = await exec(command);
+    if (stderr)
+      console.log('ffprobe stderr: ' + stderr);
+    try {
+      return JSON.parse(stdout);
+    } catch (e) {
+      return 'failed to parse to json: ' + stdout + '\n with error: ' + e;
+    }
+
+  } catch (e) {
+    return 'exec error: ' + e;
+  }
 }
 
 main().catch(error => {
