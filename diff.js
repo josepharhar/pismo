@@ -20,6 +20,7 @@ async function main() {
   }
 
   let interactive_mode = false;
+
   if (process.argv.length > 4) {
     const mode = process.argv[4].toLowerCase();
     if (mode == 'i' || mode == 'interactive') {
@@ -48,9 +49,37 @@ async function main() {
     const afileinfo = afiles[aindex];
     const bfileinfo = bfiles[bindex];
 
+    async function copyFileHuh(absolute_src_path, absolute_dest_path) {
+      if (!interactive_mode)
+        return;
+      console.log(absolute_src_path + ' >>> ' + absolute_dest_path);
+      let answer = null;
+      while (answer != 'c' && answer != 'd' && answer != 'i') {
+        answer = await readline.question('(c)opy, (d)elete, (i)gnore? ');
+      }
+      switch (answer) {
+        case 'c':
+          break;
+
+        case 'd':
+          break;
+
+        case 'i':
+          break;
+      }
+    }
+
     if (afileinfo.path < bfileinfo.path) {
       // b does not have file in a
       console.log('- a' + afileinfo.path);
+
+      if (interactive_mode) {
+        const full_path = a.basepath + afileinfo.path;
+        const dest_path = b.basepath + bfileinfo.path;
+        console.log(full_path + ' >>> ' + dest_path);
+        let answer = null;
+      }
+
       if (interactive_mode)
         await copyFile(a.basepath + afileinfo.path, b.basepath + bfileinfo.path);
 
