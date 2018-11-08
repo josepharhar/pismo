@@ -8,6 +8,7 @@ const readFile = util.promisify(fs.readFile);
 const lstat = util.promisify(fs.lstat);
 const writeFile = util.promisify(fs.writeFile);
 const exec = util.promisify(child_process.exec);
+const open = util.promisify(fs.open);
 
 async function main() {
   function printUsageAndExit() {
@@ -29,6 +30,24 @@ async function main() {
       console.log('unrecognized mode: ' + process.argv[4]);
       printUsageAndExit();
     }
+  }
+
+  const commands_out_path = 'output.sh';
+  let commands_out_fd = null;
+  if (interactive_mode) {
+    commands_out_fd = await open(commands_out_path, 'w');
+  }
+  async function writeCommand(command) {
+    await new Promise((resolve, reject) => {
+      fs.write(commands_out_fd, err => {
+        if (err)
+          reject(err);
+        resolve();
+      })
+    });
+  }
+  async function flushCommands() {
+    await writeFile(commands_out_path, command_out_string);
   }
 
   const apath = path.resolve(process.argv[2]);
@@ -55,15 +74,17 @@ async function main() {
       console.log(absolute_src_path + ' >>> ' + absolute_dest_path);
       let answer = null;
       while (answer != 'c' && answer != 'd' && answer != 'i') {
-        answer = await readline.question('(c)opy, (d)elete, (i)gnore? ');
+        answer = await readline.question('(c)opy, (d)elete, or (i)gnore? ');
       }
       switch (answer) {
         case 'c':
+          const dest_dir = path.dirname(absolute_dest_path);
+          await writeCommand(`mkdir -p "${dest_dir}"`);
+          await writeCommand(`cp "${absolute_src_path}" "${absolute_dest_path}"`);
           break;
-
         case 'd':
+          await writeCommand(`rm "${absolute_src_path}"`);
           break;
-
         case 'i':
           break;
       }
@@ -72,24 +93,14 @@ async function main() {
     if (afileinfo.path < bfileinfo.path) {
       // b does not have file in a
       console.log('- a' + afileinfo.path);
-
-      if (interactive_mode) {
-        const full_path = a.basepath + afileinfo.path;
-        const dest_path = b.basepath + bfileinfo.path;
-        console.log(full_path + ' >>> ' + dest_path);
-        let answer = null;
-      }
-
       if (interactive_mode)
-        await copyFile(a.basepath + afileinfo.path, b.basepath + bfileinfo.path);
-
+        await copyFileHuh(a.basepath + afileinfo.path, b.basepath + bfileinfo.path);
       aindex++;
 
     } else if (afileinfo.path > bfileinfo.path) {
       console.log('+ b' + bfileinfo.path);
       if (interactive_mode)
-        await copyFile(b.basepath + bfileinfo.path, a.basepath + afileinfo.path);
-
+        await copyFileHuh(b.basepath + bfileinfo.path, a.basepath + afileinfo.path);
       bindex++;
 
     } else {
@@ -127,6 +138,8 @@ async function main() {
       continue;
     console.log(hash + ': ' + JSON.stringify(hashToInfo[hash], null, 3));
   }
+
+  await flushCommands();
 }
 
 async function readToJson(absolute_filepath) {
@@ -146,7 +159,7 @@ async function readToJson(absolute_filepath) {
   }
 }
 
-async function copyFile(src_path, dest_path) {
+/*async function copyFile(src_path, dest_path) {
   const command = `cp "${a.basepath}${afileinfo.path}" "${b.basepath}${bfileinfo.path}"`;
   let answer = null;
   while (answer != 'y' && answer != 'n') {
@@ -164,7 +177,7 @@ async function copyFile(src_path, dest_path) {
     if (stderr)
       console.log('  stderr: ' + stderr);
   }
-}
+}*/
 
 main().catch(error => {
   console.log('caught error:');
