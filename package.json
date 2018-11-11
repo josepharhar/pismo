@@ -4,7 +4,7 @@
     "scan": "node scan.js",
     "diff": "node diff.js"
   },
-  "devDependencies": {
+  "dependencies": {
     "filesize": "^3.6.1"
   }
 }

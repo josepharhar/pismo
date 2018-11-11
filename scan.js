@@ -1,8 +1,4 @@
-const fs = require('fs');
-const path = require('path');
-const util = require('util');
-const crypto = require('crypto');
-const child_process = require('child_process');
+const utils = require('./utils.js');
 
 const filesize = require('filesize');
 
@@ -12,30 +8,20 @@ const lstat = util.promisify(fs.lstat);
 const writeFile = util.promisify(fs.writeFile);
 const exec = util.promisify(child_process.exec);
 
-async function main() {
-  function printUsageAndExit() {
-    console.log('usage: node scan.js <output.json> [/path/to/scandir]');
-    console.log('   If output.json already exists, it will be updated');
-    console.log('   to reflect the changes in the directory it originally');
-    console.log('   scanned, and file hashes will be reused.');
-    process.exit(1);
-  }
-
-  if (process.argv.length < 3) {
-    printUsageAndExit();
-  }
-
-  const outpath = path.resolve(process.argv[2]);
-
+/**
+ * @param {!string} outpath
+ * @param {string=} input_basepath
+ */
+exports.scan = async function(outpath, input_basepath) {
   let {cache, basepath} = await readcache(outpath);
   if (!basepath) {
-    if (process.argv.length < 4) {
+    if (!input_basepath) {
       console.log('Path to scan could not be determined from cache file');
       console.log('  and was not passed as a command line parameter.');
-      printUsageAndExit();
+      return;
     }
-    basepath = path.resolve(process.argv[3]);
-  } else if (process.argv.length > 3) {
+    basepath = input_basepath;
+  } else if (input_basepath) {
     console.log('Using scan path ' + basepath + ' from cache file instead of supplied ' + process.argv[3]);
   }
 
@@ -122,7 +108,7 @@ async function scanfile(basepath, relative_filepath, cache) {
   const file_info = {};
 
   const absolute_filepath = path.join(basepath, relative_filepath);
-  file_info.path = pathToUnix(relative_filepath);
+  file_info.path = utils.pathToUnix(relative_filepath);
 
   const stat = await lstat(absolute_filepath);
   file_info.mtime = stat.mtime;
@@ -167,13 +153,6 @@ async function scanfile(basepath, relative_filepath, cache) {
   return file_info;
 }
 
-/**
- * @param {!string} path
- */
-function pathToUnix(path) {
-  return path.replace(/\\/g, '/');
-}
-
 function fileHash(absolute_filepath) {
   return new Promise((resolve, reject) => {
     const output = crypto.createHash('md5');
@@ -206,8 +185,3 @@ async function ffprobe(absolute_filepath) {
     return 'exec error: ' + e;
   }
 }
-
-main().catch(error => {
-  console.log('caught error:');
-  console.log(error);
-});
