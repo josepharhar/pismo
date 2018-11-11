@@ -1,8 +1,7 @@
 const fs = require('fs');
-const path = require('path');
-const util = require('util');
-const crypto = require('crypto');
 const child_process = require('child_process');
+const util = require('util');
+const path = require('path');
 
 const readFile = util.promisify(fs.readFile);
 const lstat = util.promisify(fs.lstat);
@@ -10,28 +9,12 @@ const writeFile = util.promisify(fs.writeFile);
 const exec = util.promisify(child_process.exec);
 const open = util.promisify(fs.open);
 
-async function main() {
-  function printUsageAndExit() {
-    console.log('usage: node diff.js <a.js> <b.js> [i|interactive]');
-    process.exit(1);
-  }
-
-  if (process.argv.length < 4) {
-    printUsageAndExit();
-  }
-
-  let interactive_mode = false;
-
-  if (process.argv.length > 4) {
-    const mode = process.argv[4].toLowerCase();
-    if (mode == 'i' || mode == 'interactive') {
-      interactive_mode = true;
-    } else {
-      console.log('unrecognized mode: ' + process.argv[4]);
-      printUsageAndExit();
-    }
-  }
-
+/**
+ * @param {!string} aPath
+ * @param {!string} bPath
+ * @param {boolean=} interactive_mode
+ */
+exports.diff = async function(aPath, bPath, interactive_mode) {
   const commands_out_path = 'output.sh';
   let commands_out_fd = null;
   if (interactive_mode) {
@@ -47,14 +30,20 @@ async function main() {
     });
   }
   async function flushCommands() {
-    await writeFile(commands_out_path, command_out_string);
+    await new Promise((resolve, reject) => {
+      fs.close(commands_out_fd, err => {
+        if (err)
+          reject(err);
+        resolve();
+      });
+    });
   }
 
-  const apath = path.resolve(process.argv[2]);
-  const bpath = path.resolve(process.argv[3]);
+  aPath = path.resolve(aPath);
+  bPath = path.resolve(bPath);
 
-  const a = await readToJson(apath);
-  const b = await readToJson(bpath);
+  const a = await readToJson(aPath);
+  const b = await readToJson(bPath);
 
   console.log('a.basepath: ' + a.basepath);
   console.log('b.basepath: ' + b.basepath);
@@ -139,7 +128,8 @@ async function main() {
     console.log(hash + ': ' + JSON.stringify(hashToInfo[hash], null, 3));
   }
 
-  await flushCommands();
+  if (interactive_mode)
+    await flushCommands();
 }
 
 async function readToJson(absolute_filepath) {
@@ -178,8 +168,3 @@ async function readToJson(absolute_filepath) {
       console.log('  stderr: ' + stderr);
   }
 }*/
-
-main().catch(error => {
-  console.log('caught error:');
-  console.log(error);
-});

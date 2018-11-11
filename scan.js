@@ -1,3 +1,8 @@
+const util = require('util');
+const fs = require('fs');
+const child_process = require('child_process');
+const path = require('path');
+
 const utils = require('./utils.js');
 
 const filesize = require('filesize');

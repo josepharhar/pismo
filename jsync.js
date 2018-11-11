@@ -1,13 +1,13 @@
-// TODO use 'scp2' to do ssh based merging
-
 const utils = require('./utils.js');
 const {scan} = require('./scan.js');
+const {diff} = require('./diff.js');
+const {merge} = require('./merge.js');
 
 async function main() {
   function printUsageAndExit() {
     console.log('usage: node jsync.js scan <tree.json> [/path/to/scandir]');
     console.log('         If tree.json already exists, it will be updated.');
-    console.log('       node jsync.js diff <a.json> <b.json>');
+    console.log('       node jsync.js diff <a.json> <b.json> [i]');
     console.log('       node jsync.js merge <src.json> <dest.json>');
     process.exit(1);
   }
@@ -15,33 +15,28 @@ async function main() {
   if (process.argv.length < 3)
     printUsageAndExit();
 
-  const mode = process.argv.length[2];
+  const mode = process.argv[2];
   switch (mode) {
-    case 'gen':
-      if (process.argv.length != 5)
+    case 'scan':
+      if (process.argv.length < 4)
         printUsageAndExit();
-      const outPath = process.argv[3];
-      const scanPath = process.argv[4];
-      break;
-
-    case 'update':
-      if (process.argv.length != 4)
-        printUsageAndExit();
-      const outPath = process.argv[3];
+      await scan(
+        process.argv[3],
+        process.argv.length > 4 ? process.argv[4] : null);
       break;
 
     case 'diff':
-      if (process.argv.lenth != 5)
+      if (process.argv.lenth < 5)
         printUsageAndExit();
-      const aPath = process.argv[3];
-      const bPath = process.argv[4];
+      // TODO remove interactive from diff.js and move to merge.js?
+      await diff(process.argv[3], process.argv[4],
+        process.argv.length > 5 && process.argv[5] == 'i');
       break;
 
     case 'merge':
       if (process.argv.length != 5)
         printUsageAndExit();
-      const srcPath = process.argv[3];
-      const destPath = process.argv[4];
+      await merge(process.argv[3], process.argv[4]);
       break;
 
     default:
