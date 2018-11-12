@@ -21,4 +21,5 @@ exports.merge = async function(srcPath, destPath) {
     console.log('merge: failed to read srcTree or destTree');
     return;
   }
+
 }

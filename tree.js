@@ -35,8 +35,35 @@ exports.readTreeFromFile = async function(filepath) {
   return json;
 }
 
+/*const Differator = class {
+  constructor(aTree, bTree) {
+    this.aTree = aTree;
+    this.bTree = bTree;
+    this.aIndex = 0;
+    this.bIndex = 0;
+  }
+
+  hasNext() {
+    return this.aIndex < this.aTree.file_info_array.length
+      && this.bIndex < this.bTree.file_info_array.length;
+  }
+
+  next() {
+    if (!this.hasNext())
+      return null;
+
+    // how do you tell which tree it came from in the return value???
+  }
+
+  nexta() {
+    if (!this.hasNext())
+      return null;
+
+    if (
+};
+
 exports.treeDifferator = async function(aTree, bTree) {
-}
+}*/
 
 /**
  * @param {!Tree} aTree
