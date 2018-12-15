@@ -1,9 +1,8 @@
 {
   "name": "transfer",
-  "scripts": {
-    "start": "node jsync.js"
-  },
-  "dependencies": {
-    "filesize": "^3.6.1"
+  "repository": "github:josepharhar/transfer",
+  "devDependencies": {
+    "@types/node": "^10.12.15",
+    "typescript": "^3.2.2"
   }
 }
