@@ -1,0 +1,9 @@
+{
+  "name": "transfer",
+  "scripts": {
+    "start": "node jsync.js"
+  },
+  "dependencies": {
+    "filesize": "^3.6.1"
+  }
+}
