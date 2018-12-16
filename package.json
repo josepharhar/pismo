@@ -1,6 +1,21 @@
 {
-  "name": "transfer",
-  "repository": "github:josepharhar/transfer",
+  "name": "pismo",
+  "version": "0.0.1",
+  "description": "file tree comparison tool",
+  "main": "pismo.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/josepharhar/pismo"
+  },
+  "author": {
+    "name": "Joseph Arhar",
+    "email": "josepharhar@gmail.com",
+    "url": "http://github.com/josepharhar"
+  },
+  "bugs": {
+    "url": "https://github.com/josepharhar/pismo/issues"
+  },
+  "homepage": "https://github.com/josepharhar/pismo",
   "devDependencies": {
     "@types/node": "^10.12.15",
     "typescript": "^3.2.2"
