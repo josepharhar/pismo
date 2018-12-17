@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 // TODO delet this
-const defaultHandler = argv => console.log('todo handler. argv: ' + JSON.stringify(argv, null, 2));
+const defaultHandler = argv => console.log('Not implemented yet. argv: ' + JSON.stringify(argv, null, 2));
 
 require('yargs')
   .command(
     'list',
-    'Lists directory trees stored in ~/.pismo',
+    'Lists directory trees stored in ~/.pismo.',
     yargs => yargs
         .help(false)
         .version(false),
@@ -14,7 +14,7 @@ require('yargs')
 
   .command(
     'add <name> <path>',
-    'Adds a new directory tree to ~/.pismo named <name> and rooted at the filepath <path>',
+    'Adds a new directory tree to ~/.pismo named <name> and rooted at the filepath <path>.',
     yargs => yargs
         .option('noupdate', {
           description: "Don't run a scan on the new file tree",
@@ -25,9 +25,42 @@ require('yargs')
     defaultHandler)
 
   .command(
+    'list-remote <ip>',
+    'Lists the directory trees stored on a remote computer.',
+    yargs => yargs
+        .positional('ip', {
+          description: 'ip address with port. ex: 192.168.0.1:48823'
+        })
+        .help(false)
+        .version(false),
+    defaultHandler)
+
+  .command(
+    'add-remote <name> <ip> <remote-name>',
+    'Adds a new directory tree stored on a remote computer.',
+    yargs => yargs
+        .positional('ip', {
+          description: 'ip address with port. ex: 192.168.0.1:48823'
+        })
+        .help(false)
+        .version(false),
+    defaultHandler)
+
+  .command(
     'update <name>',
     'Runs a scan on the file tree named <name>, updating the state of the tree stored in ~/.pismo',
     yargs => yargs
+        .help(false)
+        .version(false),
+    defaultHandler)
+
+  .command(
+    'update-remote <ip> <remote-name>',
+    'Runs update on a remote computer',
+    yargs => yargs
+        .positional('ip', {
+          description: 'ip address with port. ex: 192.168.0.1:48823'
+        })
         .help(false)
         .version(false),
     defaultHandler)
@@ -84,6 +117,8 @@ require('yargs')
         .help(false)
         .version(false),
     defaultHandler)
+
+  // TODO add global config to change ~/.pismo to custom directory
 
   .demandCommand()
   .strict()
