@@ -61,6 +61,30 @@ require('yargs')
         .version(false),
     defaultHandler)
 
+  .command(
+    'server [port]',
+    'Runs a pismo protocol server so this computer can be synced by a remote client.',
+    yargs => yargs
+        .positional('port', {
+          description: 'port to bind on',
+          default: 48821
+        })
+        .help(false)
+        .version(false),
+    defaultHandler)
+
+  .command(
+    'http [port]',
+    'Runs a web interface to use pismo on this computer instead of the cli.',
+    yargs => yargs
+        .positional('port', {
+          description: 'port to bind http server to',
+          default: 48880
+        })
+        .help(false)
+        .version(false),
+    defaultHandler)
+
   .demandCommand()
   .strict()
   // .wrap(Math.min(80, yargs.terminalWidth()) // default
