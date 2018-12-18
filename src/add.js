@@ -10,12 +10,7 @@ exports.add = function(argv) {
 
   console.log(`Adding tree named ${name} rooted at ${path}`);
 
-   const treefile = dotpismo.get(name);
-}
 
-/**
- * @param {import('./dotpismo.js').TreeFile} treefile
- */
-function rofl(treefile) {
-  console.log('asdf');
+
+   const treefile = dotpismo.get(name);
 }
