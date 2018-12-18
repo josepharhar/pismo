@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+const {list} = require('./list.js');
+const {add} = require('./add.js');
+
 // TODO delet this
 const defaultHandler = argv => console.log('Not implemented yet. argv: ' + JSON.stringify(argv, null, 2));
 
@@ -10,7 +13,7 @@ require('yargs')
     yargs => yargs
         .help(false)
         .version(false),
-    defaultHandler)
+    list)
 
   .command(
     'add <name> <path>',
@@ -22,7 +25,7 @@ require('yargs')
         })
         .help(false)
         .version(false),
-    defaultHandler)
+    add)
 
   .command(
     'list-remote <ip>',
