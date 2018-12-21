@@ -4,7 +4,8 @@
   "description": "file tree comparison tool",
   "main": "pismo.js",
   "scripts": {
-    "tsc": "tsc -p ."
+    "tsc": "tsc -p .",
+    "link": "npm link"
   },
   "repository": {
     "type": "git",
