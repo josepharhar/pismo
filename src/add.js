@@ -6,15 +6,11 @@ const fs = require('fs');
  * @param {import('yargs').Arguments} argv
  */
 exports.add = async function(argv) {
-  const name = argv.name;
-  const path = argv.path;
-  const noupdate = argv.noupdate;
-
-  console.log(`Adding tree named ${name} rooted at ${path}`);
+  console.log(`Adding tree named ${argv.name} rooted at ${argv.path}`);
 
   const dotpath = path.join(os.homedir(), '/.pismo/trees');
 
-  const filepath = path.join(dotpath, `/${name}.json`);
+  const filepath = path.join(dotpath, `/${argv.name}.json`);
 
   // check if a tree with the given name exists already
   const accessErr = await new Promise(resolve => {
@@ -27,7 +23,7 @@ exports.add = async function(argv) {
 
   // write the new tree to the specified filepath
   const newTree = {
-    path: path
+    path: argv.path
   };
   const writeFileError = await new Promise(resolve => {
     fs.writeFile(filepath, JSON.stringify(newTree, null, 2), resolve);
@@ -38,4 +34,5 @@ exports.add = async function(argv) {
   }
 
   // TODO call scan or not based on argv.noupdate
+  // TODO mkdirp home/.pismo/trees
 }
