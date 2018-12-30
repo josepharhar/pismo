@@ -4,23 +4,25 @@ const fs = require('fs');
 
 const mkdirp = require('mkdirp');
 
+const pismoutil = require('./pismoutil.js');
+
 /**
  * @param {import('yargs').Arguments} argv
  */
 exports.add = async function(argv) {
   console.log(`Adding tree named ${argv.name} rooted at ${argv.path}`);
 
-  const dotpath = path.join(os.homedir(), '/.pismo/trees');
+  const treesPath = pismoutil.getTreesPath();
 
   const mkdirpErr = await new Promise(resolve => {
-    mkdirp(dotpath, resolve);
+    mkdirp(treesPath, resolve);
   });
   if (mkdirpErr) {
-    console.log(`mkdirp() failed.\n  dotpath: ${dotpath}\n  error: ${mkdirpErr}`);
+    console.log(`mkdirp() failed.\n  treesPath: ${treesPath}\n  error: ${mkdirpErr}`);
     return;
   }
 
-  const filepath = path.join(dotpath, `/${argv.name}.json`);
+  const filepath = path.join(treesPath, `/${argv.name}.json`);
 
   // check if a tree with the given name exists already
   const accessErr = await new Promise(resolve => {

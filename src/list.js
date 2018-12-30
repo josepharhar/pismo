@@ -3,6 +3,8 @@ const path = require('path');
 const util = require('util');
 const os = require('os');
 
+const pismoutil = require('./pismoutil.js');
+
 const readFilePromise = util.promisify(fs.readFile);
 const readdirPromise = util.promisify(fs.readdir);
 
@@ -10,34 +12,24 @@ const readdirPromise = util.promisify(fs.readdir);
  * @param {import('yargs').Arguments} argv
  */
 exports.list = async function(argv) {
-  const dotpath = path.join(os.homedir(), '/.pismo/trees');
-
-  let files;
-  try {
-    files = await readdirPromise(dotpath);
-  } catch (err) {
-    console.log('failed to read path: ' + dotpath);
-    console.log(err);
-    return;
-  }
+  const treeNamesToPaths = await pismoutil.getTreeNamesToPaths();
 
   let first = true;
-  for (const file of files) {
-    if (first) {
+  for (const name in treeNamesToPaths) {
+    if (first)
       first = false;
-    } else {
+    else
       console.log();
-    }
 
-    const name = file.replace(/.json$/, '');
-    const filepath = path.join(dotpath, file);
+    const filepath = treeNamesToPaths[name];
 
     let filecontents;
     try {
       filecontents = await readFilePromise(filepath, 'utf8');
     } catch (err) {
-      console.log('failed to read file: ' + filepath);
-      console.log(err);
+      console.log('Failed to read tree file.');
+      console.log('  filepath: ' + filepath);
+      console.log('  error: ' + err);
       return;
     }
 
@@ -45,11 +37,13 @@ exports.list = async function(argv) {
     try {
       fileobject = JSON.parse(filecontents);
     } catch (err) {
-      console.log(`failed to parse tree file to json.\n  path: ${filepath}\n  error: ${err}`);
+      console.log('Failed to parse tree file using JSON.parse().');
+      console.log('  filepath: ' + filepath);
+      console.log('  error: ' + err);
       return;
     }
 
     console.log(name);
-    console.log(`  path: ${fileobject.path}`);
+    console.log('  path: ' + fileobject.path);
   }
 }
