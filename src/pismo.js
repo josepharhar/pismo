@@ -2,6 +2,7 @@
 
 const {list} = require('./list.js');
 const {add} = require('./add.js');
+const {update} = require('./update.js');
 
 // TODO delet this
 const defaultHandler = argv => console.log('Not implemented yet. argv: ' + JSON.stringify(argv, null, 2));
@@ -55,7 +56,7 @@ require('yargs')
     yargs => yargs
         .help(false)
         .version(false),
-    defaultHandler)
+    update)
 
   .command(
     'update-remote <ip> <remote-name>',
