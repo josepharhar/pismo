@@ -2,6 +2,8 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
+const mkdirp = require('mkdirp');
+
 /**
  * @param {import('yargs').Arguments} argv
  */
@@ -9,6 +11,14 @@ exports.add = async function(argv) {
   console.log(`Adding tree named ${argv.name} rooted at ${argv.path}`);
 
   const dotpath = path.join(os.homedir(), '/.pismo/trees');
+
+  const mkdirpErr = await new Promise(resolve => {
+    mkdirp(dotpath, resolve);
+  });
+  if (mkdirpErr) {
+    console.log(`mkdirp() failed.\n  dotpath: ${dotpath}\n  error: ${mkdirpErr}`);
+    return;
+  }
 
   const filepath = path.join(dotpath, `/${argv.name}.json`);
 
@@ -29,10 +39,9 @@ exports.add = async function(argv) {
     fs.writeFile(filepath, JSON.stringify(newTree, null, 2), resolve);
   });
   if (writeFileError) {
-    console.log(`Failed to write new tree to path: ${filepath} err: ${writeFileError}`);
+    console.log(`Failed to write new tree.\n  path: ${filepath}\n  err: ${writeFileError}`);
     return;
   }
 
   // TODO call scan or not based on argv.noupdate
-  // TODO mkdirp home/.pismo/trees
 }
