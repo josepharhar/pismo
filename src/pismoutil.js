@@ -4,7 +4,29 @@ const fs = require('fs');
 const util = require('util');
 
 const readdirPromise = util.promisify(fs.readdir);
-const log = msg => console.log(`[${path.basename(__filename)}] ${msg}`);
+
+/**
+ * @param {string=} prefix
+ * @return {{logInfo: function(string), logError: function(string)}}
+ */
+exports.getLogger = function(prefix) {
+  let infoPrefix, errorPrefix;
+  if (prefix) {
+    infoPrefix = '[INFO] ';
+    errorPrefix = '[ERROR] ';
+  } else {
+    infoPrefix = `[INFO ${prefix}] `;
+    errorPrefix = `[ERROR ${prefix}] `;
+  }
+
+  // TODO suppress INFO messages if --verbose is not supplied
+  return {
+    logInfo: message => console.log(infoPrefix + message),
+    logError: message => console.log(errorPrefix + message)
+  };
+}
+
+const {logInfo, logError} = exports.getLogger(path.basename(__filename));
 
 /**
  * @return {!string}
@@ -36,7 +58,7 @@ exports.getTreeNamesToPaths = async function() {
   try {
     filenames = await readdirPromise(treespath);
   } catch (err) {
-    log('getTreeFiles() call to readdir() failed: ' + err);
+    logInfo('getTreeFiles() call to readdir() failed: ' + err);
     return output;
   }
 
