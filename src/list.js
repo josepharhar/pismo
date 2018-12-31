@@ -7,9 +7,11 @@ const pismoutil = require('./pismoutil.js');
 
 const readFilePromise = util.promisify(fs.readFile);
 const readdirPromise = util.promisify(fs.readdir);
+const {logInfo, logError} = pismoutil.getLogger(
+  path.basename(__filename));
 
 /**
- * @param {import('yargs').Arguments} argv
+ * @param {import('yargs').Arguments<{}>} argv
  */
 exports.list = async function(argv) {
   const treeNamesToPaths = await pismoutil.getTreeNamesToPaths();
@@ -21,29 +23,13 @@ exports.list = async function(argv) {
     else
       console.log();
 
-    const filepath = treeNamesToPaths[name];
-
-    let filecontents;
-    try {
-      filecontents = await readFilePromise(filepath, 'utf8');
-    } catch (err) {
-      console.log('Failed to read tree file.');
-      console.log('  filepath: ' + filepath);
-      console.log('  error: ' + err);
+    const tree = await pismoutil.readFileToJson(
+      treeNamesToPaths[name]);
+    if (tree === null) {
+      logError('Failed to read tree json file for name: ' + name);
       return;
     }
-
-    let fileobject;
-    try {
-      fileobject = JSON.parse(filecontents);
-    } catch (err) {
-      console.log('Failed to parse tree file using JSON.parse().');
-      console.log('  filepath: ' + filepath);
-      console.log('  error: ' + err);
-      return;
-    }
-
     console.log(name);
-    console.log('  path: ' + fileobject.path);
+    console.log('  path: ' + tree.path);
   }
 }

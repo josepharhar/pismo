@@ -4,20 +4,23 @@ const fs = require('fs');
 const util = require('util');
 
 const readdirPromise = util.promisify(fs.readdir);
+const readFilePromise = util.promisify(fs.readFile);
 
 /**
- * @param {string=} prefix
+ * @param {string=} filepath
  * @return {{logInfo: function(string), logError: function(string)}}
  */
-exports.getLogger = function(prefix) {
-  let infoPrefix, errorPrefix;
-  if (prefix) {
-    infoPrefix = '[INFO] ';
-    errorPrefix = '[ERROR] ';
-  } else {
-    infoPrefix = `[INFO ${prefix}] `;
-    errorPrefix = `[ERROR ${prefix}] `;
+exports.getLogger = function(filepath) {
+  if (filepath) {
+    filepath = path.basename(filepath);
   }
+
+  const infoPrefix = filepath
+    ? `[INFO ${filepath}] `
+    : '[INFO] ';
+  const errorPrefix = filepath
+    ? `[ERROR ${filepath}] `
+    : `[ERROR] `;
 
   // TODO suppress INFO messages if --verbose is not supplied
   return {
@@ -70,4 +73,29 @@ exports.getTreeNamesToPaths = async function() {
     output[name] = path.join(treespath, filename);
   }
   return output;
+}
+
+/**
+ * On failure, returns null and logs error message.
+ *
+ * @param {!string} filepath
+ * @return {!Promise<?Object>}
+ */
+exports.readFileToJson = async function(filepath) {
+  let filecontents;
+  try {
+    filecontents = await readFilePromise(filepath, 'utf8');
+  } catch (err) {
+    logError(
+      `Failed to read file.\n  filepath: ${filepath}\n  error: ${err}`);
+    return null;
+  }
+
+  try {
+    return JSON.parse(filecontents);
+  } catch (err) {
+    logError(
+      `Failed to parse file to json.\n  filepath: ${filepath}\n error: ${err}`);
+    return null;
+  }
 }
