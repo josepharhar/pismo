@@ -1,20 +1,32 @@
 #!/usr/bin/env node
 
+const yargs = require('yargs');
+
 const {list} = require('./list.js');
 const {add} = require('./add.js');
 const {update} = require('./update.js');
 
+function run(fn) {
+  return function(argv) {
+    fn(argv).catch(err => {
+      console.log('Pismo failed with error:');
+      console.log(err);
+    });
+  }
+}
+
 // TODO delet this
 const defaultHandler = argv => console.log('Not implemented yet. argv: ' + JSON.stringify(argv, null, 2));
 
-require('yargs')
+yargs
   .command(
     'list',
     'Lists directory trees stored in ~/.pismo.',
     yargs => yargs
         .help(false)
         .version(false),
-    list)
+    //argv => list(argv).catch(catcher))
+    run(list))
 
   .command(
     'add <name> <path>',
@@ -26,7 +38,7 @@ require('yargs')
         })
         .help(false)
         .version(false),
-    add)
+    run(add))
 
   .command(
     'list-remote <ip>',
@@ -56,7 +68,7 @@ require('yargs')
     yargs => yargs
         .help(false)
         .version(false),
-    update)
+    run(update))
 
   .command(
     'update-remote <ip> <remote-name>',

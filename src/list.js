@@ -7,8 +7,7 @@ const pismoutil = require('./pismoutil.js');
 
 const readFilePromise = util.promisify(fs.readFile);
 const readdirPromise = util.promisify(fs.readdir);
-const {logInfo, logError} = pismoutil.getLogger(
-  path.basename(__filename));
+const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /**
  * @param {import('yargs').Arguments<{}>} argv

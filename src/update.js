@@ -4,9 +4,13 @@ const os = require('os');
 const util = require('util');
 
 const pismoutil = require('./pismoutil.js');
+//const {TreeFile} = require('./treefile.js');
 
 const readFilePromise = util.promisify(fs.readFile);
-const {logInfo, logError} = pismoutil.getLogger(path.basename(__filename));
+const {logInfo, logError} = pismoutil.getLogger(__filename);
+
+/** @typedef {!{path: string, mtime: string, size: string}} FileInfo */
+/** @typedef {!{path: string, lastModified: string, files: Array<FileInfo>}} TreeFile */
 
 /**
  * @param {!string} name
@@ -18,12 +22,22 @@ exports.updateInternal = async function(name) {
     return;
   }
 
-  const fileobject = await pismoutil.readFileToJson(
+  /** @type {TreeFile} */
+  const oldTreefile = await pismoutil.readFileToJson(
     treeNamesToPaths[name]);
-  if (fileobject === null) {
+  if (!oldTreefile) {
     logError('Failed to read tree json file for name: ' + name);
     return;
   }
+  // TODO verifyTreeFile(treefile);
+
+  /** @type {!Object<string, FileInfo>} */
+  const fileinfoCache = {};
+  for (const fileinfo of oldTreefile.files) {
+    fileinfoCache[fileinfo.path] = fileinfo;
+  }
+
+  const basepath = oldTreefile.path;
 }
 
 /**

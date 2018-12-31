@@ -29,7 +29,7 @@ exports.getLogger = function(filepath) {
   };
 }
 
-const {logInfo, logError} = exports.getLogger(path.basename(__filename));
+const {logInfo, logError} = exports.getLogger(__filename);
 
 /**
  * @return {!string}
