@@ -13,7 +13,7 @@ const lstatPromise = util.promisify(fs.lstat);
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 // TODO figure out how to export these - i hope it doesnt take a .ts.d file
-/** @typedef {!{path: string, mtime: string, size: string}} FileInfo */
+/** @typedef {!{path: string, mtimeMs: string, size: string}} FileInfo */
 /** @typedef {!{path: string, lastModified: string, files: Array<FileInfo>}} TreeFile */
 
 /**
@@ -68,7 +68,7 @@ async function scanPath(relativePathToScan, addPathToScan, basepath, fileinfoCac
 
       const newTreefile = {
         path: relativeEntPath,
-        mtime: stat.mtime,
+        mtimeMs: stat.mtimeMs,
         size: stat.size,
         hash: null
       };
@@ -76,7 +76,7 @@ async function scanPath(relativePathToScan, addPathToScan, basepath, fileinfoCac
       // compute hash, using cache if available
       const cachedFileinfo = fileinfoCache[relativeEntPath];
       if (cachedFileinfo
-          && cachedFileinfo.mtime === newTreeFile.mtime
+          && cachedFileinfo.mtimeMs === newTreeFile.mtimeMs
           && cachedFileinfo.size === newTreeFile.size) {
         newTreefile.hash = cachedFileinfo.hash;
 
