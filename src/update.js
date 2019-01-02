@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const util = require('util');
+const crypto = require('crypto');
 
 const pismoutil = require('./pismoutil.js');
 //const {TreeFile} = require('./treefile.js');
@@ -16,11 +17,78 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
 /** @typedef {!{path: string, lastModified: string, files: Array<FileInfo>}} TreeFile */
 
 /**
- * @param {!string} path
- * @param {!Array<string>} pathStack
- * @param {!string} basepath
+ * @param {!string} absoluteFilepath
  */
-async function scanPath(path, pathStack, basepath) {
+async function genHash(absoluteFilepath) {
+  return new Promise((resolve, reject) => {
+    const output = crypto.createHash('sha256');
+    const input = fs.createReadStream(absoluteFilepath);
+    input.on('error', reject);
+    input.once('readable', () => resolve(output.read().toString('hex')));
+    input.pipe(output);
+  });
+}
+
+/**
+ * Takes one entry off pathStack and scans it, adding more if found.
+ *
+ * @param {!string} relativePathToScan
+ * @param {!function(!string) : void} addPathToScan
+ * @param {!string} basepath
+ * @param {!Object<string, FileInfo>} fileinfoCache
+ */
+async function scanPath(relativePathToScan, addPathToScan, basepath, fileinfoCache) {
+  const absolutePathToScan = path.join(basepath, relativePathToScan);
+
+  let dirents;
+  try {
+    dirents = await readdirPromise(
+      absolutePathToScan,
+      {withFileTypes: true});
+  } catch (err) {
+    logError(`readdir() failed. path: ${absolutePathToScan}`);
+    throw err;
+  }
+
+  for (const dirent of dirents) {
+    const relativeEntPath = path.join(relativePathToScan, dirent.name);
+    const absoluteEntPath = path.join(basepath, relativeEntPath);
+
+    if (dirent.isDirectory()) {
+      addPathToScan(relativeEntPath);
+
+    } else if (dirent.isFile()) {
+      let stat;
+      try {
+        stat = await lstatPromise(absoluteEntPath);
+      } catch (err) {
+        logError(`lstat() failed. path: ${absoluteEntPath}`);
+        throw err;
+      }
+
+      const newTreefile = {
+        path: relativeEntPath,
+        mtime: stat.mtime,
+        size: stat.size,
+        hash: null
+      };
+
+      // compute hash, using cache if available
+      const cachedFileinfo = fileinfoCache[relativeEntPath];
+      if (cachedFileinfo
+          && cachedFileinfo.mtime === newTreeFile.mtime
+          && cachedFileinfo.size === newTreeFile.size) {
+        newTreefile.hash = cachedFileinfo.hash;
+
+      } else {
+        // recompute hash
+        newTreefile.hash = await genHash(absoluteEntPath);
+      }
+
+    } else {
+      // ignore other file types.
+    }
+  }
 }
 
 /**
@@ -29,16 +97,14 @@ async function scanPath(path, pathStack, basepath) {
 exports.updateInternal = async function(name) {
   const treeNamesToPaths = await pismoutil.getTreeNamesToPaths();
   if (!treeNamesToPaths[name]) {
-    logError('Failed to find tree with name: ' + name);
-    return;
+    throw new Error('Failed to find tree with name: ' + name);
   }
 
   /** @type {TreeFile} */
   const oldTreefile = await pismoutil.readFileToJson(
     treeNamesToPaths[name]);
   if (!oldTreefile) {
-    logError('Failed to read tree json file for name: ' + name);
-    return;
+    throw new Error('Failed to read tree json file for name: ' + name);
   }
   // TODO verifyTreeFile(treefile);
   
@@ -61,48 +127,11 @@ exports.updateInternal = async function(name) {
   const pathsToScan = [];
   pathsToScan.push('/');
   while (pathsToScan.length) {
-    const relativePathToScan = pathsToScan.pop();
-    const absolutePathToScan = path.join(basepath, pathsToScan.pop());
-
-    let dirents;
-    try {
-      dirents = await readdirPromise(
-        absolutePathToScan,
-        {withFileTypes: true});
-    } catch (err) {
-      logError(`readdir() failed.\n  path: ${absolutePathToScan}\n  error: ${err}`);
-      return;
-    }
-
-    for (const dirent of dirents) {
-      const relativeEntPath = path.join(relativePathToScan, dirent.name);
-      const absoluteEntPath = path.join(basepath, relativeEntPath);
-
-      if (dirent.isDirectory()) {
-        pathsToScan.push(relativeEntPath);
-
-      } else if (dirent.isFile()) {
-        let stat;
-        try {
-          stat = await lstatPromise(absoluteEntPath);
-        } catch (err) {
-          logError(`lstat() failed.\n  path: ${absoluteEntPath}\n  error: ${err}`);
-          return;
-        }
-
-        // compute hash, using cache if available
-
-        newTreefile.files.push({
-          path: relativeEntPath,
-          mtime: stat.mtime,
-          size: stat.size,
-          hash: 
-        });
-
-      } else {
-        // ignore other file types.
-      }
-    }
+    await scanPath(
+      pathsToScan.pop(),
+      newPathToScan => pathsToScan.push(newPathToScan),
+      basepath,
+      fileinfoCache);
   }
 }
 
