@@ -5,6 +5,7 @@ const yargs = require('yargs');
 const {list} = require('./list.js');
 const {add} = require('./add.js');
 const {update} = require('./update.js');
+const {remove} = require('./remove.js');
 
 function run(fn) {
   return function(argv) {
@@ -39,6 +40,14 @@ yargs
         .help(false)
         .version(false),
     run(add))
+
+  .command(
+    'remove <name>',
+    'Removed a directory tree from ~/.pismo named <name>.',
+    yargs => yargs
+        .help(false)
+        .version(false),
+    run(remove))
 
   .command(
     'list-remote <ip>',
