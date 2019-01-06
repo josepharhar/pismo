@@ -6,7 +6,7 @@ const mkdirp = require('mkdirp');
 const pismoutil = require('./pismoutil.js');
 
 /**
- * @param {import('yargs').Arguments<{noupdate: boolean}>} argv
+ * @param {import('yargs').Arguments} argv
  */
 exports.add = async function(argv) {
   console.log(`Adding tree named ${argv.name} rooted at ${argv.path}`);

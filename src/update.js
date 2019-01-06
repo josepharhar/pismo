@@ -13,7 +13,7 @@ const lstatPromise = util.promisify(fs.lstat);
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 // TODO figure out how to export these - i hope it doesnt take a .ts.d file
-/** @typedef {!{path: string, mtimeMs: string, size: string}} FileInfo */
+/** @typedef {!{path: string, mtimeMs: number, size: number, hash: string}} FileInfo */
 /** @typedef {!{path: string, lastModified: string, files: Array<FileInfo>}} TreeFile */
 
 /**
@@ -76,8 +76,8 @@ async function scanPath(relativePathToScan, addPathToScan, basepath, fileinfoCac
       // compute hash, using cache if available
       const cachedFileinfo = fileinfoCache[relativeEntPath];
       if (cachedFileinfo
-          && cachedFileinfo.mtimeMs === newTreeFile.mtimeMs
-          && cachedFileinfo.size === newTreeFile.size) {
+          && cachedFileinfo.mtimeMs === newTreefile.mtimeMs
+          && cachedFileinfo.size === newTreefile.size) {
         newTreefile.hash = cachedFileinfo.hash;
 
       } else {
@@ -136,7 +136,7 @@ exports.updateInternal = async function(name) {
 }
 
 /**
- * @param {import('yargs').Arguments<{name: string}>} argv
+ * @param {import('yargs').Arguments} argv
  */
 exports.update = async function(argv) {
   exports.updateInternal(argv.name);
