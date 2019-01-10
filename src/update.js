@@ -106,7 +106,7 @@ exports.updateInternal = async function(name) {
   if (!oldTreefile) {
     throw new Error('Failed to read tree json file for name: ' + name);
   }
-  // TODO verifyTreeFile(treefile);
+  // TODO verifyTreeFile(treefile); - file could be missing the fields we want
   
   /** @type {TreeFile} */
   const newTreefile = {
@@ -139,5 +139,5 @@ exports.updateInternal = async function(name) {
  * @param {import('yargs').Arguments} argv
  */
 exports.update = async function(argv) {
-  exports.updateInternal(argv.name);
+  await exports.updateInternal(argv.name);
 }

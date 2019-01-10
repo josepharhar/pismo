@@ -9,6 +9,8 @@ const readFilePromise = util.promisify(fs.readFile);
 const readdirPromise = util.promisify(fs.readdir);
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
+/** @typedef {import('./update.js').TreeFile} TreeFile */
+
 /**
  * @param {import('yargs').Arguments} argv
  */
@@ -22,6 +24,7 @@ exports.list = async function(argv) {
     else
       console.log();
 
+    /** @type {!TreeFile} */
     const tree = await pismoutil.readFileToJson(
       treeNamesToPaths[name]);
     if (tree === null) {
@@ -30,5 +33,6 @@ exports.list = async function(argv) {
     }
     console.log(name);
     console.log('  path: ' + tree.path);
+    console.log('  lastModified: ' + tree.lastModified);
   }
 }
