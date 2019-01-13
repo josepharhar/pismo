@@ -45,8 +45,8 @@ exports.add = async function(argv) {
     fs.writeFile(filepath, JSON.stringify(newTree, null, 2), resolve);
   });
   if (writeFileError) {
-    logError(`Failed to write new tree.\n  path: ${filepath}\n  err: ${writeFileError}`);
-    return;
+    logError(`Failed to write new tree to filepath: ${filepath}`);
+    throw writeFileError;
   }
 
   // TODO call scan or not based on argv.noupdate
