@@ -12,4 +12,9 @@ exports.merge = async function(argv) {
 
   const baseTree = await pismoutil.readTreeByName(argv.base);
   const otherTree = await pismoutil.readTreeByName(argv.other);
+
+  // merge format will be a list of operations
+  // each operation has:
+  //   operator: rm, cp
+  //   operands: one or two files, with specificity to base or other tree
 }
