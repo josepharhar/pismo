@@ -40,11 +40,11 @@ exports.diff = async function(argv) {
       }
     } else if (treeFile === baseTree) {
       pismoutil.logColor(pismoutil.Colors.green,
-        `+ ${treeFile.path}`);
+        `+ ${fileInfo.path}`);
 
     } else if (treeFile === otherTree) {
       pismoutil.logColor(pismoutil.Colors.red,
-        `- ${treeFile.path}`);
+        `- ${fileInfo.path}`);
 
     } else {
       throw new Error('this should never happen.');
