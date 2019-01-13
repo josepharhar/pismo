@@ -8,14 +8,18 @@ const filesize = require('filesize');
 const readdirPromise = util.promisify(fs.readdir);
 const readFilePromise = util.promisify(fs.readFile);
 
+/** @typedef {{path: string, mtimeMs: number, size: number, hash: string}} FileInfo */
+/** @typedef {{path: string, lastModified: string, files: Array<FileInfo>}} TreeFile */
+/** @typedef {{operator: 'rm'|'cp', operands: !Array<{tree: 'base'|'other', relativePath: string}>}} Operation */
+/** @typedef {{base: string, other: string, operations: !Array<!Operation>}} MergeFile */
+
 /**
  * @param {string=} filepath
  * @return {{logInfo: function(string), logError: function(string)}}
  */
 exports.getLogger = function(filepath) {
-  if (filepath) {
+  if (filepath)
     filepath = path.basename(filepath);
-  }
 
   const infoPrefix = filepath
     ? `[INFO ${filepath}] `
@@ -155,9 +159,6 @@ exports.Colors = {
 exports.logColor = function(color, message) {
   console.log(`${color}%s${exports.Colors.reset}`, message);
 }
-
-/** @typedef {!{path: string, mtimeMs: number, size: number, hash: string}} FileInfo */
-/** @typedef {!{path: string, lastModified: string, files: Array<FileInfo>}} TreeFile */
 
 /**
  * @param {!FileInfo} fileInfo

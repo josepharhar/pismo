@@ -8,6 +8,7 @@ const {update} = require('./update.js');
 const {remove} = require('./remove.js');
 const {merge} = require('./merge.js');
 const {diff} = require('./diff.js');
+const {apply} = require('./apply.js');
 
 function run(fn) {
   return function(argv) {
@@ -123,7 +124,7 @@ yargs
     yargs => yargs
         .help(false)
         .version(false),
-    defaultHandler)
+    run(apply))
 
   .command(
     'server [port]',

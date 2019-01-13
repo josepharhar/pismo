@@ -1,4 +1,3 @@
-const path = require('path');
 const fs = require('fs');
 
 const diff = require('./diff.js');
@@ -7,7 +6,7 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /** @typedef {pismoutil.TreeFile} TreeFile */
 /** @typedef {pismoutil.FileInfo} FileInfo */
-/** @typedef {{operator: 'rm'|'cp', operands: !Array<[string, string]>}} Operation */
+/** @typedef {pismoutil.Operation} Operation */
 
 /**
  * @param {!TreeFile} baseTree
@@ -25,21 +24,21 @@ function mirrorBaseToOther(baseTree, otherTree) {
     if (second) {
       output.push({
         operator: 'cp',
-        operands: [[treeFile.path, fileInfo.path],
-                   [second.treeFile.path, second.fileInfo.path]]
+        operands: [{tree: 'base', relativePath: fileInfo.path},
+                   {tree: 'other', relativePath: second.fileInfo.path}]
       });
 
     } else if (treeFile === baseTree) {
       output.push({
         operator: 'cp',
-        operands: [[treeFile.path, fileInfo.path],
-                   [otherTree.path, fileInfo.path]]
+        operands: [{tree: 'base', relativePath: fileInfo.path},
+                   {tree: 'other', relativePath: fileInfo.path}]
       });
 
     } else if (treeFile === otherTree) {
       output.push({
         operator: 'rm',
-        operands: [[treeFile.path, fileInfo.path]]
+        operands: [{tree: 'other', relativePath: fileInfo.path}]
       });
 
     } else {
@@ -68,7 +67,12 @@ exports.merge = async function(argv) {
   // TODO use path as unique identifier everywhere instead of nickname,
   //      reimplement nicknames as an optional feature
 
-  const output = mirrorBaseToOther(baseTree, otherTree);
+  const operations = mirrorBaseToOther(baseTree, otherTree);
+  const output = {
+    base: baseTree.path,
+    other: otherTree.path,
+    operations: operations
+  };
 
   const writeFileError = await new Promise(resolve => {
     fs.writeFile(outputFilepath, JSON.stringify(output, null, 2), resolve);
