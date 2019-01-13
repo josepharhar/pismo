@@ -54,6 +54,7 @@ async function scanPath(
 
   for (const dirent of dirents) {
     const relativeEntPath = path.join(relativePathToScan, dirent.name);
+    const unixRelativeEntPath = relativeEntPath.replace(/\\/g, '/');
     const absoluteEntPath = path.join(basepath, relativeEntPath);
 
     if (dirent.isDirectory()) {
@@ -69,14 +70,14 @@ async function scanPath(
       }
 
       const newFileInfo = {
-        path: relativeEntPath.replace(/\\/g, '/'), // make sure path is portable
+        path: unixRelativeEntPath,
         mtimeMs: stat.mtimeMs,
         size: stat.size,
         hash: null
       };
 
       // compute hash, using cache if available
-      const cachedFileinfo = fileinfoCache[relativeEntPath];
+      const cachedFileinfo = fileinfoCache[unixRelativeEntPath];
       if (cachedFileinfo
           && cachedFileinfo.mtimeMs === newFileInfo.mtimeMs
           && cachedFileinfo.size === newFileInfo.size) {
@@ -87,8 +88,6 @@ async function scanPath(
         // recompute hash
         newFileInfo.hash = await genHash(absoluteEntPath);
         logInfo(`Recomputing hash for ${newFileInfo.path}`);
-        logInfo(`newFileInfo: ${JSON.stringify(newFileInfo, null, 2)}`);
-        logInfo(`cachedFileinfo: ${JSON.stringify(cachedFileinfo, null, 2)}`);
       }
 
       addFileInfo(newFileInfo);
@@ -101,8 +100,9 @@ async function scanPath(
 
 /**
  * @param {!string} name
+ * @param {boolean} nocache
  */
-exports.updateInternal = async function(name) {
+exports.updateInternal = async function(name, nocache) {
   const treefilepath = (await pismoutil.getTreeNamesToPaths())[name];
   if (!treefilepath)
     throw new Error('Failed to find tree with name: ' + name);
@@ -123,8 +123,10 @@ exports.updateInternal = async function(name) {
 
   /** @type {!Object<string, FileInfo>} */
   const fileinfoCache = {};
-  for (const fileinfo of oldTreefile.files) {
-    fileinfoCache[fileinfo.path] = fileinfo;
+  if (!nocache) {
+    for (const fileinfo of oldTreefile.files) {
+      fileinfoCache[fileinfo.path] = fileinfo;
+    }
   }
 
   const basepath = oldTreefile.path;
@@ -164,5 +166,5 @@ exports.updateInternal = async function(name) {
  * @param {import('yargs').Arguments} argv
  */
 exports.update = async function(argv) {
-  await exports.updateInternal(argv.name);
+  await exports.updateInternal(argv.name, argv.nocache);
 }

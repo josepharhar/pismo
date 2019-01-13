@@ -75,6 +75,10 @@ yargs
     'update <name>',
     'Runs a scan on the file tree named <name>, updating the state of the tree stored in ~/.pismo',
     yargs => yargs
+        .option('nocache', {
+          description: 'Recalculate hashes for each file instead of reusing them based on file modified time',
+          default: false
+        })
         .help(false)
         .version(false),
     run(update))
