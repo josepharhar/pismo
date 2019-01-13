@@ -21,11 +21,11 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
  */
 async function genHash(absoluteFilepath) {
   return new Promise((resolve, reject) => {
-    const output = crypto.createHash('sha256');
+    const hash = crypto.createHash('md5');
     const input = fs.createReadStream(absoluteFilepath);
     input.on('error', reject);
-    input.once('readable', () => resolve(output.read().toString('hex')));
-    input.pipe(output);
+    hash.once('readable', () => resolve(hash.read().toString('hex')));
+    input.pipe(hash);
   });
 }
 
@@ -34,10 +34,12 @@ async function genHash(absoluteFilepath) {
  *
  * @param {!string} relativePathToScan
  * @param {!function(!string) : void} addPathToScan
+ * @param {!function(!FileInfo) : void} addFileInfo
  * @param {!string} basepath
  * @param {!Object<string, FileInfo>} fileinfoCache
  */
-async function scanPath(relativePathToScan, addPathToScan, basepath, fileinfoCache) {
+async function scanPath(
+    relativePathToScan, addPathToScan, addFileInfo, basepath, fileinfoCache) {
   const absolutePathToScan = path.join(basepath, relativePathToScan);
 
   let dirents;
@@ -66,8 +68,8 @@ async function scanPath(relativePathToScan, addPathToScan, basepath, fileinfoCac
         throw err;
       }
 
-      const newTreefile = {
-        path: relativeEntPath,
+      const newFileInfo = {
+        path: relativeEntPath.replace(/\\/g, '/'), // make sure path is portable
         mtimeMs: stat.mtimeMs,
         size: stat.size,
         hash: null
@@ -76,14 +78,20 @@ async function scanPath(relativePathToScan, addPathToScan, basepath, fileinfoCac
       // compute hash, using cache if available
       const cachedFileinfo = fileinfoCache[relativeEntPath];
       if (cachedFileinfo
-          && cachedFileinfo.mtimeMs === newTreefile.mtimeMs
-          && cachedFileinfo.size === newTreefile.size) {
-        newTreefile.hash = cachedFileinfo.hash;
+          && cachedFileinfo.mtimeMs === newFileInfo.mtimeMs
+          && cachedFileinfo.size === newFileInfo.size) {
+        newFileInfo.hash = cachedFileinfo.hash;
+        logInfo(`Using cached hash for ${newFileInfo.path}`);
 
       } else {
         // recompute hash
-        newTreefile.hash = await genHash(absoluteEntPath);
+        newFileInfo.hash = await genHash(absoluteEntPath);
+        logInfo(`Recomputing hash for ${newFileInfo.path}`);
+        logInfo(`newFileInfo: ${JSON.stringify(newFileInfo, null, 2)}`);
+        logInfo(`cachedFileinfo: ${JSON.stringify(cachedFileinfo, null, 2)}`);
       }
+
+      addFileInfo(newFileInfo);
 
     } else {
       // ignore other file types.
@@ -95,14 +103,12 @@ async function scanPath(relativePathToScan, addPathToScan, basepath, fileinfoCac
  * @param {!string} name
  */
 exports.updateInternal = async function(name) {
-  const treeNamesToPaths = await pismoutil.getTreeNamesToPaths();
-  if (!treeNamesToPaths[name]) {
+  const treefilepath = (await pismoutil.getTreeNamesToPaths())[name];
+  if (!treefilepath)
     throw new Error('Failed to find tree with name: ' + name);
-  }
 
   /** @type {TreeFile} */
-  const oldTreefile = await pismoutil.readFileToJson(
-    treeNamesToPaths[name]);
+  const oldTreefile = await pismoutil.readFileToJson(treefilepath);
   if (!oldTreefile) {
     throw new Error('Failed to read tree json file for name: ' + name);
   }
@@ -111,7 +117,7 @@ exports.updateInternal = async function(name) {
   /** @type {TreeFile} */
   const newTreefile = {
     path: oldTreefile.path,
-    lastModified: oldTreefile.lastModified, // TODO update this now or later?
+    lastModified: new Date().toISOString(),
     files: []
   };
 
@@ -130,9 +136,28 @@ exports.updateInternal = async function(name) {
     await scanPath(
       pathsToScan.pop(),
       newPathToScan => pathsToScan.push(newPathToScan),
+      newFileInfo => newTreefile.files.push(newFileInfo),
       basepath,
       fileinfoCache);
   }
+
+  newTreefile.files.sort((a, b) => {
+    if (a.path < b.path)
+      return -1;
+    if (a.path > b.path)
+      return 1;
+    return 0;
+  });
+
+  const writeFileError = await new Promise(resolve => {
+    fs.writeFile(treefilepath, JSON.stringify(newTreefile, null, 2), resolve);
+  });
+  if (writeFileError) {
+    logError(`Failed to write updated tree file to path: ${treefilepath}`);
+    throw writeFileError;
+  }
+
+  logInfo(`Successfully updated tree: ${name}`);
 }
 
 /**
