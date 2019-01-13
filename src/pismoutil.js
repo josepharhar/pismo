@@ -3,6 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const util = require('util');
 
+const filesize = require('filesize');
+
 const readdirPromise = util.promisify(fs.readdir);
 const readFilePromise = util.promisify(fs.readFile);
 
@@ -156,3 +158,47 @@ exports.logColor = function(color, message) {
 
 /** @typedef {!{path: string, mtimeMs: number, size: number, hash: string}} FileInfo */
 /** @typedef {!{path: string, lastModified: string, files: Array<FileInfo>}} TreeFile */
+
+/**
+ * @param {!FileInfo} fileInfo
+ * @return {!Object}
+ */
+exports.humanReadableFileInfo = function(fileInfo) {
+  const copy = JSON.parse(JSON.stringify(fileInfo));
+
+  /*const mtime = new Date(0);
+  mtime.setUTCSeconds(copy.mtimeMs);
+  copy.mtimeMs = mtime.toISOString();*/
+  //copy.mtimeMs = new Date(copy.mtimeMts).toISOString();
+  //copy.mtimeMs = new Date(Math.floor(copy.mtimeMts)).toISOString();
+  /*const mtime = new Date(0);
+  mtime.setUTCSeconds(copy.mtimeMs);
+  copy.mtimeMs = mtime.toISOString();*/
+  copy.mtimeMs = exports.dateToString(new Date(copy.mtimeMs));
+
+  copy.size = filesize(copy.size);
+
+  return copy;
+}
+
+/**
+ * https://stackoverflow.com/a/17415677
+ * @param {!Date} date
+ * @return {!string}
+ */
+exports.dateToString = function(date) {
+  const tzo = -date.getTimezoneOffset(),
+    dif = tzo >= 0 ? '+' : '-',
+    pad = function(num) {
+      var norm = Math.floor(Math.abs(num));
+      return (norm < 10 ? '0' : '') + norm;
+    };
+  return date.getFullYear() +
+    '-' + pad(date.getMonth() + 1) +
+    '-' + pad(date.getDate()) +
+    'T' + pad(date.getHours()) +
+    ':' + pad(date.getMinutes()) +
+    ':' + pad(date.getSeconds()) +
+    dif + pad(tzo / 60) +
+    ':' + pad(tzo % 60);
+}
