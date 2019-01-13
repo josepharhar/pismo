@@ -26,13 +26,23 @@ exports.apply = async function(argv) {
           throw copyFileError;
         }
 
-        /*const srcStat statError = await new Promise(resolve => {
-          fs.stat(srcFilepath, resolve);
+        const srcStat = await new Promise((resolve, reject) => {
+          fs.stat(srcFilepath, (err, stats) => {
+            if (err) {
+              logError(`Failed to stat file: ${srcFilepath}`);
+              reject(err);
+            }
+            resolve(stats);
+          });
         });
 
         const utimesError = await new Promise(resolve => {
-          fs.utimes(destFilepath*/
-
+          fs.utimes(destFilepath, srcStat.atime, srcStat.mtime, resolve);
+        });
+        if (utimesError) {
+          logError(`Failed to utime file ${destFilepath} with atime: ${srcStat.atime}, mtime: ${srcStat.mtime}`);
+          throw utimesError;
+        }
         break;
 
       case 'rm':
