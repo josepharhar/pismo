@@ -12,10 +12,6 @@ const readdirPromise = util.promisify(fs.readdir);
 const lstatPromise = util.promisify(fs.lstat);
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
-// TODO figure out how to export these - i hope it doesnt take a .ts.d file
-/** @typedef {!{path: string, mtimeMs: number, size: number, hash: string}} FileInfo */
-/** @typedef {!{path: string, lastModified: string, files: Array<FileInfo>}} TreeFile */
-
 /**
  * @param {!string} absoluteFilepath
  */
@@ -28,6 +24,9 @@ async function genHash(absoluteFilepath) {
     input.pipe(hash);
   });
 }
+
+/** @typedef {pismoutil.FileInfo} FileInfo */
+/** @typedef {pismoutil.TreeFile} TreeFile */
 
 /**
  * Takes one entry off pathStack and scans it, adding more if found.

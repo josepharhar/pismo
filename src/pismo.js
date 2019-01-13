@@ -6,6 +6,8 @@ const {list} = require('./list.js');
 const {add} = require('./add.js');
 const {update} = require('./update.js');
 const {remove} = require('./remove.js');
+const {merge} = require('./merge.js');
+const {diff} = require('./diff.js');
 
 function run(fn) {
   return function(argv) {
@@ -100,11 +102,11 @@ yargs
     yargs => yargs
         .help(false)
         .version(false),
-    defaultHandler)
+    run(diff))
 
   .command(
-    'merge-gen <base> <other> <output>',
-    'Compares the directory trees named <base> and <other> and writes a merge file to the path <output>, which can then be applied by using merge-apply.',
+    'merge-gen <base> <other> <output-filepath>',
+    'Compares the directory trees named <base> and <other> and writes a merge file to the path <output-filepath>, which can then be applied by using merge-apply.',
     yargs => yargs
         .option('mode', {
           choices: ['one-way-mirror', 'two-way-sync'],
@@ -113,7 +115,7 @@ yargs
         })
         .help(false)
         .version(false),
-    defaultHandler)
+    run(merge))
 
   .command(
     'merge-apply <mergefile>',

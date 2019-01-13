@@ -99,3 +99,60 @@ exports.readFileToJson = async function(filepath) {
     return null;
   }
 }
+
+/**
+ * @param {!string} treename
+ * @return {!Promise<!TreeFile>}
+ */
+exports.readTreeByName = async function(treename) {
+  const treeNamesToPaths = await exports.getTreeNamesToPaths();
+  const filepath = treeNamesToPaths[treename];
+  if (!filepath)
+    throw new Error(`Couldn't find a tree file named ${treename}`);
+  try {
+    return await exports.readFileToJson(filepath);
+  } catch (err) {
+    logError(`Failed to read tree file named ${treename} at filepath ${filepath}`);
+    throw err;
+  }
+}
+
+/** @type {!Object<string, string>} */
+exports.Colors = {
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  dim: '\x1b[2m',
+  underscore: '\x1b[4m',
+  blink: '\x1b[5m',
+  reverse: '\x1b[7m',
+  hidden: '\x1b[8m',
+
+  black: '\x1b[30m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  magenta: '\x1b[35m',
+  cyan: '\x1b[36m',
+  white: '\x1b[37m',
+
+  blackBg: '\x1b[40m',
+  redBg: '\x1b[41m',
+  greenBg: '\x1b[42m',
+  yellowBg: '\x1b[43m',
+  blueBg: '\x1b[44m',
+  magentaBg: '\x1b[45m',
+  cyanBg: '\x1b[46m',
+  whiteBg: '\x1b[47m',
+};
+
+/**
+ * @param {!string} color
+ * @param {!string} message
+ */
+exports.logColor = function(color, message) {
+  console.log(`${color}%s${exports.Colors.reset}`, message);
+}
+
+/** @typedef {!{path: string, mtimeMs: number, size: number, hash: string}} FileInfo */
+/** @typedef {!{path: string, lastModified: string, files: Array<FileInfo>}} TreeFile */
