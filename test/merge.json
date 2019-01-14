@@ -1,0 +1,71 @@
+{
+  "base": "C:\\cygwin64\\home\\jarhar\\pismo\\test\\out1",
+  "other": "C:\\cygwin64\\home\\jarhar\\pismo\\test\\out2",
+  "operations": [
+    {
+      "operator": "cp",
+      "operands": [
+        {
+          "tree": "base",
+          "relativePath": "/new"
+        },
+        {
+          "tree": "other",
+          "relativePath": "/new"
+        }
+      ]
+    },
+    {
+      "operator": "cp",
+      "operands": [
+        {
+          "tree": "base",
+          "relativePath": "/small.txt"
+        },
+        {
+          "tree": "other",
+          "relativePath": "/small.txt"
+        }
+      ]
+    },
+    {
+      "operator": "cp",
+      "operands": [
+        {
+          "tree": "base",
+          "relativePath": "/subdir/subdir_hello.txt"
+        },
+        {
+          "tree": "other",
+          "relativePath": "/subdir/subdir_hello.txt"
+        }
+      ]
+    },
+    {
+      "operator": "cp",
+      "operands": [
+        {
+          "tree": "base",
+          "relativePath": "/subdir/subsubdir/subsubdir_two.txt"
+        },
+        {
+          "tree": "other",
+          "relativePath": "/subdir/subsubdir/subsubdir_two.txt"
+        }
+      ]
+    },
+    {
+      "operator": "cp",
+      "operands": [
+        {
+          "tree": "base",
+          "relativePath": "/vimrc"
+        },
+        {
+          "tree": "other",
+          "relativePath": "/vimrc"
+        }
+      ]
+    }
+  ]
+}
