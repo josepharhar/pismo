@@ -35,9 +35,10 @@ exports.apply = async function(argv) {
             resolve(stats);
           });
         });
+        logInfo(`got srcStat: ${srcStat}`);
 
         const utimesError = await new Promise(resolve => {
-          fs.utimes(destFilepath, srcStat.atime, srcStat.mtime, resolve);
+          fs.utimes(destFilepath, srcStat.atimeMs, srcStat.mtimeMs, resolve);
         });
         if (utimesError) {
           logError(`Failed to utime file ${destFilepath} with atime: ${srcStat.atime}, mtime: ${srcStat.mtime}`);

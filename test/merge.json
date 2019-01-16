@@ -1,6 +1,6 @@
 {
-  "base": "C:\\cygwin64\\home\\jarhar\\pismo\\test\\out1",
-  "other": "C:\\cygwin64\\home\\jarhar\\pismo\\test\\out2",
+  "base": "/home/jarhar/pismo/test/out1",
+  "other": "/home/jarhar/pismo/test/out2",
   "operations": [
     {
       "operator": "cp",
@@ -38,6 +38,19 @@
         {
           "tree": "other",
           "relativePath": "/subdir/subdir_hello.txt"
+        }
+      ]
+    },
+    {
+      "operator": "cp",
+      "operands": [
+        {
+          "tree": "base",
+          "relativePath": "/subdir/subsubdir/subsubdir_hello.txt"
+        },
+        {
+          "tree": "other",
+          "relativePath": "/subdir/subsubdir/subsubdir_hello.txt"
         }
       ]
     },

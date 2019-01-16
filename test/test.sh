@@ -11,6 +11,11 @@ pismo remove test1 || true
 pismo remove test2 || true
 
 cp -r -p data1 out1
+find out1 -type f | xargs touch
+cp -r -p data1 out2
+jcmp out1 > out1-expected.txt
+jcmp out2 > out2-expected.txt
+rm -rf out2
 cp -r -p data2 out2
 
 pismo add test1 out1
@@ -24,7 +29,7 @@ pismo merge-apply merge.json
 jcmp out1 > out1-actual.txt
 jcmp out2 > out2-actual.txt
 
-diff out1-after-expected.txt out1-actual.txt
-diff out2-after-expected.txt out2-actual.txt
+diff out1-expected.txt out1-actual.txt
+diff out2-expected.txt out2-actual.txt
 
 echo "success"
