@@ -11,7 +11,7 @@ pismo remove test1 || true
 pismo remove test2 || true
 
 cp -r -p data1 out1
-find out1 -type f | xargs touch
+find data2 -type f | xargs touch
 cp -r -p data1 out2
 jcmp out1 > out1-expected.txt
 jcmp out2 > out2-expected.txt
