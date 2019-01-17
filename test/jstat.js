@@ -1,20 +1,17 @@
 const fs = require('fs');
+const util = require('util');
+
+const statPromise = util.promisify(fs.stat);
 
 if (process.argv.length !== 3) {
   console.log('two arguments required, found: ' + JSON.stringify(process.argv));
   process.exit(1);
 }
 
-fs.stat(process.argv[2], (err, stats) => {
-  if (err) {
-    console.log('stat() failed with error: ' + err);
-    return;
-  }
+(async function() {
+  const numberStat = await statPromise(process.argv[2]);
+  const bigintStat = await statPromise(process.argv[2], {bigint: true});
 
-  const seconds = Math.floor(stats.mtimeMs / 1000);
-  const nanoseconds = (stats.mtimeMs * 1000 * 1000)
-    % 1000000000;
-  console.log('mtime seconds.nanoseconds: '
-    + seconds + '.' + nanoseconds);
-  console.log('mtimeMs: ' + stats.mtimeMs);
-});
+  console.log('numberStat.mtimeMs: ' + numberStat.mtimeMs);
+  console.log('bigintStat.mtimeMs: ' + bigintStat.mtimeMs);
+})();
