@@ -9,6 +9,7 @@ const {remove} = require('./remove.js');
 const {merge} = require('./merge.js');
 const {diff} = require('./diff.js');
 const {apply} = require('./apply.js');
+const {config} = require('./config.js');
 
 function run(fn) {
   return function(argv) {
@@ -46,7 +47,7 @@ yargs
 
   .command(
     'remove <name>',
-    'Removed a directory tree from ~/.pismo named <name>.',
+    'Removes a directory tree from ~/.pismo named <name>.',
     yargs => yargs
         .help(false)
         .version(false),
@@ -125,6 +126,14 @@ yargs
         .help(false)
         .version(false),
     run(apply))
+
+  .command(
+    'config <setting> [value]',
+    'Sets configuration variables stored in ~/.pismo/config.json',
+    yargs => yargs
+        .help(false)
+        .version(false),
+    run(config))
 
   .command(
     'server [port]',
