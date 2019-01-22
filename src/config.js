@@ -2,34 +2,23 @@ const fs = require('fs');
 const path = require('path');
 
 const pismoutil = require('./pismoutil.js');
-
-const writeFilePromise = util.promisify(fs.writeFile);
+const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /**
  * @param {import('yargs').Arguments} argv
  */
 exports.config = async function(argv) {
-  const configpath = path.join(pismoutil.getDotPath(), '/config.json');
-  let config = await pismoutil.readFileToJson(configpath);
+  let config = await pismoutil.readDotFileFromJson('config.json');
   if (!config) {
-    console.log('~/.pismo/config.json not found, creating...');
     config = {};
-    try {
-      await writeFilePromise(configpath,
-        JSON.stringify(config, null, 2));
-    } catch (err) {
-      console.error('Failed to create ~/.pismo/config.json');
-      throw err;
-    }
   }
 
   if (argv.value) {
     config[argv.setting] = argv.value;
     try {
-      await writeFilePromise(configpath,
-        JSON.stringify(config, null, 2));
+      await pismoutil.writeDotFile('config.json', config);
     } catch (err) {
-      console.error('Failed to write to ~/.pismo/config.json');
+      console.error('Failed to write to config.json');
       throw err;
     }
     return;
@@ -43,9 +32,7 @@ exports.config = async function(argv) {
  * @return {?string}
  */
 exports.getSetting(setting) {
-  const configpath = path.join(pismoutil.getDotPath(),
-    '/config.json');
-  const config = await pismoutil.readFileToJson(configpath);
+  const config = await pismoutil.readDotFileFromJson('config.json');
   if (!config)
     return null;
   return config[setting];

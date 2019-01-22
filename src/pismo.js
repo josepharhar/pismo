@@ -10,6 +10,8 @@ const {merge} = require('./merge.js');
 const {diff} = require('./diff.js');
 const {apply} = require('./apply.js');
 const {config} = require('./config.js');
+const {commit} = require('./commit.js');
+const {status} = require('./status.js');
 
 function run(fn) {
   return function(argv) {
@@ -99,8 +101,8 @@ yargs
     defaultHandler)
 
   .command(
-    'diff <base> <other>',
-    'Compares the contents of the directory trees named <base> and <other>, and prints out the differences.',
+    'diff <base> [other]',
+    'Compares the contents of the directory trees named <base> and [other], and prints out the differences. If [other] is unset and backups are enabled, compares between backup and newest version of <base>.',
     yargs => yargs
         .help(false)
         .version(false),
@@ -134,6 +136,22 @@ yargs
         .help(false)
         .version(false),
     run(config))
+
+  .command(
+    'status <name>',
+    'Gets observed changes since last commit to file tree named <name>. Does nothing if backups are disabled.',
+    yargs => yargs
+        .help(false)
+        .version(false),
+    run(status))
+
+  .command(
+    'commit <name>',
+    'Commits changes to file tree named <tree>, removing the backup "image" of the file tree. Does nothing if backups are disabled.',
+    yargs => yargs
+        .help(false)
+        .version(false),
+    run(commit0))
 
   .command(
     'server [port]',

@@ -7,6 +7,7 @@ const filesize = require('filesize');
 
 const readdirPromise = util.promisify(fs.readdir);
 const readFilePromise = util.promisify(fs.readFile);
+const writeFilePromise = util.promisify(fs.writeFile);
 
 /** @typedef {{path: string, mtimeMs: number, size: number, hash: string}} FileInfo */
 /** @typedef {{path: string, lastModified: string, files: Array<FileInfo>}} TreeFile */
@@ -38,6 +39,7 @@ exports.getLogger = function(filepath) {
 const {logInfo, logError} = exports.getLogger(__filename);
 
 /**
+ * TODO transition off usage of this in other files
  * @return {!string}
  */
 exports.getDotPath = function() {
@@ -82,6 +84,59 @@ exports.getTreeNamesToPaths = async function() {
 }
 
 /**
+ * Reads a file within the ~/.pismo directory.
+ *
+ * @param {!string} relativePath
+ * @return {!Promise<string>}
+ */
+exports.readDotFile = async function(relativePath) {
+  const filepath = path.join(exports.getDotPath(), relativePath);
+  try {
+    return await readFilePromise(filepath, 'utf8');
+  } catch (err) {
+    logError(`Failed to read file. filepath: ${filepath}`);
+    throw err;
+  }
+}
+
+/**
+ * Reads a file within the ~/.pismo directory and calls JSON.parse() on it.
+ *
+ * @param {!string} relativePath
+ * @return {!Promise<?Object>}
+ */
+exports.readDotFileFromJson = async function(relativePath) {
+  const contents = await exports.readDotFile(relativePath);
+  try {
+    return JSON.parse(contents);
+  } catch (err) {
+    logError(`Failed to JSON.parse() dotfile: ${relativePath}`);
+    throw err;
+  }
+}
+
+/**
+ * Writes data to a file in the ~/.pismo directory.
+ * If data is an object, JSON.stringify() will be called on it.
+ *
+ * @param {!string} relativePath
+ * @param {string|number|Object} data
+ */
+exports.writeDotFile = async funtion(relativePath, data) {
+  const filepath = path.join(exports.getDotPath(), relativePath);
+  if (typeof(data) === 'object') {
+    data = JSON.stringify(data, null, 2);
+  }
+  try {
+    await writeFilePromise(filepath, data);
+  } catch(err) {
+    logError(`Failed to write to filepath: ${filepath}`);
+    throw err;
+  }
+}
+
+/**
+ * TODO remove this in favor of readDotFileToJson()
  * On failure, returns null and logs error message.
  *
  * @param {!string} filepath
