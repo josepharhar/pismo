@@ -151,7 +151,7 @@ yargs
     yargs => yargs
         .help(false)
         .version(false),
-    run(commit0))
+    run(commit))
 
   .command(
     'server [port]',

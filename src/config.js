@@ -29,9 +29,9 @@ exports.config = async function(argv) {
 
 /**
  * @param {!string} setting
- * @return {?string}
+ * @return {!Promise<?string>}
  */
-exports.getSetting(setting) {
+exports.getSetting = async function(setting) {
   const config = await pismoutil.readDotFileFromJson('config.json');
   if (!config)
     return null;

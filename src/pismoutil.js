@@ -122,7 +122,7 @@ exports.readDotFileFromJson = async function(relativePath) {
  * @param {!string} relativePath
  * @param {string|number|Object} data
  */
-exports.writeDotFile = async funtion(relativePath, data) {
+exports.writeDotFile = async function(relativePath, data) {
   const filepath = path.join(exports.getDotPath(), relativePath);
   if (typeof(data) === 'object') {
     data = JSON.stringify(data, null, 2);

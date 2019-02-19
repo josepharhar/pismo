@@ -25,10 +25,10 @@
     "@types/mkdirp": "^0.5.2",
     "@types/node": "^10.12.15",
     "@types/yargs": "^12.0.1",
+    "@types/filesize": "^3.6.0",
     "typescript": "^3.2.2"
   },
   "dependencies": {
-    "@types/filesize": "^3.6.0",
     "filesize": "^4.0.0",
     "mkdirp": "^0.5.1",
     "nanostat": "^0.1.1",
