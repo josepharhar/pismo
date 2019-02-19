@@ -9,7 +9,7 @@ const readdirPromise = util.promisify(fs.readdir);
 const readFilePromise = util.promisify(fs.readFile);
 const writeFilePromise = util.promisify(fs.writeFile);
 
-/** @typedef {{path: string, mtimeMs: number, size: number, hash: string}} FileInfo */
+/** @typedef {{path: string, mtimeS: number, mtimeNs: number, size: number, hash: string}} FileInfo */
 /** @typedef {{path: string, lastModified: string, files: Array<FileInfo>}} TreeFile */
 /** @typedef {{operator: 'rm'|'cp', operands: !Array<{tree: 'base'|'other', relativePath: string}>}} Operation */
 /** @typedef {{base: string, other: string, operations: !Array<!Operation>}} MergeFile */

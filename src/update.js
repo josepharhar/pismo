@@ -4,12 +4,13 @@ const os = require('os');
 const util = require('util');
 const crypto = require('crypto');
 
+const nanostat = require('nanostat');
+
 const pismoutil = require('./pismoutil.js');
 //const {TreeFile} = require('./treefile.js');
 
 const readFilePromise = util.promisify(fs.readFile);
 const readdirPromise = util.promisify(fs.readdir);
-const lstatPromise = util.promisify(fs.lstat);
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /**
@@ -62,7 +63,7 @@ async function scanPath(
     } else if (dirent.isFile()) {
       let stat;
       try {
-        stat = await lstatPromise(absoluteEntPath);
+        stat = nanostat.lstatSync(absoluteEntPath);
       } catch (err) {
         logError(`lstat() failed. path: ${absoluteEntPath}`);
         throw err;
@@ -70,7 +71,8 @@ async function scanPath(
 
       const newFileInfo = {
         path: unixRelativeEntPath,
-        mtimeMs: stat.mtimeMs,
+        mtimeS: Number(stat.mtimeMs / 1000n),
+        mtimeNs: Number(stat.mtimeNs),
         size: stat.size,
         hash: null
       };
