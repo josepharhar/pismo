@@ -31,7 +31,7 @@
   "dependencies": {
     "filesize": "^4.0.0",
     "mkdirp": "^0.5.1",
-    "nanostat": "^0.1.1",
+    "nanostat": "file:/home/jarhar/nanostat",
     "yargs": "^12.0.5"
   }
 }

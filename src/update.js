@@ -80,7 +80,8 @@ async function scanPath(
       // compute hash, using cache if available
       const cachedFileinfo = fileinfoCache[unixRelativeEntPath];
       if (cachedFileinfo
-          && cachedFileinfo.mtimeMs === newFileInfo.mtimeMs
+          && cachedFileinfo.mtimeS === newFileInfo.mtimeS
+          && cachedFileinfo.mtimeNs === newFileInfo.mtimeNs
           && cachedFileinfo.size === newFileInfo.size) {
         newFileInfo.hash = cachedFileinfo.hash;
         logInfo(`Using cached hash for ${newFileInfo.path}`);
