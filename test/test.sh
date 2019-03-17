@@ -1,4 +1,4 @@
-#!/usr/bin/zsh
+#!/usr/bin/bash
 set -e
 set -x
 
@@ -6,6 +6,7 @@ jcmp() {
   find $1 -type f -exec sh -c 'md5sum --tag "{}" ; stat --printf="%y\n" "{}" ;' \; | paste -d " " - -
 }
 
+# clean up stuff from previous test runs
 rm -rf out1 out2 || true
 pismo remove test1 || true
 pismo remove test2 || true
@@ -32,4 +33,4 @@ jcmp out2 > out2-actual.txt
 diff out1-expected.txt out1-actual.txt
 diff out2-expected.txt out2-actual.txt
 
-echo "success"
+echo "test passed successfully"

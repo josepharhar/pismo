@@ -4,6 +4,7 @@ const os = require('os');
 const util = require('util');
 const crypto = require('crypto');
 
+// @ts-ignore
 const nanostat = require('nanostat');
 
 const pismoutil = require('./pismoutil.js');
