@@ -23,7 +23,7 @@ function mirrorBaseToOther(baseTree, otherTree) {
 
     if (second) {
       output.push({
-        operator: 'cp',
+        operator: second.fileInfo.hash === fileInfo.hash ? 'touch' : 'cp',
         operands: [{tree: 'base', relativePath: fileInfo.path},
                    {tree: 'other', relativePath: second.fileInfo.path}]
       });

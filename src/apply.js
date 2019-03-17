@@ -14,6 +14,11 @@ exports.apply = async function(argv) {
 
   for (const {operator, operands} of mergefile.operations) {
     switch (operator) {
+      case 'touch':
+        const srcFilepath = path.join(mergefile[operands[0].tree], operands[0].relativePath);
+        const destFilepath = path.join(mergefile[operands[1].tree], operands[1].relativePath);
+        break;
+
       case 'cp':
         const srcFilepath = path.join(mergefile[operands[0].tree], operands[0].relativePath);
         const destFilepath = path.join(mergefile[operands[1].tree], operands[1].relativePath);

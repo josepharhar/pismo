@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+BigInt.prototype.toJSON = function() {
+  return this.toString();
+}
+
 const yargs = require('yargs');
 
 const {list} = require('./list.js');
