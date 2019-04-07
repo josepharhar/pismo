@@ -1,6 +1,8 @@
 const path = require('path');
 const fs = require('fs');
 
+const nanoutimes = require('nanoutimes');
+
 const diff = require('./diff.js');
 const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
@@ -13,15 +15,16 @@ exports.apply = async function(argv) {
   const mergefile = await pismoutil.readFileToJson(argv.mergefile);
 
   for (const {operator, operands} of mergefile.operations) {
+    let srcFilepath = null, destFilepath = null;
     switch (operator) {
       case 'touch':
-        const srcFilepath = path.join(mergefile[operands[0].tree], operands[0].relativePath);
-        const destFilepath = path.join(mergefile[operands[1].tree], operands[1].relativePath);
+        srcFilepath = path.join(mergefile[operands[0].tree], operands[0].relativePath);
+        destFilepath = path.join(mergefile[operands[1].tree], operands[1].relativePath);
         break;
 
       case 'cp':
-        const srcFilepath = path.join(mergefile[operands[0].tree], operands[0].relativePath);
-        const destFilepath = path.join(mergefile[operands[1].tree], operands[1].relativePath);
+        srcFilepath = path.join(mergefile[operands[0].tree], operands[0].relativePath);
+        destFilepath = path.join(mergefile[operands[1].tree], operands[1].relativePath);
 
         const copyFileError = await new Promise(resolve => {
           fs.copyFile(srcFilepath, destFilepath, resolve);
