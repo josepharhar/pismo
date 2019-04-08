@@ -1,7 +1,10 @@
 const path = require('path');
 const fs = require('fs');
 
+// @ts-ignore
 const nanoutimes = require('nanoutimes');
+// @ts-ignore
+const nanostat = require('nanostat');
 
 const diff = require('./diff.js');
 const pismoutil = require('./pismoutil.js');
@@ -20,6 +23,14 @@ exports.apply = async function(argv) {
       case 'touch':
         srcFilepath = path.join(mergefile[operands[0].tree], operands[0].relativePath);
         destFilepath = path.join(mergefile[operands[1].tree], operands[1].relativePath);
+
+        const stats = nanostat.statSync(srcFilepath);
+        const atimeS = stats.atimeMs / 1000n;
+        const atimeNs = stats.atimeNs;
+        const mtimeS = stats.atimeMs / 1000n;
+        const mtimeNs = stats.mtimeNs;
+        nanoutimes.utimesSync(destFilepath, atimeS, atimeNs
+
         break;
 
       case 'cp':
