@@ -50,10 +50,54 @@ function mirrorBaseToOther(baseTree, otherTree) {
 }
 
 /**
+ * @param {!TreeFile} baseTree
+ * @param {!TreeFile} otherTree
+ * @return {!Array<!Operation>}
+ */
+function twoWayMerge(baseTree, otherTree) {
+  /** @type {!Array<!Operation>} */
+  const output = [];
+
+  const differator = diff.differator(baseTree, otherTree);
+  while (differator.hasNext()) {
+    const [{treeFile, fileInfo}, second] = differator.next();
+
+    if (second) {
+      // TODO how can this be properly represented in a merge file?
+      output.push({
+        operator: second.fileInfo.hash === fileInfo.hash ? 'touch' : 'cp',
+        operands: [{tree: 'base', relativePath: fileInfo.path},
+                   {tree: 'other', relativePath: second.fileInfo.path}]
+      });
+
+    } else if (treeFile === baseTree) {
+      output.push({
+        operator: 'cp',
+        operands: [{tree: 'base', relativePath: fileInfo.path},
+                   {tree: 'other', relativePath: fileInfo.path}]
+      });
+
+    } else if (treeFile === otherTree) {
+      output.push({
+        operator: 'cp',
+        operands: [{tree: 'base', relativePath: fileInfo.path},
+                   {tree: 'other', relativePath: fileInfo.path}]
+      });
+
+    } else {
+      throw new Error('this should never happen');
+    }
+  }
+
+  return output;
+}
+
+/**
  * @param {import('yargs').Arguments} argv
  */
 exports.merge = async function(argv) {
   const outputFilepath = argv['output-filepath'];
+  const mode = argv['mode'];
 
   const baseTree = await pismoutil.readTreeByName(argv.base);
   const otherTree = await pismoutil.readTreeByName(argv.other);
@@ -67,7 +111,20 @@ exports.merge = async function(argv) {
   // TODO use path as unique identifier everywhere instead of nickname,
   //      reimplement nicknames as an optional feature
 
-  const operations = mirrorBaseToOther(baseTree, otherTree);
+  let operations = null;
+  switch (argv['mode']) {
+    case 'one-way-mirror':
+      operations = mirrorBaseToOther(baseTree, otherTree);
+      break;
+
+    case 'two-way-sync':
+      operations = twoWayMerge(baseTree, otherTree);
+      break;
+
+    default:
+      throw new Error(`Unrecognized merge mode: ${argv['mode']}`);
+  }
+
   const output = {
     base: baseTree.path,
     other: otherTree.path,

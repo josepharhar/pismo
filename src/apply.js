@@ -11,7 +11,7 @@ const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /**
- * @param {string} srcfilepath
+ * @param {string} srcFilepath
  * @param {string} destFilepath
  */
 function copyFileTime(srcFilepath, destFilepath) {

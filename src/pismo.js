@@ -37,7 +37,6 @@ yargs
     yargs => yargs
         .help(false)
         .version(false),
-    //argv => list(argv).catch(catcher))
     run(list))
 
   .command(
