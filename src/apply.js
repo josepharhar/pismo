@@ -11,6 +11,19 @@ const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /**
+ * @param {string} srcfilepath
+ * @param {string} destFilepath
+ */
+function copyFileTime(srcFilepath, destFilepath) {
+  const stats = nanostat.statSync(srcFilepath);
+  const atimeS = stats.atimeMs / 1000n;
+  const atimeNs = stats.atimeNs;
+  const mtimeS = stats.atimeMs / 1000n;
+  const mtimeNs = stats.mtimeNs;
+  nanoutimes.utimesSync(destFilepath, atimeS, atimeNs, mtimeS, mtimeNs);
+}
+
+/**
  * @param {import('yargs').Arguments} argv
  */
 exports.apply = async function(argv) {
@@ -23,14 +36,12 @@ exports.apply = async function(argv) {
       case 'touch':
         srcFilepath = path.join(mergefile[operands[0].tree], operands[0].relativePath);
         destFilepath = path.join(mergefile[operands[1].tree], operands[1].relativePath);
-
-        const stats = nanostat.statSync(srcFilepath);
-        const atimeS = stats.atimeMs / 1000n;
-        const atimeNs = stats.atimeNs;
-        const mtimeS = stats.atimeMs / 1000n;
-        const mtimeNs = stats.mtimeNs;
-        nanoutimes.utimesSync(destFilepath, atimeS, atimeNs
-
+        try {
+          copyFileTime(srcFilepath, destFilepath);
+        } catch (err) {
+          logError(`Failed to copy file time from ${srcFilepath} to ${destFilepath}`);
+          throw err;
+        }
         break;
 
       case 'cp':
@@ -45,23 +56,11 @@ exports.apply = async function(argv) {
           throw copyFileError;
         }
 
-        const srcStat = await new Promise((resolve, reject) => {
-          fs.stat(srcFilepath, (err, stats) => {
-            if (err) {
-              logError(`Failed to stat file: ${srcFilepath}`);
-              reject(err);
-            }
-            resolve(stats);
-          });
-        });
-        logInfo(`srcStat.mtimeMs: ${srcStat.mtimeMs} srcFilepath: ${srcFilepath}`);
-
-        const utimesError = await new Promise(resolve => {
-          fs.utimes(destFilepath, srcStat.atimeMs / 1000, srcStat.mtimeMs / 1000, resolve);
-        });
-        if (utimesError) {
-          logError(`Failed to utime file ${destFilepath} with atime: ${srcStat.atime}, mtime: ${srcStat.mtime}`);
-          throw utimesError;
+        try {
+          copyFileTime(srcFilepath, destFilepath);
+        } catch (err) {
+          logError(`Failed to copy file time from ${srcFilepath} to ${destFilepath}`);
+          throw err;
         }
         break;
 
