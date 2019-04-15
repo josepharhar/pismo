@@ -17,6 +17,7 @@ const {apply} = require('./apply.js');
 const {config} = require('./config.js');
 const {commit} = require('./commit.js');
 const {status} = require('./status.js');
+const {server} = require('./server.js');
 
 function run(fn) {
   return function(argv) {
@@ -167,7 +168,7 @@ yargs
         })
         .help(false)
         .version(false),
-    defaultHandler)
+    run(server))
 
   .command(
     'http [port]',
