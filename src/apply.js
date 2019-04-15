@@ -16,9 +16,9 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
  */
 function copyFileTime(srcFilepath, destFilepath) {
   const stats = nanostat.statSync(srcFilepath);
-  const atimeS = stats.atimeMs / 1000n;
-  const atimeNs = stats.atimeNs;
-  const mtimeS = stats.atimeMs / 1000n;
+  const atimeS = null;
+  const atimeNs = null;
+  const mtimeS = stats.mtimeMs / 1000n;
   const mtimeNs = stats.mtimeNs;
   nanoutimes.utimesSync(destFilepath, atimeS, atimeNs, mtimeS, mtimeNs);
 }

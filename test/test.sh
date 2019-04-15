@@ -15,6 +15,9 @@ pismo remove test2 || true
 
 
 # set up out1
+touch --date=@1524222671 data1/420am
+touch --date=@1524222671 -a data1/420a
+touch --date=@1524222671 -m data1/420m
 cp -r -p data1 out1
 
 # create expected output files
