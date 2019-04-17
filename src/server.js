@@ -3,6 +3,7 @@ const fs = require('fs');
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const multer = require('multer');
 
 const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
@@ -113,4 +114,12 @@ exports.server = async function(argv) {
   });
 
   app.listen(port);
+
+  const upload = multer();
+  app.post('/fileupload', upload.array(), async (req, res) => {
+    console.log('req.files: ' + JSON.strnigify(req.files, null, 2));
+    console.log('req.body: ' + JSON.stringify(req.body, null, 2));
+    req.files;
+    req.body;
+  });
 }
