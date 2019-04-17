@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs');
 
 const express = require('express');
+const bodyParser = require('body-parser');
 
 const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
@@ -69,14 +70,17 @@ exports.server = async function(argv) {
   logInfo(`Running server on port ${port}`);
 
   const app = express();
-  app.use(express.json());
+  //app.use(express.json());
   //app.use(express.urlencoded());
+  app.use(bodyParser.urlencoded({extended: false}));
+  app.use(bodyParser.json());
 
   app.get('/', (req, res) => {
     res.send('Hello world');
   });
 
-  app.get('/api', async (req, res) => {
+  // TODO why doesnt this work with get?
+  app.post('/api', async (req, res) => {
     if (!req.body) {
       res.writeHead(500, {'content-type': 'text/plain'});
       res.end('!req.body');
@@ -85,9 +89,10 @@ exports.server = async function(argv) {
 
     // req.body will be {} if the request was malformed:
     //   no body, non-json body, or wrong content-type
+    //   TODO or if its a GET too???
     if (Object.entries(req.body).length === 0) {
       res.writeHead(400, {'content-type': 'text/plain'});
-      res.end('req.body is {}');
+      res.end('req.body: ' + JSON.stringify(req.body));
       return;
     }
 

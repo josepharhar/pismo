@@ -30,6 +30,8 @@
     "typescript": "^3.2.2"
   },
   "dependencies": {
+    "@types/body-parser": "^1.17.0",
+    "body-parser": "^1.18.3",
     "express": "^4.16.4",
     "filesize": "^4.0.0",
     "mkdirp": "^0.5.1",
