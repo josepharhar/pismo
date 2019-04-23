@@ -115,11 +115,29 @@ exports.server = async function(argv) {
 
   app.listen(port);
 
-  const upload = multer();
-  app.post('/fileupload', upload.array(), async (req, res) => {
-    console.log('req.files: ' + JSON.strnigify(req.files, null, 2));
+  /*const upload = multer();
+  const uploadType = upload.fields([
+    { name: 'file' },
+    { name: 'metadata'}
+  ]);
+  app.post('/fileupload', uploadType, async (req, res) => {
+    console.log('req.files: ' + JSON.stringify(req.files, null, 2));
     console.log('req.body: ' + JSON.stringify(req.body, null, 2));
-    req.files;
-    req.body;
+  });*/
+  async function writeStreamToFile(stream, filename) {
+    fs.createWriteStream(filename);
+    return new Promise((resolve, reject) => {
+    });
+  }
+  app.post('/fileupload', async (req, res) => {
+    console.log(`${req.statusCode} ${req.url}`);
+    /*try {
+      const upload = await readStreamToString(req);
+      console.log('/fileupload post data: ' + upload);
+    } catch (error) {
+      console.log('/fileupload post data read error: ' + error);
+    }*/
+    const writeStream = fs.createWriteStream('output.o');
+    req.pipe(writeStream);
   });
 }

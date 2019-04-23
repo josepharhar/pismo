@@ -164,23 +164,23 @@ yargs
     yargs => yargs
         .positional('port', {
           description: 'port to bind on',
-          default: 48821
+          default: 48880
         })
         .help(false)
         .version(false),
     run(server))
 
-  .command(
-    'http [port]',
-    'Runs a web interface to use pismo on this computer instead of the cli.',
-    yargs => yargs
-        .positional('port', {
-          description: 'port to bind http server to',
-          default: 48880
-        })
-        .help(false)
-        .version(false),
-    defaultHandler)
+//  .command(
+//    'http [port]',
+//    'Runs a web interface to use pismo on this computer instead of the cli.',
+//    yargs => yargs
+//        .positional('port', {
+//          description: 'port to bind http server to',
+//          default: 48880
+//        })
+//        .help(false)
+//        .version(false),
+//    defaultHandler)
 
   // TODO add global config to change ~/.pismo to custom directory
 

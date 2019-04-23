@@ -1,9 +1,67 @@
 const fs = require('fs');
+const http = require('http');
 
-//const request = require('./node_modules/request');
-const request = require('request');
+async function streamToString(stream) {
+  return new Promise((resolve, reject) => {
+    let chunks = '';
+    stream.on('data', chunk => {
+      chunks += chunk;
+    });
+    stream.on('error', reject);
+    stream.on('end', () => resolve(chunks));
+  });
+}
 
-const req = request.post('localhost:48880/fileupload', (err, resp, body) => {
+const filepath = process.argv[2];
+const readStream = fs.createReadStream(filepath);
+const stats = fs.statSync(filepath);
+
+const requestOptions = {
+  hostname: 'localhost',
+  port: 48880,
+  path: '/fileupload',
+  method: 'POST',
+  headers: {
+    //'content-length': stats.size,
+    'content-type': 'application/octet-stream',
+    'transfer-encoding': 'chunked'
+    //'x-pismo-
+  }
+};
+const request = http.request(requestOptions, async res => {
+  console.log(`${res.statusCode} ${JSON.stringify(res.headers, null, 2)}`);
+  try {
+    const str = await streamToString(res);
+    console.log('response body: ' + str);
+  } catch (error) {
+    console.log('response read error: ' + error);
+  }
+});
+request.on('error', error => {
+  console.log('request error: ' + error);
+});
+readStream.pipe(request);
+
+
+//const request = require('request');
+
+/*const formData = {
+  metadata: 'big data',
+  file: fs.createReadStream(process.argv[2])
+};
+const req = request.post({
+    url: 'http://localhost:48880/fileupload',
+    formData: formData
+  },
+  (error, httpResponse, body) => {
+    if (error) {
+      console.log('error: ' + error);
+      return;
+    }
+    console.log('file uploaded, response body: ' + body);
+  });*/
+
+/*const req = request.post('localhost:48880/fileupload', (err, resp, body) => {
   if (err)
     console.log('error: ' + err);
   else
@@ -11,4 +69,4 @@ const req = request.post('localhost:48880/fileupload', (err, resp, body) => {
 });
 
 const form = req.form();
-form.append(fs.createReadStream(process.argv[2]));
+form.append(fs.createReadStream(process.argv[2]));*/
