@@ -25,7 +25,9 @@ const requestOptions = {
     //'content-length': stats.size,
     'content-type': 'application/octet-stream',
     'transfer-encoding': 'chunked'
-    //'x-pismo-
+    'x-pismo-treename': 'todo',
+    // TODO this makes paths limited to ascii, i have to check for ascii here
+    'x-pismo-path': '/to/do'
   }
 };
 const request = http.request(requestOptions, async res => {
@@ -41,7 +43,6 @@ request.on('error', error => {
   console.log('request error: ' + error);
 });
 readStream.pipe(request);
-
 
 //const request = require('request');
 

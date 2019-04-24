@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const stream = require('stream');
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -141,3 +142,27 @@ exports.server = async function(argv) {
     req.pipe(writeStream);
   });
 }
+
+class PrinterStreamProxy extends stream.Duplex {
+  constructor(options) {
+    super(options);
+  }
+
+  /**
+   * @param {!Buffer|string|*} chunk
+   * @param {string} encoding
+   * @param {function} callback
+   * @override
+   */
+  _write(chunk, encoding, callback) {
+  }
+
+  _writev(chunks, callback) {
+  }
+
+  _read() {
+  }
+
+  _final() {
+  }
+};
