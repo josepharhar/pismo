@@ -1,6 +1,8 @@
 const fs = require('fs');
 const http = require('http');
 
+const progress = require('progress-stream');
+
 async function streamToString(stream) {
   return new Promise((resolve, reject) => {
     let chunks = '';
@@ -15,19 +17,35 @@ async function streamToString(stream) {
 const filepath = process.argv[2];
 const readStream = fs.createReadStream(filepath);
 const stats = fs.statSync(filepath);
+const length = stats.size;
 
+//const requestOptions = {
+//  hostname: 'localhost',
+//  port: 48880,
+//  path: '/fileupload',
+//  method: 'POST',
+//  headers: {
+//    'content-length': stats.size,
+//    'content-type': 'application/octet-stream',
+//    'transfer-encoding': 'chunked'/*,
+//    'x-pismo-treename': 'todo',
+//    // TODO this makes paths limited to ascii, i have to check for ascii here
+//    'x-pismo-path': '/to/do'*/
+//  }
+//};
 const requestOptions = {
   hostname: 'localhost',
   port: 48880,
   path: '/fileupload',
   method: 'POST',
   headers: {
-    'content-length': stats.size,
-    'content-type': 'application/octet-stream',
-    'transfer-encoding': 'chunked'
-    'x-pismo-treename': 'todo',
-    // TODO this makes paths limited to ascii, i have to check for ascii here
-    'x-pismo-path': '/to/do'
+    'connection': 'keep-alive',
+    'x-pismo-length': stats.size
+    //'content-length': stats.size,
+    //'content-type': 'application/octet-stream',
+    //'connection': 'keep-alive',
+    //'transfer-encoding': 'chunked'/*,
+    //'x-pismo-length': stats.size*/
   }
 };
 const request = http.request(requestOptions, async res => {
@@ -40,34 +58,16 @@ const request = http.request(requestOptions, async res => {
   }
 });
 request.on('error', error => {
-  console.log('request error: ' + error);
+  console.log('request error: ' + JSON.stringify(error));
 });
+const progressStream = progress({
+  length: length,
+  time: 1000 /* ms */
+}, progress => {
+  console.log('progress: ' + JSON.stringify(progress));
+});
+
+// TODO uncomment this!!!
+//readStream.pipe(progressStream).pipe(request);
 readStream.pipe(request);
-
-//const request = require('request');
-
-/*const formData = {
-  metadata: 'big data',
-  file: fs.createReadStream(process.argv[2])
-};
-const req = request.post({
-    url: 'http://localhost:48880/fileupload',
-    formData: formData
-  },
-  (error, httpResponse, body) => {
-    if (error) {
-      console.log('error: ' + error);
-      return;
-    }
-    console.log('file uploaded, response body: ' + body);
-  });*/
-
-/*const req = request.post('localhost:48880/fileupload', (err, resp, body) => {
-  if (err)
-    console.log('error: ' + err);
-  else
-    console.log('url: ' + url);
-});
-
-const form = req.form();
-form.append(fs.createReadStream(process.argv[2]));*/
+//request.end();

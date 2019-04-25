@@ -84,6 +84,7 @@ exports.server = async function(argv) {
 
   // TODO why doesnt this work with get?
   app.post('/api', async (req, res) => {
+    console.log(`${req.statusCode} ${req.url} ${JSON.stringify(request.headers, null, 2)}`);
     if (!req.body) {
       res.writeHead(500, {'content-type': 'text/plain'});
       res.end('!req.body');
@@ -132,8 +133,12 @@ exports.server = async function(argv) {
     });
   }
   app.post('/fileupload', async (req, res) => {
-    console.log(`${req.statusCode} ${req.url}`);
-    const length = req.headers['content-length'];
+    console.log(`${req.method} ${req.url} ${JSON.stringify(req.headers, null, 2)}`);
+    const length = Number(req.headers['x-pismo-length']);
+    if (length === NaN) {
+      // TODO
+      console.log('invalid x-pismo-length header: ' + req.headers['x-pismo-length']);
+    }
     const fileWriteStream = fs.createWriteStream('output.o');
 
     const progressStream = progress({
@@ -143,6 +148,32 @@ exports.server = async function(argv) {
       console.log('progress: ' + JSON.stringify(progress));
     });
 
+    // TODO should i be doing this?
+    res.end('hello from server');
+
     req.pipe(progressStream).pipe(fileWriteStream);
+    //req.pipe(fileWriteStream);
+    //await streamPrint(req);
+  });
+}
+
+async function streamPrint(stream) {
+  return new Promise((resolve, reject) => {
+    stream.on('data', chunk => {
+      console.log('data: ' + chunk);
+    });
+    stream.on('error', reject);
+    stream.on('end', resolve);
+  });
+}
+
+async function streamToString(stream) {
+  return new Promise((resolve, reject) => {
+    let chunks = '';
+    stream.on('data', chunk => {
+      chunks += chunk;
+    });
+    stream.on('error', reject);
+    stream.on('end', () => resolve(chunks));
   });
 }
