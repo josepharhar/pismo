@@ -22,7 +22,7 @@ const requestOptions = {
   path: '/fileupload',
   method: 'POST',
   headers: {
-    //'content-length': stats.size,
+    'content-length': stats.size,
     'content-type': 'application/octet-stream',
     'transfer-encoding': 'chunked'
     'x-pismo-treename': 'todo',

@@ -5,6 +5,7 @@ const stream = require('stream');
 const express = require('express');
 const bodyParser = require('body-parser');
 const multer = require('multer');
+const progress = require('progress-stream');
 
 const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
@@ -132,37 +133,16 @@ exports.server = async function(argv) {
   }
   app.post('/fileupload', async (req, res) => {
     console.log(`${req.statusCode} ${req.url}`);
-    /*try {
-      const upload = await readStreamToString(req);
-      console.log('/fileupload post data: ' + upload);
-    } catch (error) {
-      console.log('/fileupload post data read error: ' + error);
-    }*/
-    const writeStream = fs.createWriteStream('output.o');
-    req.pipe(writeStream);
+    const length = req.headers['content-length'];
+    const fileWriteStream = fs.createWriteStream('output.o');
+
+    const progressStream = progress({
+      length: length,
+      time: 1000 /* ms */
+    }, progress => {
+      console.log('progress: ' + JSON.stringify(progress));
+    });
+
+    req.pipe(progressStream).pipe(fileWriteStream);
   });
 }
-
-class PrinterStreamProxy extends stream.Duplex {
-  constructor(options) {
-    super(options);
-  }
-
-  /**
-   * @param {!Buffer|string|*} chunk
-   * @param {string} encoding
-   * @param {function} callback
-   * @override
-   */
-  _write(chunk, encoding, callback) {
-  }
-
-  _writev(chunks, callback) {
-  }
-
-  _read() {
-  }
-
-  _final() {
-  }
-};
