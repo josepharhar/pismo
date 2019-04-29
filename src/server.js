@@ -4,7 +4,6 @@ const stream = require('stream');
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const multer = require('multer');
 const progress = require('progress-stream');
 
 const pismoutil = require('./pismoutil.js');
@@ -118,15 +117,6 @@ exports.server = async function(argv) {
 
   app.listen(port);
 
-  /*const upload = multer();
-  const uploadType = upload.fields([
-    { name: 'file' },
-    { name: 'metadata'}
-  ]);
-  app.post('/fileupload', uploadType, async (req, res) => {
-    console.log('req.files: ' + JSON.stringify(req.files, null, 2));
-    console.log('req.body: ' + JSON.stringify(req.body, null, 2));
-  });*/
   async function writeStreamToFile(stream, filename) {
     fs.createWriteStream(filename);
     return new Promise((resolve, reject) => {

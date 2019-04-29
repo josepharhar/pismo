@@ -18,6 +18,7 @@ const {config} = require('./config.js');
 const {commit} = require('./commit.js');
 const {status} = require('./status.js');
 const {server} = require('./server.js');
+const {remoteList, remoteGet} = require('./remote.js');
 
 function run(fn) {
   return function(argv) {
@@ -69,7 +70,7 @@ yargs
         })
         .help(false)
         .version(false),
-    defaultHandler)
+    remoteList)
 
   .command(
     'add-remote <name> <ip> <remote-name>',
@@ -80,7 +81,7 @@ yargs
         })
         .help(false)
         .version(false),
-    defaultHandler)
+    remoteGet)
 
   .command(
     'update <name>',

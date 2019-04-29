@@ -36,7 +36,6 @@
     "express": "^4.16.4",
     "filesize": "^4.0.0",
     "mkdirp": "^0.5.1",
-    "multer": "^1.4.1",
     "nanostat": "^0.1.2",
     "nanoutimes": "^0.2.0",
     "progress-stream": "^2.0.0",
