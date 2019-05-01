@@ -62,11 +62,56 @@ yargs
     run(remove))
 
   .command(
+    'remote-add <name> <url>',
+    'Adds a remote pismo server at the specified url.',
+    yargs => yargs
+        .positional('name', {
+          description: 'new name used to reference the remote.'
+        })
+        .positional('url', {
+          description: 'host URL. ex: http://example.com:48880'
+        })
+        .help(false)
+        .version(false),
+    remoteAdd);
+
+  .command(
+    'remote-remove <name>',
+    'Deletes a remote you are currently tracking.',
+    yargs => yargs
+        .positional('name', {
+          description: 'name of the remote to remove.'
+        })
+        .help(false)
+        .version(false)
+    remoteRemove);
+
+  .command(
+    'remote-update <name>',
+    'Downloads information about all directory trees on remote server.',
+    yargs => yargs
+        .positional('name', {
+          description: 'name of the remote to update.'
+        })
+        .help(false)
+        .version(false)
+    remoteUpdate)
+
+  .command(
+    'remote-list',
+    'Lists all of the remotes you are currently tracking.',
+    yargs => yargs
+        .help(false)
+        .version(false)
+    remoteList);
+
+
+  .command(
     'list-remote <ip>',
     'Lists the directory trees stored on a remote computer.',
     yargs => yargs
-        .positional('ip', {
-          description: 'ip address with port. ex: 192.168.0.1:48823'
+        .positional('host', {
+          description: 'host URL. ex: example.com:48823'
         })
         .help(false)
         .version(false),
