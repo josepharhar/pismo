@@ -84,7 +84,8 @@ exports.getTreeNamesToPaths = async function() {
 }
 
 /**
- * Reads a file within the ~/.pismo directory.
+ * Reads a file within the ~/.pismo directory. If the file doesn't exist, then
+ * creates the file as well.
  *
  * @param {!string} relativePath
  * @return {!Promise<string>}
@@ -107,6 +108,8 @@ exports.readDotFile = async function(relativePath) {
  */
 exports.readDotFileFromJson = async function(relativePath) {
   const contents = await exports.readDotFile(relativePath);
+  if (contents === '')
+    contents = {};
   try {
     return JSON.parse(contents);
   } catch (err) {

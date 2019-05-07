@@ -30,12 +30,16 @@ exports.remoteList = async function(argv) {
       console.log('response read error: ' + error);
     }
   });
+
 }
 
 /**
  * @param {import('yargs').Arguments} argv
  */
 exports.remoteAdd = async function(argv) {
+  try {
+  } catch (error) {
+  }
 }
 
 /**
@@ -45,6 +49,8 @@ exports.remoteRemove = async function(argv) {
 }
 
 /**
+ * Download all of the tree files from the remote. Track them all as local branches like git.
+ *
  * @param {import('yargs').Arguments} argv
  */
 exports.remoteUpdate = async function(argv) {

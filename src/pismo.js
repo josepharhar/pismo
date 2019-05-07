@@ -87,7 +87,7 @@ yargs
     remoteRemove);
 
   .command(
-    'remote-update <name>',
+    'fetch <name>',
     'Downloads information about all directory trees on remote server.',
     yargs => yargs
         .positional('name', {
@@ -105,29 +105,6 @@ yargs
         .version(false)
     remoteList);
 
-
-  .command(
-    'list-remote <ip>',
-    'Lists the directory trees stored on a remote computer.',
-    yargs => yargs
-        .positional('host', {
-          description: 'host URL. ex: example.com:48823'
-        })
-        .help(false)
-        .version(false),
-    remoteList)
-
-  .command(
-    'add-remote <name> <ip> <remote-name>',
-    'Adds a new directory tree stored on a remote computer.',
-    yargs => yargs
-        .positional('ip', {
-          description: 'ip address with port. ex: 192.168.0.1:48823'
-        })
-        .help(false)
-        .version(false),
-    remoteGet)
-
   .command(
     'update <name>',
     'Runs a scan on the file tree named <name>, updating the state of the tree stored in ~/.pismo',
@@ -139,17 +116,6 @@ yargs
         .help(false)
         .version(false),
     run(update))
-
-  .command(
-    'update-remote <ip> <remote-name>',
-    'Runs update on a remote computer',
-    yargs => yargs
-        .positional('ip', {
-          description: 'ip address with port. ex: 192.168.0.1:48823'
-        })
-        .help(false)
-        .version(false),
-    defaultHandler)
 
   .command(
     'diff <base> [other]',
