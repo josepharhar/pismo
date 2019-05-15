@@ -4,6 +4,8 @@ const fs = require('fs');
 const util = require('util');
 
 const filesize = require('filesize');
+const mkdirp = require('mkdirp');
+const rimraf = require('rimraf');
 
 const readdirPromise = util.promisify(fs.readdir);
 const readFilePromise = util.promisify(fs.readFile);
@@ -108,6 +110,7 @@ exports.readDotFile = async function(relativePath) {
  */
 exports.readDotFileFromJson = async function(relativePath) {
   const contents = await exports.readDotFile(relativePath);
+
   if (contents === '')
     contents = {};
   try {
@@ -121,12 +124,22 @@ exports.readDotFileFromJson = async function(relativePath) {
 /**
  * Writes data to a file in the ~/.pismo directory.
  * If data is an object, JSON.stringify() will be called on it.
+ * Will create directories if needed.
  *
  * @param {!string} relativePath
  * @param {string|number|Object} data
  */
 exports.writeDotFile = async function(relativePath, data) {
   const filepath = path.join(exports.getDotPath(), relativePath);
+
+  const dirpath = path.dirname(filepath);
+  try {
+    mkdirp.sync(dirpath);
+  } catch (error) {
+    logError(`Failed to mkdirp with filepath: ${dirpath}`);
+    throw error;
+  }
+
   if (typeof(data) === 'object') {
     data = JSON.stringify(data, null, 2);
   }
@@ -162,6 +175,29 @@ exports.readFileToJson = async function(filepath) {
       `Failed to parse file to json.\n  filepath: ${filepath}\n error: ${err}`);
     return null;
   }
+}
+
+/**
+ * @param {string} filepath
+ */
+exports.deletePath = async function(filepath) {
+  return new Promise((resolve, reject) => {
+    rimraf(filepath, {disableGlob: true}, error => {
+      if (error) {
+        logError(`Failed to recursively delete path: ${filepath}, error: ${error}`);
+        reject(error);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
+/**
+ * @param {string} relativePath
+ */
+exports.deleteDotPath = async function(relativePath) {
+  return exports.deletePath(path.join(exports.getDotPath(), relativePath));
 }
 
 /**
