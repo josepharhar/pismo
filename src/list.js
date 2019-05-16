@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const util = require('util');
-const os = require('os');
 
 const pismoutil = require('./pismoutil.js');
 
@@ -31,6 +30,6 @@ exports.list = async function(argv) {
     }
     console.log(name);
     console.log('  path: ' + tree.path);
-    console.log('  lastModified: ' + tree.lastModified);
+    console.log('  lastUpdated: ' + tree.lastUpdated);
   }
 }

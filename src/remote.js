@@ -34,8 +34,8 @@ class Remote {
     this._name = name;
     /** @type {string} */
     this._url = null;
-    /** @type {string} */
-    this._lastUpdated = 'never';
+    /** @type {number} */
+    this._lastUpdated = null;
   }
 
   /**
@@ -60,21 +60,32 @@ class Remote {
   }
 
   /**
-   * @return {string}
+   * Unix epoch time in whole seconds.
+   *
+   * @return {number}
    */
-  lastUpdated() {
+  lastUpdatedAsEpoch() {
     return this._lastUpdated;
   }
 
+  /**
+   * @return {?Date}
+   */
+  lastUpdatedAsDate() {
+    if (!this._lastUpdated)
+      return null;
+    return new Date(this._lastUpdated * 1000)
+  }
+
   updateTimestamp() {
-    this._lastUpdated = new Date().toISOString();
+    this._lastUpdated = Math.floor(Date.now() / 1000);
   }
 
   /**
    * @return {string}
    */
   dotPath() {
-    return `/remotes/${name}`;
+    return `/remotes/${this.name()}`;
   }
 
   /**
@@ -167,7 +178,8 @@ exports.remoteList = async function(argv) {
 
     console.log(remote.name());
     console.log(`  url: ${remote.url()}`);
-    console.log(`  lastUpdated: ${remote.lastUpdated()}`);
+    console.log(`  lastUpdated: ${pismoutil.dateToString(remote.lastUpdatedAsDate())}`);
+    console.log();
   }
 }
 
