@@ -18,7 +18,7 @@ const {config} = require('./config.js');
 const {commit} = require('./commit.js');
 const {status} = require('./status.js');
 const {server} = require('./server.js');
-const {remoteList, remoteGet} = require('./remote.js');
+const {remoteAdd, remoteRemove, remoteList, remoteUpdate} = require('./remote.js');
 
 function run(fn) {
   return function(argv) {
@@ -73,7 +73,7 @@ yargs
         })
         .help(false)
         .version(false),
-    remoteAdd);
+    remoteAdd)
 
   .command(
     'remote-remove <name>',
@@ -83,8 +83,8 @@ yargs
           description: 'name of the remote to remove.'
         })
         .help(false)
-        .version(false)
-    remoteRemove);
+        .version(false),
+    remoteRemove)
 
   .command(
     'fetch <name>',
@@ -94,7 +94,7 @@ yargs
           description: 'name of the remote to update.'
         })
         .help(false)
-        .version(false)
+        .version(false),
     remoteUpdate)
 
   .command(
@@ -102,8 +102,8 @@ yargs
     'Lists all of the remotes you are currently tracking.',
     yargs => yargs
         .help(false)
-        .version(false)
-    remoteList);
+        .version(false),
+    remoteList)
 
   .command(
     'update <name>',

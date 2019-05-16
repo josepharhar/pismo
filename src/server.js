@@ -83,7 +83,7 @@ exports.server = async function(argv) {
 
   // TODO why doesnt this work with get?
   app.post('/api', async (req, res) => {
-    console.log(`${req.statusCode} ${req.url} ${JSON.stringify(request.headers, null, 2)}`);
+    console.log(`${req.statusCode} ${req.url} ${JSON.stringify(req.headers, null, 2)}`);
     if (!req.body) {
       res.writeHead(500, {'content-type': 'text/plain'});
       res.end('!req.body');

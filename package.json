@@ -28,6 +28,7 @@
     "@types/filesize": "^3.6.0",
     "@types/mkdirp": "^0.5.2",
     "@types/node": "^10.12.15",
+    "@types/progress-stream": "^2.0.0",
     "@types/rimraf": "^2.0.2",
     "@types/yargs": "^12.0.1",
     "typescript": "^3.2.2"

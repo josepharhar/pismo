@@ -1,5 +1,11 @@
 const http = require('http');
 const fs = require('fs');
+const util = require('util');
+
+const pismoutil = require('./pismoutil.js');
+
+const readdirPromise = util.promisify(fs.readdir);
+const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /**
  * remotes directory structure:
@@ -18,16 +24,6 @@ const fs = require('fs');
  */
 
 /**
- * Returns the directory path relative to the dotpath of a remote.
- *
- * @param {string} name
- * @return {string}
- */
-function remoteNameToDotPath(name) {
-  return `/remotes/${name}`;
-}
-
-/**
  * Tracks metadata about a remote
  */
 class Remote {
@@ -40,6 +36,34 @@ class Remote {
     this._url = null;
     /** @type {string} */
     this._lastUpdated = 'never';
+  }
+
+  /**
+   * @return {string}
+   */
+  name() {
+    return this._name;
+  }
+
+  /**
+   * @return {string}
+   */
+  url() {
+    return this._url;
+  }
+
+  /**
+   * @param {string} url
+   */
+  setUrl(url) {
+    this._url = url;
+  }
+
+  /**
+   * @return {string}
+   */
+  lastUpdated() {
+    return this._lastUpdated;
   }
 
   updateTimestamp() {
@@ -61,7 +85,13 @@ class Remote {
   }
 
   async readFromFile() {
-    const obj = pismoutil.readDotFileFromJson(this.metaDotPath());
+    let obj = null;
+    try {
+      obj = await pismoutil.readDotFileFromJson(this.metaDotPath());
+    } catch (error) {
+      logError(`Failed to read remote information from file. name: ${this.name()}`);
+      throw error;
+    }
     this._name = obj.name;
     this._url = obj.url;
     this._lastUpdated = obj.lastUpdated;
@@ -73,7 +103,16 @@ class Remote {
       url: this._url,
       lastUpdated: this._lastUpdated
     };
-    await pismoutil.writeDotFile(this.metaDotPath(), obj);
+    try {
+      await pismoutil.writeDotFile(this.metaDotPath(), obj);
+    } catch (error) {
+      logError(`Failed to write remote to file. name: ${this.name()}`);
+      throw error;
+    }
+  }
+
+  async delete() {
+    await pismoutil.deleteDotPath(this.dotPath());
   }
 };
 
@@ -81,31 +120,22 @@ class Remote {
  * @param {import('yargs').Arguments} argv
  */
 exports.remoteAdd = async function(argv) {
-  const remoteDotPath = remoteNameToDotPath(argv.name);
-
-  const remoteJson = JSON.stringify({
-    name: argv.name,
-    url: argv.url,
-    lastFetched: 'never'
-  }, null, 2);
-
-  try {
-    await pismoutil.writeDotFile(remoteDotPath, remoteJson);
-  } catch (error) {
-    logError(`Failed to write new remote at path: ${remote.dotPath()}`);
-    throw error;
-  }
+  const remote = new Remote(argv.name);
+  remote.setUrl(argv.url);
+  await remote.writeToFile();
 }
 
 /**
  * @param {import('yargs').Arguments} argv
  */
 exports.remoteRemove = async function(argv) {
-  const remoteDotPath = remoteNameToDotPath(argv.name);
+  const remote = new Remote(argv.name);
+  await remote.readFromFile();
+
   try {
-    await pismoutil.deleteDotPath(remoteDotPath);
+    await remote.delete();
   } catch (error) {
-    logError(`Failed to remove remote named ${argv.name} at dotpath ${remoteDotPath}`);
+    logError(`Failed to delete remote named: ${argv.name}`);
     throw error;
   }
 }
@@ -116,42 +146,93 @@ exports.remoteRemove = async function(argv) {
  * @param {import('yargs').Arguments} argv
  */
 exports.remoteList = async function(argv) {
-  const remoteDotPath = remoteNameToDotPath(argv.name);
-
+  // iterate over the directories in remotes/, print out the meta.json of each.
+  
+  const absolutePath = pismoutil.getAbsoluteRemotesPath();
+  let dirents = null;
   try {
-    await pismoutil.readDotFile
+    dirents = await readdirPromise(absolutePath, {withFileTypes: true});
+  } catch (error) {
+    logError(`Failed to readdir() to list remotes at path: ${absolutePath}`);
+    throw error;
+  }
+
+  for (const dirent of dirents) {
+    if (!dirent.isDirectory()) {
+      logError(`remotes/${dirent.name} is not a directory, skipping...`);
+      continue;
+    }
+    const remote = new Remote(dirent.name);
+    await remote.readFromFile();
+
+    console.log(remote.name());
+    console.log(`  url: ${remote.url()}`);
+    console.log(`  lastUpdated: ${remote.lastUpdated()}`);
+  }
 }
 
 /**
  * Download all of the tree files from the remote. Track them all as local branches like git.
+ * Same as "git fetch <name>"
  *
  * @param {import('yargs').Arguments} argv
  */
 exports.remoteUpdate = async function(argv) {
 
+//  const requestOptions = {
+//    hostname: 'localhost',
+//    port: 48880,
+//    path: '/fileupload',
+//    method: 'POST',
+//    headers: {
+//      'connection': 'keep-alive',
+//      'x-pismo-length': stats.size
+//      //'content-length': stats.size,
+//      //'content-type': 'application/octet-stream',
+//      //'connection': 'keep-alive',
+//      //'transfer-encoding': 'chunked'/*,
+//      //'x-pismo-length': stats.size*/
+//    }
+//  };
+//  const request = http.request(requestOptions, async res => {
+//    console.log(`${res.statusCode} ${JSON.stringify(res.headers, null, 2)}`);
+//    try {
+//      const str = await streamToString(res);
+//      console.log('response body: ' + str);
+//    } catch (error) {
+//      console.log('response read error: ' + error);
+//    }
+//  });
+
+  const remote = new Remote(argv.name);
+  await remote.readFromFile();
+
+  const url = new URL(remote.url());
   const requestOptions = {
-    hostname: 'localhost',
-    port: 48880,
-    path: '/fileupload',
+    hostname: url.hostname,
+    port: url.port,
+    path: '/api',
     method: 'POST',
     headers: {
-      'connection': 'keep-alive',
-      'x-pismo-length': stats.size
-      //'content-length': stats.size,
-      //'content-type': 'application/octet-stream',
-      //'connection': 'keep-alive',
-      //'transfer-encoding': 'chunked'/*,
-      //'x-pismo-length': stats.size*/
+      'content-type': 'application/json'
     }
   };
-  const request = http.request(requestOptions, async res => {
+  const postObj = {
+    method: 'list',
+    params: {}
+  };
+
+  const req = http.request(remote.url(), requestOptions, async res => {
     console.log(`${res.statusCode} ${JSON.stringify(res.headers, null, 2)}`);
     try {
-      const str = await streamToString(res);
-      console.log('response body: ' + str);
+      const str = await pismoutil.streamToString(res);
+      console.log('http response body:');
+      console.log(str);
     } catch (error) {
-      console.log('response read error: ' + error);
+      logError(`Failed to read http response stream to string. url: ${remote.url()}`);
+      throw error;
     }
   });
-
+  req.write(JSON.stringify(postObj, null, 2));
+  req.end();
 }

@@ -2,6 +2,7 @@ const os = require('os');
 const path = require('path');
 const fs = require('fs');
 const util = require('util');
+const stream = require('stream');
 
 const filesize = require('filesize');
 const mkdirp = require('mkdirp');
@@ -53,6 +54,13 @@ exports.getDotPath = function() {
  */
 exports.getTreesPath = function() {
   return path.join(exports.getDotPath(), '/trees');
+}
+
+/**
+ * @return {string}
+ */
+exports.getAbsoluteRemotesPath = function() {
+  return path.join(exports.getDotPath(), '/remotes');
 }
 
 /**
@@ -111,8 +119,6 @@ exports.readDotFile = async function(relativePath) {
 exports.readDotFileFromJson = async function(relativePath) {
   const contents = await exports.readDotFile(relativePath);
 
-  if (contents === '')
-    contents = {};
   try {
     return JSON.parse(contents);
   } catch (err) {
@@ -296,4 +302,19 @@ exports.dateToString = function(date) {
     ':' + pad(date.getSeconds()) +
     dif + pad(tzo / 60) +
     ':' + pad(tzo % 60);
+}
+
+/**
+ * @param {!stream.Readable} stream
+ * @return {!Promise<string>}
+ */
+exports.streamToString = async function(stream) {
+  return new Promise((resolve, reject) => {
+    let chunks = '';
+    stream.on('data', chunk => {
+      chunks += chunk;
+    });
+    stream.on('error', reject);
+    stream.on('end', () => resolve(chunks));
+  });
 }
