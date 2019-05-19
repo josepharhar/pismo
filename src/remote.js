@@ -42,6 +42,37 @@ class Remote {
   }
 
   /**
+   * Reads remotes/ dir to find all remotes and create Remote objects for them.
+   * Does _not_ read from file to update them, though. Maybe make this an option?
+   *
+   * @return {!Promise<!Array<!Remote>>}
+   */
+  static async getAllRemotes() {
+    /** @type {!Array<!Remote>} */
+    const remotes = [];
+
+    const absoluteRemotesPath = pismoutil.getAbsoluteRemotesPath();
+    let dirents = null;
+    try {
+      await pismoutil.mkdirpPromise(absoluteRemotesPath);
+      dirents = await readdirPromise(absoluteRemotesPath, {withFileTypes: true});
+    } catch (error) {
+      logError(`Remote.getAllRemotes() Failed to readdir() at absoluteRemotesPath: ${absoluteRemotesPath}`);
+      throw error;
+    }
+
+    for (const dirent of dirents) {
+      if (!dirent.isDirectory()) {
+        logError(`Remote.getAllRemotes() remotes/${dirent.name} is not a directory, skipping...`);
+        continue;
+      }
+      remotes.push(new Remote(dirent.name));
+    }
+
+    return remotes;
+  }
+
+  /**
    * @return {string}
    */
   name() {
@@ -164,6 +195,7 @@ class Remote {
     await pismoutil.deleteDotPath(this.dotPath());
   }
 };
+exports.Remote = Remote;
 
 /**
  * @param {import('yargs').Arguments} argv
@@ -195,26 +227,9 @@ exports.remoteRemove = async function(argv) {
  * @param {import('yargs').Arguments} argv
  */
 exports.remoteList = async function(argv) {
-  // iterate over the directories in remotes/, print out the meta.json of each.
-  
-  const absolutePath = pismoutil.getAbsoluteRemotesPath();
-  let dirents = null;
-  try {
-    await pismoutil.mkdirpPromise(absolutePath);
-    dirents = await readdirPromise(absolutePath, {withFileTypes: true});
-  } catch (error) {
-    logError(`Failed to readdir() to list remotes at path: ${absolutePath}`);
-    throw error;
-  }
-
-  for (const dirent of dirents) {
-    if (!dirent.isDirectory()) {
-      logError(`remotes/${dirent.name} is not a directory, skipping...`);
-      continue;
-    }
-    const remote = new Remote(dirent.name);
+  const remotes = await Remote.getAllRemotes();
+  for (const remote of remotes) {
     await remote.readFromFile();
-
     console.log(remote.name());
     console.log(`  url: ${remote.url()}`);
     console.log(`  lastUpdated: ${remote.lastUpdated()}`);
@@ -330,4 +345,7 @@ exports.remoteUpdate = async function(argv) {
     }
     console.log('  wrote to file successfully!');
   }
+
+  remote.updateTimestamp();
+  await remote.writeToFile();
 }
