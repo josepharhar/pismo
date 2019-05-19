@@ -73,7 +73,7 @@ yargs
         })
         .help(false)
         .version(false),
-    remoteAdd)
+    run(remoteAdd))
 
   .command(
     'remote-remove <name>',
@@ -84,7 +84,7 @@ yargs
         })
         .help(false)
         .version(false),
-    remoteRemove)
+    run(remoteRemove))
 
   .command(
     'fetch <name>',
@@ -95,7 +95,7 @@ yargs
         })
         .help(false)
         .version(false),
-    remoteUpdate)
+    run(remoteUpdate))
 
   .command(
     'remote-list',
@@ -103,7 +103,7 @@ yargs
     yargs => yargs
         .help(false)
         .version(false),
-    remoteList)
+    run(remoteList))
 
   .command(
     'update <name>',

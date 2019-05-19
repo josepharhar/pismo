@@ -1,6 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const util = require('util');
+const path = require('path');
 
 const pismoutil = require('./pismoutil.js');
 
@@ -74,7 +75,7 @@ class Remote {
    * @return {string}
    */
   dotPath() {
-    return `/remotes/${name}`;
+    return `/remotes/${this.name()}`;
   }
 
   /**
@@ -151,6 +152,7 @@ exports.remoteList = async function(argv) {
   const absolutePath = pismoutil.getAbsoluteRemotesPath();
   let dirents = null;
   try {
+    await pismoutil.mkdirpPromise(absolutePath);
     dirents = await readdirPromise(absolutePath, {withFileTypes: true});
   } catch (error) {
     logError(`Failed to readdir() to list remotes at path: ${absolutePath}`);

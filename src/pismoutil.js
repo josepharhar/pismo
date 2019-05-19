@@ -111,6 +111,20 @@ exports.readDotFile = async function(relativePath) {
 }
 
 /**
+ * @param {string} path
+ */
+exports.mkdirpPromise = async function(path) {
+  return new Promise((resolve, reject) => {
+    mkdirp(path, error => {
+      if (error)
+        reject(error);
+      else
+        resolve();
+    });
+  });
+}
+
+/**
  * Reads a file within the ~/.pismo directory and calls JSON.parse() on it.
  *
  * @param {!string} relativePath
