@@ -14,7 +14,7 @@ exports.add = async function(argv) {
 
   logInfo(`Adding tree named ${argv.name} rooted at ${absolutePath}`);
 
-  const treesPath = pismoutil.getTreesPath();
+  const treesPath = pismoutil.getAbsoluteTreesPath();
 
   const mkdirpErr = await new Promise(resolve => {
     mkdirp(treesPath, resolve);

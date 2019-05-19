@@ -93,6 +93,10 @@ yargs
         .positional('name', {
           description: 'name of the remote to update.'
         })
+        .option('prune', {
+          description: 'Delete all local trees no longer on the remote server',
+          default: false
+        })
         .help(false)
         .version(false),
     run(remoteUpdate))

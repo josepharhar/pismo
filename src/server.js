@@ -40,21 +40,26 @@ async function handleList(params, res) {
     return;
   }
 
+  /** @type {!Object<string, !pismoutil.TreeFile>} */
+  const retval = {};
+
   for (const name in treeNamesToPaths) {
     /** @type {!pismoutil.TreeFile} */
     const tree = await pismoutil.readFileToJson(
       treeNamesToPaths[name]);
     if (tree === null) {
       logError('Failed to read tree json file for name: ' + name);
-      return;
+      continue;
     }
+
+    retval[name] = tree;
 
     console.log(name);
     console.log('  path: ' + tree.path);
     console.log('  lastModified: ' + tree.lastModified);
   }
 
-  respondWithJson(res, treeNamesToPaths);
+  respondWithJson(res, retval);
 }
 
 /**

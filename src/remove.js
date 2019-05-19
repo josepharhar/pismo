@@ -9,7 +9,7 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
  * @param {import('yargs').Arguments} argv
  */
 exports.remove = async function(argv) {
-  const treesPath = pismoutil.getTreesPath();
+  const treesPath = pismoutil.getAbsoluteTreesPath();
 
   const filepath = path.join(treesPath, `/${argv.name}.json`);
 

@@ -13,6 +13,7 @@ const readFilePromise = util.promisify(fs.readFile);
 const writeFilePromise = util.promisify(fs.writeFile);
 
 /** @typedef {{path: string, mtimeS: number, mtimeNs: number, size: number, hash: string}} FileInfo */
+// TODO change lastModified to lastUpdated
 /** @typedef {{path: string, lastModified: string, files: Array<FileInfo>}} TreeFile */
 /** @typedef {{operator: 'rm'|'cp'|'touch', operands: !Array<{tree: 'base'|'other', relativePath: string}>}} Operation */
 /** @typedef {{base: string, other: string, operations: !Array<!Operation>}} MergeFile */
@@ -52,7 +53,7 @@ exports.getDotPath = function() {
 /**
  * @return {!string}
  */
-exports.getTreesPath = function() {
+exports.getAbsoluteTreesPath = function() {
   return path.join(exports.getDotPath(), '/trees');
 }
 
@@ -73,19 +74,21 @@ exports.getAbsoluteRemotesPath = function() {
 exports.getTreeNamesToPaths = async function() {
   /** @type {Object<string, string>} */
   const output = {};
-  const treespath = exports.getTreesPath();
+  const treespath = exports.getAbsoluteTreesPath();
 
   let filenames;
   try {
     filenames = await readdirPromise(treespath);
-  } catch (err) {
-    logInfo('getTreeFiles() call to readdir() failed: ' + err);
-    return output;
+  } catch (error) {
+    logError(`getTreeNamesToPaths() readdir(${treespath}) failed`);
+    throw error;
   }
 
   for (const filename of filenames) {
-    if (!filename.endsWith('.json'))
+    if (!filename.endsWith('.json')) {
+      logError(`Found non-json file in /trees dir: ${filename}`);
       continue;
+    }
 
     const name = filename.replace(/.json$/, '');
     output[name] = path.join(treespath, filename);

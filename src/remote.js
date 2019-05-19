@@ -6,6 +6,8 @@ const path = require('path');
 const pismoutil = require('./pismoutil.js');
 
 const readdirPromise = util.promisify(fs.readdir);
+const unlinkPromise = util.promisify(fs.unlink);
+const writeFilePromise = util.promisify(fs.writeFile);
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /**
@@ -83,6 +85,52 @@ class Remote {
    */
   metaDotPath() {
     return `${this.dotPath()}/meta.json`;
+  }
+
+  /**
+   * @return {string}
+   */
+  relativeTreesPath() {
+    return path.join(this.dotPath(), 'trees');
+  }
+
+  /**
+   * @return {string}
+   */
+  absoluteTreesPath() {
+    return path.join(pismoutil.getDotPath(), this.relativeTreesPath());
+  }
+
+  /**
+   * Returns tree filed within this remote mapped to their absolute filepaths.
+   * Similar to pismoutil.getTreeNamesToPaths().
+   * TODO merge with code in pismoutil.getTreeNamesToPaths()
+   *
+   * @return {!Promise<Object<string, string>>}
+   */
+  async getTreeNamesToPaths() {
+    /** @type {Object<string, string>} */
+    const output = {};
+    const absoluteTreesPath = this.absoluteTreesPath();
+
+    let filenames;
+    try {
+      filenames = await readdirPromise(absoluteTreesPath);
+    } catch (error) {
+      logError(`Remote.getTreeNamesToPaths() readdir(${absoluteTreesPath}) failed`);
+      throw error;
+    }
+
+    for (const filename of filenames) {
+      if (!filename.endsWith('.json')) {
+        logError(`Found non-json file in /remotes/${this.name()}/trees: ${filename}`);
+        continue;
+      }
+
+      const name = filename.replace(/.json$/, '');
+      output[name] = path.join(absoluteTreesPath, filename);
+    }
+    return output;
   }
 
   async readFromFile() {
@@ -224,17 +272,62 @@ exports.remoteUpdate = async function(argv) {
     params: {}
   };
 
-  const req = http.request(remote.url(), requestOptions, async res => {
-    console.log(`${res.statusCode} ${JSON.stringify(res.headers, null, 2)}`);
+  const res = await new Promise((resolve, reject) => {
+    const req = http.request(remote.url(), requestOptions, resolve);
+    req.on('error', error => {
+      logError(`http.request error`);
+      reject(error);
+    });
+    req.write(JSON.stringify(postObj, null, 2));
+    req.end();
+  });
+
+  console.log(`${res.statusCode} ${JSON.stringify(res.headers, null, 2)}`);
+  let responseBody = null;
+  try {
+    responseBody = await pismoutil.streamToString(res);
+  } catch (error) {
+    logError(`Failed to read http response stream to string. url: ${remote.url()}`);
+    throw error;
+  }
+
+  /** @type {!Object<string, !pismoutil.TreeFile>} */
+  let response = null;
+  try {
+    response = JSON.parse(responseBody);
+  } catch (error) {
+    logError(`Failed to parse response body to json`);
+    throw error;
+  }
+
+  console.log(`updaing remotes/${remote.name()}/ with ${Object.keys(response).length} new trees`);
+
+  const absoluteTreesPath = remote.absoluteTreesPath();
+  await pismoutil.mkdirpPromise(absoluteTreesPath);
+
+  console.log('argv.prune: ' + argv.prune);
+  if (argv.prune) {
+    console.log('pruning local things');
+    const treeNamesToPaths = remote.getTreeNamesToPaths();
+    for (const name in treeNamesToPaths) {
+      console.log(`  deleting ${name} at ${treeNamesToPaths[name]}`);
+      await unlinkPromise(treeNamesToPaths[name]);
+    }
+  }
+
+  // save response stuff to local files
+  // TODO share more code with add.js and stuff to do this?
+  for (const name in response) {
+    const treeFile = response[name];
+    console.log(`name: ${name}`);
+    console.log(`  lastModified: ${treeFile.lastModified}`);
+    const absoluteNewTreePath = path.join(absoluteTreesPath, name + '.json');
     try {
-      const str = await pismoutil.streamToString(res);
-      console.log('http response body:');
-      console.log(str);
+      await writeFilePromise(absoluteNewTreePath, JSON.stringify(treeFile, null, 2));
     } catch (error) {
-      logError(`Failed to read http response stream to string. url: ${remote.url()}`);
+      logError(`Failed to write downloaded tree to path: ${absoluteNewTreePath}`);
       throw error;
     }
-  });
-  req.write(JSON.stringify(postObj, null, 2));
-  req.end();
+    console.log('  wrote to file successfully!');
+  }
 }
