@@ -40,6 +40,7 @@ exports.list = async function(argv) {
   for (const remote of remotes) {
     await remote.readFromFile();
     const remoteTreeNamesToPaths = await remote.getTreeNamesToPaths();
+    console.log(`  Why hello there Joseph.`);
     for (const name in remoteTreeNamesToPaths) {
       if (first)
         first = false;
@@ -52,7 +53,7 @@ exports.list = async function(argv) {
         logError(`Failed to read treeFile. remote: ${remote.name()}, name: ${name}`);
         return;
       }
-      console.log(name);
+      console.log(`${remote.name()}/${name}`);
       console.log(`  path: ${tree.path}`);
       console.log(`  lastModified: ${tree.lastModified}`);
     }
