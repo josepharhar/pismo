@@ -16,7 +16,8 @@ const writeFilePromise = util.promisify(fs.writeFile);
 // TODO change lastModified to lastUpdated
 /** @typedef {{path: string, lastModified: string, files: Array<FileInfo>}} TreeFile */
 /** @typedef {{operator: 'rm'|'cp'|'touch', operands: !Array<{tree: 'base'|'other', relativePath: string}>}} Operation */
-/** @typedef {{base: string, other: string, operations: !Array<!Operation>}} MergeFile */
+/** @typedef {{baseBranch: string, otherBranch: string, operations: !Array<!Operation>}} MergeFile */
+/** @typedef {!{mtimeS: BigInt, mtimeNs: BigInt}} FileTime */
 
 /**
  * @param {string=} filepath
@@ -334,4 +335,24 @@ exports.streamToString = async function(stream) {
     stream.on('error', reject);
     stream.on('end', () => resolve(chunks));
   });
+}
+
+/**
+ * @param {string} absolutePath
+ * @return {!FileTime}
+ */
+exports.getLocalFileTime = function(absolutePath) {
+  const stats = nanostat.statSync(absolutePath);
+  return {
+    mtimeS: stats.mtimeMs / 1000n,
+    mtimeNs: stats.mtimeNs
+  };
+}
+
+/**
+ * @param {string} absolutePath
+ * @param {!FileTime} filetime
+ */
+exports.setLocalFileTime = function(absolutePath, filetime) {
+  nanoutimes.utimesSync(absolutePath, null, null, filetime.mtimeS, filetime.mtimeNs);
 }

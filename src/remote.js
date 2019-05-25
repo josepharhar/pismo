@@ -31,6 +31,7 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
  */
 class Remote {
   /**
+   * TODO make this only callable from getOrCreateRemote()
    * @param {string} name
    */
   constructor(name) {
@@ -164,6 +165,26 @@ class Remote {
     return output;
   }
 
+  /**
+   * Reads a tree from file and returns the contents as a TreeFile.
+   * TODO merge with pismoutil.readTreeByName()
+   *
+   * @param {string} treename
+   * @return {!Promise<!TreeFile>}
+   */
+  async readTreeByName(treename) {
+    const treeNamesToPaths = await this.getTreeNamesToPaths();
+    const filepath = treeNamesToPaths[treename];
+    if (!filepath)
+      throw new Error(`Couldn't find a tree file named ${treename}`);
+    try {
+      return await pismoutil.readFileToJson(filepath);
+    } catch (err) {
+      logError(`Failed to read tree file named ${treename} at filepath ${filepath}`);
+      throw err;
+    }
+  }
+
   async readFromFile() {
     let obj = null;
     try {
@@ -194,8 +215,72 @@ class Remote {
   async delete() {
     await pismoutil.deleteDotPath(this.dotPath());
   }
+
+  /**
+   * @param {string} treename
+   * @param {string} relativePath
+   * @return {!Promise<!FileTime>}
+   */
+  async getRemoteFileTime(treename, relativePath) {
+    // TODO
+  }
+
+  /**
+   * @param {string} treename
+   * @param {string} relativePath
+   * @param {!FileTime} filetime
+   */
+  async setRemoteFileTime(treename, relativePath, filetime) {
+    // TODO
+  }
+
+  /**
+   * @param {string} absoluteLocalPath
+   * @param {string} treeName
+   * @param {string} relativePath
+   */
+  async copyFileToRemote(absoluteLocalPath, treeName, relativePath) {
+    // TODO
+  }
+
+  /**
+   * @param {string} treeName
+   * @param {string} relativePath
+   * @param {string} absoluteLocalPath
+   */
+  async copyFileFromRemote(treeName, relativePath, absoluteLocalPath) {
+    // TODO
+  }
+
+  /**
+   * @param {string} srcTreeName
+   * @param {string} srcRelativePath
+   * @param {string} destTreeName
+   * @param {string} destRelativePath
+   */
+  async copyFileWithinRemote(srcTreeName, srcRelativePath, destTreeName, destRelativePath) {
+    // TODO
+  }
 };
 exports.Remote = Remote;
+
+/** @type {!Map<string, !Remote>} */
+const _remoteCache = new Map();
+/**
+ * TODO this function name is misleading, we are not actually creating a new remote!
+ * Manages a cache layer to disk for remotes.
+ * Returns a remote which has been updated from disk
+ * @param {string} name
+ */
+exports.getOrCreateRemote(name) {
+  let remote = _remoteCache.get(name);
+  if (!remote) {
+    remote = new Remote(name);
+    await remote.readFromFile();
+    _remoteCache.set(name, remote);
+  }
+  return remote;
+}
 
 /**
  * @param {import('yargs').Arguments} argv

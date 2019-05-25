@@ -1,12 +1,14 @@
 const fs = require('fs');
 
 const diff = require('./diff.js');
+const remote = require('./remote.js');
 const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /** @typedef {pismoutil.TreeFile} TreeFile */
 /** @typedef {pismoutil.FileInfo} FileInfo */
 /** @typedef {pismoutil.Operation} Operation */
+/** @typedef {pismoutil.MergeFile} MergeFile */
 
 /**
  * @param {!TreeFile} baseTree
@@ -99,8 +101,28 @@ exports.merge = async function(argv) {
   const outputFilepath = argv['output-filepath'];
   const mode = argv['mode'];
 
-  const baseTree = await pismoutil.readTreeByName(argv.base);
-  const otherTree = await pismoutil.readTreeByName(argv.other);
+  /** @type {?TreeFile} */
+  let baseTree = null;
+  /** @type {?TreeFile} */
+  let otherTree = null;
+  const baseBranch = new Branch(argv.base);
+  const otherBranch = new Branch(argv.other);
+  if (baseBranch.remote()) {
+    const remote = new remote.Remote(baseBranch.remote());
+    await remote.readFromFile();
+    baseTree = await remote.readTreeByName(baseBranch.name());
+  } else {
+    baseTree = await pismoutil.readTreeByName(baseBranch.name());
+  }
+  if (otherBranch.remote()) {
+    const remote = new remote.Remote(otherBranch.remote());
+    // TODO hold this in memory so we dont have to read from disk multiple times
+    //   for the same remote?
+    await remote.readFromFile();
+    baseTree = await remote.readTreeByName(otherBranch.name());
+  } else {
+    baseTree = await pismoutil.readTreeByName(otherBranch.name());
+  }
 
   // merge format will be a list of operations
   // each operation has:
@@ -125,9 +147,10 @@ exports.merge = async function(argv) {
       throw new Error(`Unrecognized merge mode: ${argv['mode']}`);
   }
 
+  /** @type {!MergeFile} */
   const output = {
-    base: baseTree.path,
-    other: otherTree.path,
+    baseBranch: baseBranch.rawString(),
+    otherBranch: otherBranch.rawString(),
     operations: operations
   };
 

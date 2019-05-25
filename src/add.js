@@ -12,6 +12,11 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
 exports.add = async function(argv) {
   const absolutePath = path.resolve(process.cwd(), argv.path);
 
+  if (argv.name.includes('/') || argv.name.includes('\\')) {
+    logError(`Invalid new tree name. must not include '/' or '\\'`);
+    return;
+  }
+
   logInfo(`Adding tree named ${argv.name} rooted at ${absolutePath}`);
 
   const treesPath = pismoutil.getAbsoluteTreesPath();
