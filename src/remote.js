@@ -222,7 +222,7 @@ class Remote {
    * @return {!Promise<!FileTime>}
    */
   async getRemoteFileTime(treename, relativePath) {
-    // TODO
+    throw new Error('NOTIMPLEMENTED');
   }
 
   /**
@@ -232,6 +232,7 @@ class Remote {
    */
   async setRemoteFileTime(treename, relativePath, filetime) {
     // TODO
+    throw new Error('NOTIMPLEMENTED');
   }
 
   /**
@@ -241,6 +242,7 @@ class Remote {
    */
   async copyFileToRemote(absoluteLocalPath, treeName, relativePath) {
     // TODO
+    throw new Error('NOTIMPLEMENTED');
   }
 
   /**
@@ -250,6 +252,7 @@ class Remote {
    */
   async copyFileFromRemote(treeName, relativePath, absoluteLocalPath) {
     // TODO
+    throw new Error('NOTIMPLEMENTED');
   }
 
   /**
@@ -260,6 +263,7 @@ class Remote {
    */
   async copyFileWithinRemote(srcTreeName, srcRelativePath, destTreeName, destRelativePath) {
     // TODO
+    throw new Error('NOTIMPLEMENTED');
   }
 };
 exports.Remote = Remote;

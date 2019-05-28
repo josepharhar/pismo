@@ -76,4 +76,18 @@ exports.Branch = class {
     const absolutePath = path.join(treeFile.path, relativePath);
     pismoutil.setLocalFileTime(absolutePath, fileTime);
   }
+
+  /**
+   * @param {!Remote} remote
+   * @param {string} relativePath
+   */
+  async copyFileFromRemote(remote, relativePath) {
+    if (this.remote()) {
+      throw new Error(`TODO: implement copying files from remote to remote. name: ${this.name}, relativePath: ${relativePath}`);
+    }
+
+    const treeFile = await pismoutil.readTreeByName(this.name());
+    const absoluteDestPath = path.join(treeFile.path, relativePath);
+    await remote.copyFileFromRemote(treeName, relativePath, absoluteDestPath);
+  }
 }

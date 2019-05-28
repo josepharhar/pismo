@@ -40,7 +40,6 @@ exports.list = async function(argv) {
   for (const remote of remotes) {
     await remote.readFromFile();
     const remoteTreeNamesToPaths = await remote.getTreeNamesToPaths();
-    console.log(`  Why hello there Joseph.`);
     for (const name in remoteTreeNamesToPaths) {
       if (first)
         first = false;

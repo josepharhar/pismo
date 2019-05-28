@@ -73,8 +73,12 @@ exports.apply = async function(argv) {
           await remote.copyFileWithinRemote(srcBranch.name(), srcRelativePath, destBranch.name(), destRelativePath);
 
         } else if (srcBranch.remote() && !destBranch.remote()) {
+
           const remote = await remote.getOrCreateRemote(srcBranch.remote());
-          const absoluteDestPath = destBranch = path.join(tree
+          await remote.copyFileFromRemote();
+
+          const remote = await remote.getOrCreateRemote(srcBranch.remote());
+          const absoluteDestPath = destBranch = path.join(
             aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
           await remote.copyFileFromRemote(srcBranch.name(), srcRelativePath, 
 
