@@ -7,12 +7,16 @@ const nanoutimes = require('nanoutimes');
 const nanostat = require('nanostat');
 
 const diff = require('./diff.js');
-const branch = require('./branch.js');
+const branches = require('./branch.js');
 const pismoutil = require('./pismoutil.js');
 const remotes = require('./remote.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
+// TODO delet this?
+const Branch = branches.Branch;
+
 /** @typedef {pismoutil.FileTime} FileTime */
+/** @typedef {remotes.Remote} Remote */
 
 /**
  * @param {string} srcFilepath
@@ -42,7 +46,7 @@ exports.apply = async function(argv) {
       if (operand.tree === 'base') {
         return new Branch(mergefile.baseBranch);
       } else if (operand.tree === 'other') {
-        return new Branch(mergeFile.otherBranch);
+        return new Branch(mergefile.otherBranch);
       } else {
         throw new Error(`Unrecognized operand value for 'tree': expected 'base' or 'other'. was: ${operands[0].tree}`);
       }
@@ -71,12 +75,12 @@ exports.apply = async function(argv) {
             throw new Error(`TODO: support copying between separate remotes`);
           }
           const remote = await remotes.getOrCreateRemote(srcBranch.remote());
-          await remotes.copyFileWithinRemote(srcBranch.name(), srcRelativePath, destBranch.name(), destRelativePath);
+          await remote.copyFileWithinRemote(srcBranch.name(), srcRelativePath, destBranch.name(), destRelativePath);
 
         } else if (srcBranch.remote() && !destBranch.remote()) {
           // copying srcBranch[srcRelativePath] (remote)
           //     to destBranch[destRelativePath] (local)
-          const srcRemote = remotes.getOrCreateRemote(srcBranch.remote());
+          const srcRemote = await remotes.getOrCreateRemote(srcBranch.remote());
           const treeFile = await pismoutil.readTreeByName(destBranch.name());
           const absoluteLocalDestPath = path.join(treeFile.path, destRelativePath);
           await srcRemote.copyFileFromRemote(
@@ -87,7 +91,7 @@ exports.apply = async function(argv) {
         } else if (!srcBranch.remote() && destBranch.remote()) {
           // copying srcBranch[srcRelativePath] (local)
           //     to destBranch[destRelativePath] (remote)
-          const destRemote = remotes.getOrCreateRemote(destBranch.remote());
+          const destRemote = await remotes.getOrCreateRemote(destBranch.remote());
           const treeFile = await pismoutil.readTreeByName(srcBranch.name());
           const absoluteLocalSrcPath = path.join(treeFile.path, srcRelativePath);
           // TODO what should *really* happen here if we get an error?
@@ -106,7 +110,7 @@ exports.apply = async function(argv) {
           const destTreeFile = await pismoutil.readTreeByName(destBranch.name());
           const absoluteDestPath = path.join(destTreeFile.path, destRelativePath);
 
-          const copyFileError = await new Promsie(resolve => {
+          const copyFileError = await new Promise(resolve => {
             fs.copyFile(absoluteSrcPath, absoluteDestPath, resolve);
           });
           if (copyFileError) {
@@ -128,7 +132,7 @@ exports.apply = async function(argv) {
         const relativePath = srcRelativePath;
 
         if (branch.remote()) {
-          const remote = remotes.getOrCreateRemote(branch.remote());
+          const remote = await remotes.getOrCreateRemote(branch.remote());
           await remote.deleteRemoteFile(branch.name(), relativePath);
 
         } else {

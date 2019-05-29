@@ -3,6 +3,10 @@ const path = require('path');
 const fs = require('fs');
 const util = require('util');
 const stream = require('stream');
+// @ts-ignore
+const nanostat = require('nanostat');
+// @ts-ignore
+const nanoutimes = require('nanoutimes');
 
 const filesize = require('filesize');
 const mkdirp = require('mkdirp');

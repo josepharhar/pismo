@@ -1,9 +1,12 @@
 const fs = require('fs');
 
 const diff = require('./diff.js');
-const remote = require('./remote.js');
+const remotes = require('./remote.js');
 const pismoutil = require('./pismoutil.js');
+const branches = require('./branch.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
+
+const Branch = branches.Branch;
 
 /** @typedef {pismoutil.TreeFile} TreeFile */
 /** @typedef {pismoutil.FileInfo} FileInfo */
@@ -108,17 +111,13 @@ exports.merge = async function(argv) {
   const baseBranch = new Branch(argv.base);
   const otherBranch = new Branch(argv.other);
   if (baseBranch.remote()) {
-    const remote = new remote.Remote(baseBranch.remote());
-    await remote.readFromFile();
+    const remote = await remotes.getOrCreateRemote(baseBranch.remote());
     baseTree = await remote.readTreeByName(baseBranch.name());
   } else {
     baseTree = await pismoutil.readTreeByName(baseBranch.name());
   }
   if (otherBranch.remote()) {
-    const remote = new remote.Remote(otherBranch.remote());
-    // TODO hold this in memory so we dont have to read from disk multiple times
-    //   for the same remote?
-    await remote.readFromFile();
+    const remote = await remotes.getOrCreateRemote(otherBranch.remote());
     baseTree = await remote.readTreeByName(otherBranch.name());
   } else {
     baseTree = await pismoutil.readTreeByName(otherBranch.name());

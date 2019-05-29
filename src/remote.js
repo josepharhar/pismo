@@ -170,7 +170,7 @@ class Remote {
    * TODO merge with pismoutil.readTreeByName()
    *
    * @param {string} treename
-   * @return {!Promise<!TreeFile>}
+   * @return {!Promise<!pismoutil.TreeFile>}
    */
   async readTreeByName(treename) {
     const treeNamesToPaths = await this.getTreeNamesToPaths();
@@ -219,7 +219,7 @@ class Remote {
   /**
    * @param {string} treename
    * @param {string} relativePath
-   * @return {!Promise<!FileTime>}
+   * @return {!Promise<!pismoutil.FileTime>}
    */
   async getRemoteFileTime(treename, relativePath) {
     throw new Error('NOTIMPLEMENTED');
@@ -228,7 +228,7 @@ class Remote {
   /**
    * @param {string} treename
    * @param {string} relativePath
-   * @param {!FileTime} filetime
+   * @param {!pismoutil.FileTime} filetime
    */
   async setRemoteFileTime(treename, relativePath, filetime) {
     // TODO
@@ -284,8 +284,9 @@ const _remoteCache = new Map();
  * Manages a cache layer to disk for remotes.
  * Returns a remote which has been updated from disk
  * @param {string} name
+ * @return {!Promise<!Remote>}
  */
-exports.getOrCreateRemote(name) {
+exports.getOrCreateRemote = async function(name) {
   let remote = _remoteCache.get(name);
   if (!remote) {
     remote = new Remote(name);

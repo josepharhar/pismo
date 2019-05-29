@@ -1,4 +1,7 @@
+const path = require('path');
+
 const remotes = require('./remote.js');
+const pismoutil = require('./pismoutil.js');
 
 exports.Branch = class {
   /**
@@ -11,7 +14,6 @@ exports.Branch = class {
     let remote = null, name = null;
     if (string.includes('/')) {
       [remote, name] = string.split('/');
-      const [remote, name] = string.split('/')
     } else {
       name = string;
     }
@@ -65,7 +67,7 @@ exports.Branch = class {
 
   /**
    * @param {string} relativePath
-   * @param {!FileTime} fileTime
+   * @param {!pismoutil.FileTime} fileTime
    */
   async setFileTime(relativePath, fileTime) {
     if (this.remote()) {
