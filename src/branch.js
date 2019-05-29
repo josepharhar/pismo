@@ -1,3 +1,5 @@
+const remotes = require('./remote.js');
+
 exports.Branch = class {
   /**
    * @param {string} string
@@ -51,7 +53,7 @@ exports.Branch = class {
    */
   async getFileTime(relativePath) {
     if (this.remote()) {
-      const remote = await remote.getOrCreateRemote(this.remote());
+      const remote = await remotes.getOrCreateRemote(this.remote());
       return await remote.getRemoteFileTime(this.name(), relativePath);
     }
 
@@ -67,7 +69,7 @@ exports.Branch = class {
    */
   async setFileTime(relativePath, fileTime) {
     if (this.remote()) {
-      const remote = await remote.getOrCreateRemote(this.remote());
+      const remote = await remotes.getOrCreateRemote(this.remote());
       await remote.setRemoteFileTime(this.name(), relativePath, fileTime);
       return;
     }
@@ -76,18 +78,18 @@ exports.Branch = class {
     const absolutePath = path.join(treeFile.path, relativePath);
     pismoutil.setLocalFileTime(absolutePath, fileTime);
   }
-
-  /**
-   * @param {!Remote} remote
-   * @param {string} relativePath
-   */
-  async copyFileFromRemote(remote, relativePath) {
-    if (this.remote()) {
-      throw new Error(`TODO: implement copying files from remote to remote. name: ${this.name}, relativePath: ${relativePath}`);
-    }
-
-    const treeFile = await pismoutil.readTreeByName(this.name());
-    const absoluteDestPath = path.join(treeFile.path, relativePath);
-    await remote.copyFileFromRemote(treeName, relativePath, absoluteDestPath);
-  }
+//
+//  /**
+//   * @param {!Remote} remote
+//   * @param {string} relativePath
+//   */
+//  async copyFileFromRemote(remote, relativePath) {
+//    if (this.remote()) {
+//      throw new Error(`TODO: implement copying files from remote to remote. name: ${this.name}, relativePath: ${relativePath}`);
+//    }
+//
+//    const treeFile = await pismoutil.readTreeByName(this.name());
+//    const absoluteDestPath = path.join(treeFile.path, relativePath);
+//    await remote.copyFileFromRemote(treeName, relativePath, absoluteDestPath);
+//  }
 }

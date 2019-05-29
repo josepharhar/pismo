@@ -265,6 +265,15 @@ class Remote {
     // TODO
     throw new Error('NOTIMPLEMENTED');
   }
+
+  /**
+   * @param {string} treename
+   * @param {string} relativePath
+   */
+  async deleteRemoteFile(treename, relativePath) {
+    // TODO
+    throw new Error('NOTIMPLEMENTED');
+  }
 };
 exports.Remote = Remote;
 
