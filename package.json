@@ -6,7 +6,8 @@
   "scripts": {
     "tsc": "tsc -p .",
     "link": "npm link",
-    "upload-file": "node upload-file.js"
+    "upload-file": "node upload-file.js",
+    "test": "node src/unittest.js"
   },
   "repository": {
     "type": "git",

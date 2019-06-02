@@ -363,40 +363,114 @@ exports.setLocalFileTime = function(absolutePath, filetime) {
   nanoutimes.utimesSync(absolutePath, null, null, filetime.mtimeS, filetime.mtimeNs);
 }
 
+///** @typedef {'string'|'number'|'boolean'|!Array<!JsonSchema>|!Object<string, !JsonSchema>} JsonSchema */
+/** @typedef {'string'|'number'|'boolean'|!Array<*>|!Object<string, *>} JsonSchema */
+///** @typedef {*} JsonSchema */
 /**
- * Parses a javascript object for correct runtime types based on a specification
- *
+ * ex obj: {
+ *   nested: {
+ *     str: 'str',
+ *     num: 1234,
+ *     bool: true
+ *   },
+ *   array: [
+ *     'one',
+ *     'two'
+ *   ]
+ * }
+ * 
+ * ex schema: {
+ *   nested: {
+ *     str: 'string',
+ *     num: 'number',
+ *     bool: 'boolean'
+ *   },
+ *   array: ['string']
+ * }
+ * 
  * @template T
- * @param {string} rootObj 
- * @param {!Object<string, string>} rootFieldToType 
+ * @param {string} jsonString
+ * @param {JsonSchema} rootSchema
  * @return {!T}
  */
-exports.parseObject = function(rootObj, rootFieldToType) {
-  let obj = rootObj;
-  let fieldToType = rootFieldToType;
+exports.parseJson = function(jsonString, rootSchema) {
+  const rootObj = JSON.parse(jsonString);
 
-  /** @type */
-  let stackqueue = [];
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
-  // TODO TODO TODO 
+  /** @type {!Array<!{obj: *, schema: JsonSchema}>} */
+  const stackqueue = [];
+  stackqueue.push({
+    obj: rootObj,
+    schema: rootSchema
+  });
+
+  while (stackqueue.length) {
+    const {obj, schema} = stackqueue.pop();
+
+    /**
+     * @param {string} string 
+     */
+    function error(string) {
+      return new Error(string
+        + '\n  jsonString: ' + jsonString
+        + '\n  rootSchema: ' + JSON.stringify(rootSchema)
+        + '\n  obj: ' + JSON.stringify(obj)
+        + '\n  schema: ' + JSON.stringify(schema));
+    }
+
+    if (schema === 'string' || schema === 'boolean' || schema === 'number') {
+      if (typeof(obj) !== schema)
+        throw error('invalid json. expected: ' + schema + ', found: ' + typeof(obj));
+
+    } else if (Array.isArray(schema)) {
+      if (schema.length > 1)
+        throw error('invalid schema, found multiple values in array');
+      
+      if (!Array.isArray(obj)) {
+        throw error('invalid json, expected array. found: ' + typeof(obj));
+      }
+      const innerSchema = schema[0];
+      for (const value of obj) {
+        stackqueue.push({obj: value, schema: innerSchema});
+      }
+
+    } else if (typeof(schema) === 'object') {
+      if (typeof(obj) !== 'object')
+        throw error('invalid json, expected object. found: ' + typeof(obj));
+
+      const expectedKeys = Object.keys(schema).sort();
+      const actualKeys = Object.keys(obj).sort();
+      if (!exports.areArraysEqual(expectedKeys, actualKeys)) {
+        throw error('invalid json, object field mismatch'
+          + ', expected: ' + JSON.stringify(expectedKeys)
+          + ', actual: ' + JSON.stringify(actualKeys));
+      }
+      for (const key of expectedKeys) {
+        stackqueue.push({obj: obj[key], schema: schema[key]});
+      }
+
+    } else {
+      throw error('invalid schema');
+    }
+  }
+
+  return /** {!T} */ (rootObj);
+}
+
+/**
+ * Only checks === on values in the arrays
+ * 
+ * @template T
+ * @param {!Array<T>} one
+ * @param {!Array<T>} two
+ * @return {boolean}
+ */
+exports.areArraysEqual = function(one, two) {
+  if (!Array.isArray(one) || !Array.isArray(two))
+    return false;
+
+  for (let i = 0; i < one.length; i++) {
+    if (one[i] !== two[i])
+      return false;
+  }
+  return true;
 }

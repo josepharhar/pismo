@@ -5,6 +5,7 @@ const stream = require('stream');
 const express = require('express');
 const bodyParser = require('body-parser');
 const progress = require('progress-stream');
+// @ts-ignore
 const nanostat = require('nanostat');
 
 const pismoutil = require('./pismoutil.js');
@@ -125,13 +126,20 @@ async function handleGetTree(params, res) {
   respondWithJson(res, treeFile);
 }
 
-/** @type {!{treename: string, relativePath: string}} GetFileTimeParams */
-/** @type {!{mtimeS: number, mtimeNs: number}} GetFileTimeResponse */
+/** @typedef {!{treename: string, relativePath: string}} GetFileTimeParams */
+/** @typedef {!{mtimeS: number, mtimeNs: number}} GetFileTimeResponse */
 /**
  * @param {!Object} paramsObj
  * @param {!express.Response} res
  */
 async function handleGetFileTime(paramsObj, res) {
+
+  const schema = {
+    treename: 'string',
+    relativePath: 'string'
+  }
+  pismoutil.parseJson(
+
   /** @type {!GetFileTimeParams} */
   const params = new Params(paramsObj, {
     treename: 'string',
