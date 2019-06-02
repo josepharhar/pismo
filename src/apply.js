@@ -104,6 +104,8 @@ exports.apply = async function(argv) {
           // local copy
 
           // TODO use a caching layer like remotes for this
+          // TODO do i have to read the entire tree file? wouldnt that be slow?
+          //      or is it fast enough with the caching layer?
           const srcTreeFile = await pismoutil.readTreeByName(srcBranch.name());
           const absoluteSrcPath = path.join(srcTreeFile.path, srcRelativePath);
 

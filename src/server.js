@@ -5,6 +5,7 @@ const stream = require('stream');
 const express = require('express');
 const bodyParser = require('body-parser');
 const progress = require('progress-stream');
+const nanostat = require('nanostat');
 
 const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
@@ -62,6 +63,47 @@ async function handleList(params, res) {
   respondWithJson(res, retval);
 }
 
+class Params {
+  /**
+   * @param {*} obj
+   * @param {!Object<string, string>} fieldToType
+   */
+  constructor(obj, fieldToType) {
+    // TODO add support for nested types within objects
+    for (const field in fieldToType) {
+      const type = fieldToType[field];
+
+      const actualType = typeof(obj[field]);
+      if (actualType !== type) {
+        throw new Error(`Params constructor - expected field "${field}" to have type "${type}". was: ${actualType}. obj: ${JSON.stringify(obj, null, 2)}`);
+      }
+
+      this[field] = obj[field];
+    }
+  }
+};
+
+class ErrorWrapper extends Error {
+  constructor(error, message) {
+    super();
+    this.name = 'ErrorWrapper';
+    this.message = message + '\n' + error.message;
+    this.stack = error.stack;
+  }
+};
+
+/**
+ * @param {string} absolutePath
+ * TODO figure out return type
+ */
+function stat(absolutePath) {
+  try {
+    const stats = nanostat.statSync(absolutePath);
+  } catch (error) {
+    throw new ErrorWrapper(error, `Failed to nanostat.statSync path: "${absolutePath}"`);
+  }
+}
+
 /**
  * @param {!Object} params
  * @param {!express.Response} res
@@ -81,6 +123,37 @@ async function handleGetTree(params, res) {
   }
 
   respondWithJson(res, treeFile);
+}
+
+/** @type {!{treename: string, relativePath: string}} GetFileTimeParams */
+/** @type {!{mtimeS: number, mtimeNs: number}} GetFileTimeResponse */
+/**
+ * @param {!Object} paramsObj
+ * @param {!express.Response} res
+ */
+async function handleGetFileTime(paramsObj, res) {
+  /** @type {!GetFileTimeParams} */
+  const params = new Params(paramsObj, {
+    treename: 'string',
+    relativePath: 'string'
+  });
+
+  // TODO use a caching layer like remotes for this
+  const treeFile = await pismoutil.readTreeByName(params.treeName);
+  const absolutePath = path.join(treeFile.path, params.relativePath);
+
+  const stats = stat(absolutePath);
+  respondWithJson({
+    mtimeS: Number(stats.mtimeMs / 1000n),
+    mtimeNs: Number(stats.mtimeNs)
+  });
+}
+
+/**
+ * @param {!Object} params
+ * @param {!express.Response} res
+ */
+async function handleSetFileTime(params, res) {
 }
 
 /**
@@ -119,18 +192,26 @@ exports.server = async function(argv) {
     }
 
     const params = req.body.params;
-    switch (req.body.method) {
-      case 'list':
-        await handleList(params, res);
-        break;
+    try {
+      switch (req.body.method) {
+        case 'list':
+          await handleList(params, res);
+          break;
 
-      case 'get-tree':
-        await handleGetTree(params, res);
-        break;
+        case 'get-tree':
+          await handleGetTree(params, res);
+          break;
+        
+        case 'get-file-time':
+          await handleGetFileTime(params, res);
+          break;
 
-      default:
-        res.writeHead(400, {'content-type': 'text/plain'});
-        res.end('unrecognized method: ' + req.body.method);
+        default:
+          res.writeHead(400, {'content-type': 'text/plain'});
+          res.end('unrecognized method: ' + req.body.method);
+      }
+    } catch (error) {
+      respondWithError(res, error);
     }
   });
 

@@ -70,6 +70,8 @@ exports.getAbsoluteRemotesPath = function() {
 }
 
 /**
+ * TODO TODO TODO use a caching layer for this instead, make it a class as well?
+ *
  * Returns tree files mapped from name to filepath
  * ex: {"foo": "/home/jarhar/.pismo/trees/foo.json",
  *      "asdf": "/home/jarhar/.pismo/trees/asdf.json"}
@@ -359,4 +361,42 @@ exports.getLocalFileTime = function(absolutePath) {
  */
 exports.setLocalFileTime = function(absolutePath, filetime) {
   nanoutimes.utimesSync(absolutePath, null, null, filetime.mtimeS, filetime.mtimeNs);
+}
+
+/**
+ * Parses a javascript object for correct runtime types based on a specification
+ *
+ * @template T
+ * @param {string} rootObj 
+ * @param {!Object<string, string>} rootFieldToType 
+ * @return {!T}
+ */
+exports.parseObject = function(rootObj, rootFieldToType) {
+  let obj = rootObj;
+  let fieldToType = rootFieldToType;
+
+  /** @type */
+  let stackqueue = [];
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
+  // TODO TODO TODO 
 }

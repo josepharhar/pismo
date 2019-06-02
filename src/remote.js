@@ -217,11 +217,68 @@ class Remote {
   }
 
   /**
+   * @param {string} method
+   * @param {!Object} params
+   * @return {!Promise<http.request>}
+   */
+  async _fetchApiResponse(method, params) {
+    const url = new URL(this.url());
+    const requestOptions = {
+      hostname: url.hostname,
+      port: url.port,
+      path: '/api',
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json'
+      }
+    };
+    const postObj = {
+      method: 'get-file-time',
+      params: {
+      }
+    };
+
+    return new Promise((resolve, reject) => {
+      const res = new Promise((resolve, reject) => {
+        const req = http.request(this.url(), requestOptions, resolve);
+        req.on('error', error => {
+          logError(`http.request() error`);
+          reject(error);
+        });
+        req.write(JSON.stringify(postObj, null, 2));
+        req.end();
+      });
+
+      let resposeString = '';
+      res.on('error', error => {
+        logError(`error reading http response`);
+        reject(error);
+      });
+      res.on('data', data => {
+        responseString += data;
+      });
+      res.on('end', () => {
+        resolve(JSON.parse(responseString));
+      });
+    });
+  }
+
+  /**
+   * TODO move this to pismoutil
+   * @template T
+   */
+  parseObject(obj, fieldToType) {
+
+  }
+
+  /**
    * @param {string} treename
    * @param {string} relativePath
    * @return {!Promise<!pismoutil.FileTime>}
    */
   async getRemoteFileTime(treename, relativePath) {
+    const {mtimeS, mtimeNs} = await this._fetchApiResponse('get-file-time', params);
+    // TODO check 
     throw new Error('NOTIMPLEMENTED');
   }
 
@@ -368,6 +425,7 @@ exports.remoteUpdate = async function(argv) {
 //    }
 //  });
 
+  // TODO use the caching layer here
   const remote = new Remote(argv.name);
   await remote.readFromFile();
 
