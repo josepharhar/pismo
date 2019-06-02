@@ -389,13 +389,11 @@ exports.setLocalFileTime = function(absolutePath, filetime) {
  * }
  * 
  * @template T
- * @param {string} jsonString
+ * @param {*} rootObj
  * @param {JsonSchema} rootSchema
  * @return {!T}
  */
-exports.parseJson = function(jsonString, rootSchema) {
-  const rootObj = JSON.parse(jsonString);
-
+exports.parseJson = function(rootObj, rootSchema) {
   /** @type {!Array<!{obj: *, schema: JsonSchema}>} */
   const stackqueue = [];
   stackqueue.push({
@@ -411,7 +409,7 @@ exports.parseJson = function(jsonString, rootSchema) {
      */
     function error(string) {
       return new Error(string
-        + '\n  jsonString: ' + jsonString
+        + '\n  rootObj: ' + JSON.stringify(rootObj)
         + '\n  rootSchema: ' + JSON.stringify(rootSchema)
         + '\n  obj: ' + JSON.stringify(obj)
         + '\n  schema: ' + JSON.stringify(schema));
@@ -474,3 +472,38 @@ exports.areArraysEqual = function(one, two) {
   }
   return true;
 }
+
+/**
+ * @typedef {!{
+ *   mtimeMs: bigint,
+ *   mtimeNs: bigint,
+ *   mtimeS: bigint,
+ *   atimeMs: bigint,
+ *   atimeNs: bigint,
+ *   atimeS: bigint
+ * }} Stats
+ */
+/**
+ * @param {string} path
+ * @return {!Stats}
+ */
+exports.stat = function(path) {
+  try {
+    return nanostat.statSync(path);
+  } catch (error) {
+    throw new exports.ErrorWrapper(error, `Failed to nanostat.statSync path: ${path}`);
+  }
+}
+
+exports.ErrorWrapper = class extends Error {
+  /**
+   * @param {!Error} error 
+   * @param {string} message 
+   */
+  constructor(error, message) {
+    super();
+    this.name = 'ErrorWrapper';
+    this.message = message + '\n' + error.message;
+    this.stack = error.stack;
+  }
+};

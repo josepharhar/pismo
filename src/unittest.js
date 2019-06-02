@@ -1,6 +1,15 @@
 const pismoutil = require('./pismoutil.js');
 
-function testParseJsonValid() {
+function it(name, fn) {
+  try {
+    fn();
+  } catch (error) {
+    console.error(`test "${name}" failed`);
+    throw error;
+  }
+}
+
+it("testParseJsonValid", () => {
   const obj = {
     nested: {
       str: 'str',
@@ -21,10 +30,10 @@ function testParseJsonValid() {
     array: ['string']
   };
 
-  pismoutil.parseJson(JSON.stringify(obj), schema);
-}
+  pismoutil.parseJson(obj, schema);
+});
 
-function testParseJsonInvalid() {
+it("testParseJsonInvalid", () => {
   const obj = {
     nested: {
       str: 'str',
@@ -47,16 +56,16 @@ function testParseJsonInvalid() {
 
   let error = null;
   try {
-    pismoutil.parseJson(JSON.stringify(obj), schema);
+    pismoutil.parseJson(obj, schema);
   } catch (err) {
     error = err;
   }
   if (!error) {
     throw new Error('no error was caught');
   }
-}
+});
 
-function testParseJsonInvalidSchema() {
+it("testParseJsonInvalidSchema", () => {
   const obj = {
     nested: {
       str: 'str',
@@ -79,11 +88,11 @@ function testParseJsonInvalidSchema() {
 
   let error = null;
   try {
-    pismoutil.parseJson(JSON.stringify(obj), schema);
+    pismoutil.parseJson(obj, schema);
   } catch (err) {
     error = err;
   }
   if (!error) {
     throw new Error('no error was caught');
   }
-}
+});

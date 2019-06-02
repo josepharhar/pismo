@@ -217,9 +217,10 @@ class Remote {
   }
 
   /**
+   * @template T
    * @param {string} method
    * @param {!Object} params
-   * @return {!Promise<http.request>}
+   * @return {!Promise<T>}
    */
   async _fetchApiResponse(method, params) {
     const url = new URL(this.url());
@@ -233,13 +234,12 @@ class Remote {
       }
     };
     const postObj = {
-      method: 'get-file-time',
-      params: {
-      }
+      method: method,
+      params: params
     };
 
-    return new Promise((resolve, reject) => {
-      const res = new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
+      const res = await new Promise((resolve, reject) => {
         const req = http.request(this.url(), requestOptions, resolve);
         req.on('error', error => {
           logError(`http.request() error`);
@@ -249,7 +249,7 @@ class Remote {
         req.end();
       });
 
-      let resposeString = '';
+      let responseString = '';
       res.on('error', error => {
         logError(`error reading http response`);
         reject(error);
@@ -258,17 +258,9 @@ class Remote {
         responseString += data;
       });
       res.on('end', () => {
-        resolve(JSON.parse(responseString));
+        resolve(responseString ? JSON.parse(responseString) : null);
       });
     });
-  }
-
-  /**
-   * TODO move this to pismoutil
-   * @template T
-   */
-  parseObject(obj, fieldToType) {
-
   }
 
   /**

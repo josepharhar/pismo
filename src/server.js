@@ -20,29 +20,15 @@ function respondWithError(res, error) {
   res.end(error);
 }
 
-/**
- * @param {!express.Response} res
- * @param {!Object} json
- */
-function respondWithJson(res, json) {
-  res.writeHead(200, {'content-type': 'application/json'});
-  res.end(JSON.stringify(json));
-}
-
+/** @typedef {!Object<string, !pismoutil.TreeFile>} ListResponse */
 /**
  * @param {!Object} params
- * @param {!express.Response} res
+ * @return {!Promise<!Object>}
  */
-async function handleList(params, res) {
-  let treeNamesToPaths = null;
-  try {
-    treeNamesToPaths = await pismoutil.getTreeNamesToPaths();
-  } catch (error) {
-    respondWithError(res, error);
-    return;
-  }
+async function handleList(params) {
+  const treeNamesToPaths = await pismoutil.getTreeNamesToPaths();
 
-  /** @type {!Object<string, !pismoutil.TreeFile>} */
+  /** @type {!ListResponse} */
   const retval = {};
 
   for (const name in treeNamesToPaths) {
@@ -55,112 +41,50 @@ async function handleList(params, res) {
     }
 
     retval[name] = tree;
-
-    console.log(name);
-    console.log('  path: ' + tree.path);
-    console.log('  lastModified: ' + tree.lastModified);
   }
-
-  respondWithJson(res, retval);
+  return retval;
 }
 
-class Params {
-  /**
-   * @param {*} obj
-   * @param {!Object<string, string>} fieldToType
-   */
-  constructor(obj, fieldToType) {
-    // TODO add support for nested types within objects
-    for (const field in fieldToType) {
-      const type = fieldToType[field];
-
-      const actualType = typeof(obj[field]);
-      if (actualType !== type) {
-        throw new Error(`Params constructor - expected field "${field}" to have type "${type}". was: ${actualType}. obj: ${JSON.stringify(obj, null, 2)}`);
-      }
-
-      this[field] = obj[field];
-    }
-  }
-};
-
-class ErrorWrapper extends Error {
-  constructor(error, message) {
-    super();
-    this.name = 'ErrorWrapper';
-    this.message = message + '\n' + error.message;
-    this.stack = error.stack;
-  }
-};
-
+/** @typedef {!{treeName: string}} GetTreeParams */
+/** @typedef {!pismoutil.TreeFile} GetTreeResponse */
 /**
- * @param {string} absolutePath
- * TODO figure out return type
+ * @param {!Object} paramsObj
+ * @return {!Promise<!GetTreeResponse>}
  */
-function stat(absolutePath) {
-  try {
-    const stats = nanostat.statSync(absolutePath);
-  } catch (error) {
-    throw new ErrorWrapper(error, `Failed to nanostat.statSync path: "${absolutePath}"`);
-  }
-}
-
-/**
- * @param {!Object} params
- * @param {!express.Response} res
- */
-async function handleGetTree(params, res) {
-  if (typeof(params.treeName) !== 'string') {
-    respondWithError(res, new Error('invalid treeName parameter. found: ' + params.treeName));
-    return;
-  }
-
-  let treeFile = null;
-  try {
-    treeFile = await pismoutil.readTreeByName(params.treeName);
-  } catch (error) {
-    respondWithError(res, error);
-    return;
-  }
-
-  respondWithJson(res, treeFile);
+async function handleGetTree(paramsObj) {
+  /** @type {!GetTreeParams} */
+  const params = pismoutil.parseJson(paramsObj, {
+    treeName: 'string'
+  });
+  return await pismoutil.readTreeByName(params.treeName);
 }
 
 /** @typedef {!{treename: string, relativePath: string}} GetFileTimeParams */
 /** @typedef {!{mtimeS: number, mtimeNs: number}} GetFileTimeResponse */
 /**
  * @param {!Object} paramsObj
- * @param {!express.Response} res
+ * @return {!Promise<!GetFileTimeResponse>}
  */
-async function handleGetFileTime(paramsObj, res) {
-
-  const schema = {
-    treename: 'string',
-    relativePath: 'string'
-  }
-  pismoutil.parseJson(
-
+async function handleGetFileTime(paramsObj) {
   /** @type {!GetFileTimeParams} */
-  const params = new Params(paramsObj, {
+  const params = pismoutil.parseJson(paramsObj, {
     treename: 'string',
     relativePath: 'string'
   });
 
   // TODO use a caching layer like remotes for this
-  const treeFile = await pismoutil.readTreeByName(params.treeName);
+  const treeFile = await pismoutil.readTreeByName(params.treename);
   const absolutePath = path.join(treeFile.path, params.relativePath);
 
-  const stats = stat(absolutePath);
-  respondWithJson({
+  /** @type {!pismoutil.Stats} */
+  const stats = pismoutil.stat(absolutePath);
+  /** @type {!GetFileTimeResponse} */
+  return {
     mtimeS: Number(stats.mtimeMs / 1000n),
     mtimeNs: Number(stats.mtimeNs)
-  });
+  };
 }
 
-/**
- * @param {!Object} params
- * @param {!express.Response} res
- */
 async function handleSetFileTime(params, res) {
 }
 
@@ -199,28 +123,33 @@ exports.server = async function(argv) {
       return;
     }
 
+    const method = req.body.method;
     const params = req.body.params;
-    try {
-      switch (req.body.method) {
+    async function dispatchToHandler() {
+      switch (method) {
         case 'list':
-          await handleList(params, res);
-          break;
-
+          return await handleList(params);
         case 'get-tree':
-          await handleGetTree(params, res);
-          break;
-        
+          return await handleGetTree(params);
         case 'get-file-time':
-          await handleGetFileTime(params, res);
-          break;
-
+          return await handleGetFileTime(params);
         default:
-          res.writeHead(400, {'content-type': 'text/plain'});
-          res.end('unrecognized method: ' + req.body.method);
+          throw new Error('unrecognized request method: ' + method);
       }
+    }
+
+    let retObj = null;
+    try {
+      retObj = await dispatchToHandler();
     } catch (error) {
       respondWithError(res, error);
+      return;
     }
+    res.writeHead(200, {'content-type': 'application/json'});
+    if (retObj) {
+      res.write(JSON.stringify(retObj, null, 2));
+    }
+    res.end();
   });
 
   app.listen(port);
