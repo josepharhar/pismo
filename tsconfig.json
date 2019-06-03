@@ -3,7 +3,8 @@
     "noEmit": true,
     "allowJs": true,
     "checkJs": true,
-    "target": "esNext"
+    "target": "esNext",
+    "lib": ["es2018"]
   },
   "include": [
     "src"

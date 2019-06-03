@@ -7,7 +7,10 @@ const bodyParser = require('body-parser');
 const progress = require('progress-stream');
 // @ts-ignore
 const nanostat = require('nanostat');
+// @ts-ignore
+const nanoutimes = require('nanoutimes');
 
+const api = require('./api.js');
 const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
@@ -45,36 +48,26 @@ async function handleList(params) {
   return retval;
 }
 
-/** @typedef {!{treeName: string}} GetTreeParams */
-/** @typedef {!pismoutil.TreeFile} GetTreeResponse */
 /**
  * @param {!Object} paramsObj
- * @return {!Promise<!GetTreeResponse>}
+ * @return {!Promise<!api.GetTreeResponse>}
  */
 async function handleGetTree(paramsObj) {
-  /** @type {!GetTreeParams} */
-  const params = pismoutil.parseJson(paramsObj, {
-    treeName: 'string'
-  });
-  return await pismoutil.readTreeByName(params.treeName);
+  /** @type {!api.GetTreeParams} */
+  const request = api.GetTree.parseRequest(paramsObj);
+  return await pismoutil.readTreeByName(request.treeName);
 }
 
-/** @typedef {!{treename: string, relativePath: string}} GetFileTimeParams */
-/** @typedef {!{mtimeS: number, mtimeNs: number}} GetFileTimeResponse */
 /**
  * @param {!Object} paramsObj
- * @return {!Promise<!GetFileTimeResponse>}
+ * @return {!Promise<!api.GetFileTimeResponse>}
  */
 async function handleGetFileTime(paramsObj) {
-  /** @type {!GetFileTimeParams} */
-  const params = pismoutil.parseJson(paramsObj, {
-    treename: 'string',
-    relativePath: 'string'
-  });
+  const request = api.GetFileTime.parseRequest(paramsObj);
 
   // TODO use a caching layer like remotes for this
-  const treeFile = await pismoutil.readTreeByName(params.treename);
-  const absolutePath = path.join(treeFile.path, params.relativePath);
+  const treeFile = await pismoutil.readTreeByName(request.treename);
+  const absolutePath = path.join(treeFile.path, request.relativePath);
 
   /** @type {!pismoutil.Stats} */
   const stats = pismoutil.stat(absolutePath);
@@ -85,7 +78,18 @@ async function handleGetFileTime(paramsObj) {
   };
 }
 
-async function handleSetFileTime(params, res) {
+/**
+ * @param {!Object} paramsObj
+ * @return {!Promise<!api.SetFileTimeResponse>}
+ */
+async function handleSetFileTime(paramsObj) {
+  const request = api.SetFileTime.parseRequest(paramsObj);
+
+  // TODO use a caching layer like remotes for this
+  const treeFile = await pismoutil.readTreeByName(request.treename);
+  const absolutePath = path.join(treeFile.path, request.relativePath);
+
+  nanoutimes.utimesSync(absolutePath, null, null, request.mtimeS, request.mtimeNs);
 }
 
 /**
@@ -129,10 +133,12 @@ exports.server = async function(argv) {
       switch (method) {
         case 'list':
           return await handleList(params);
-        case 'get-tree':
+        case api.GetTree.id():
           return await handleGetTree(params);
-        case 'get-file-time':
+        case api.GetFileTime.id():
           return await handleGetFileTime(params);
+        case api.SetFileTime.id():
+          return await handleSetFileTime(params);
         default:
           throw new Error('unrecognized request method: ' + method);
       }
