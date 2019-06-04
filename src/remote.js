@@ -2,8 +2,10 @@ const http = require('http');
 const fs = require('fs');
 const util = require('util');
 const path = require('path');
+const {URL} = require('url');
 
 const pismoutil = require('./pismoutil.js');
+const api = require('./api.js');
 
 const readdirPromise = util.promisify(fs.readdir);
 const unlinkPromise = util.promisify(fs.unlink);
@@ -224,12 +226,11 @@ class Remote {
    */
   async getRemoteFileTime(treename, relativePath) {
     /** @type {!api.GetFileTimeParams} */
-    const request = {}
-
-    const {mtimeS, mtimeNs} =
-      await api.GetFileTime.fetchResponse(this, params);
-    // TODO check 
-    throw new Error('NOTIMPLEMENTED');
+    const request = {
+      treename: treename,
+      relativePath: relativePath
+    };
+    return await api.GetFileTime.fetchResponse(this, request);
   }
 
   /**
@@ -238,8 +239,14 @@ class Remote {
    * @param {!pismoutil.FileTime} filetime
    */
   async setRemoteFileTime(treename, relativePath, filetime) {
-    // TODO
-    throw new Error('NOTIMPLEMENTED');
+    /** @type {!api.SetFileTimeParams} */
+    const request = {
+      treename: treename,
+      relativePath: relativePath,
+      mtimeS: Number(filetime.mtimeS),
+      mtimeNs: Number(filetime.mtimeNs)
+    }
+    await api.SetFileTime.fetchResponse(this, request);
   }
 
   /**

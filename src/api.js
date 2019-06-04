@@ -1,5 +1,8 @@
 const http = require('http');
+const {URL} = require('url');
 
+const {Remote} = require('remote');
+const stream = require('stream');
 const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
@@ -9,8 +12,8 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
 exports.Method = class {
   /**
    * @param {string} id 
-   * @param {pismoutil.JsonSchema} requestSchema
-   * @param {pismoutil.JsonSchema} responseSchema
+   * @param {?pismoutil.JsonSchema} requestSchema
+   * @param {?pismoutil.JsonSchema} responseSchema
    */
   constructor(id, requestSchema, responseSchema) {
     this._id = id;
@@ -30,7 +33,7 @@ exports.Method = class {
    * @return {!RequestType}
    */
   parseRequest(paramsObj) {
-    return /** @type {!RequestType} */ pismoutil.parseJson(paramsObj, this._schema);
+    return /** @type {!RequestType} */ pismoutil.parseJson(paramsObj, this._requestSchema);
   }
 
   /**
@@ -42,13 +45,12 @@ exports.Method = class {
   }
 
   /**
-   * @template T
-   * @param {string} method
-   * @param {!Object} params
-   * @return {!Promise<T>}
+   * @param {!Remote} remote
+   * @param {!RequestType} params
+   * @param {stream.Readable=} readableStream
    */
-  async fetchResponse(method, params) {
-    const url = new URL(this.url());
+  async _getResponse(remote, params, readableStream) {
+    const url = new URL(remote.url());
     const requestOptions = {
       hostname: url.hostname,
       port: url.port,
@@ -59,36 +61,74 @@ exports.Method = class {
       }
     };
     const postObj = {
-      method: method,
+      method: this._id,
       params: params
     };
 
-    return new Promise(async (resolve, reject) => {
-      const res = await new Promise((resolve, reject) => {
-        const req = http.request(this.url(), requestOptions, resolve);
+    return await new Promise((resolve, reject) => {
+      const req = http.request(remote.url(), requestOptions, resolve);
+      if (readableStream) {
+        readableStream
+          .on('error', error => {
+            reject(new pismoutil.ErrorWrapper(error, `http.request() custom stream error. url: ${url}`))
+          })
+          .pipe(req);
+      } else {
         req.on('error', error => {
-          logError(`http.request() error`);
+          logError(`http.request() error. url: ${url}`);
           reject(error);
-        });
+        })
         req.write(JSON.stringify(postObj, null, 2));
         req.end();
-      });
-
-      let responseString = '';
-      res.on('error', error => {
-        logError(`error reading http response`);
-        reject(error);
-      });
-      res.on('data', data => {
-        responseString += data;
-      });
-      res.on('end', () => {
-        resolve(responseString ? JSON.parse(responseString) : null);
-      });
+      }
     });
+  }
+
+  /**
+   * @template T
+   * @param {!Remote} remote
+   * @param {!Object} params
+   * @return {!Promise<T>}
+   */
+  async fetchResponse(remote, params) {
+    const res = await this._getResponse(remote, params);
+    const responseString = await pismoutil.streamToString(res);
+    return JSON.parse(responseString);
   }
 }
 const Method = exports.Method;
+
+/**
+ * @template RequestType
+ * @extends {Method<RequestType, void>}
+ */
+class StreamingMethod extends Method {
+  constructor(id, requestSchema) {
+    super(id, requestSchema, null);
+  }
+
+  /**
+   * @override
+   * @template T
+   * @param {!Remote} remote
+   * @param {!RequestType} params
+   * @return {!Promise<T>}
+   */
+  async fetchResponse(remote, params) {
+    throw new Error('StreamingMethod.fetchResponse - use StreamingMethod.streamResponse');
+  }
+
+  /**
+   * @param {!Remote} remote
+   * @param {!RequestType} params
+   * @param {stream.Readable=} readableStream
+   * @return {!Promise<!stream.Readable>}
+   */
+  async streamResponse(remote, params, readableStream) {
+    return await this._getResponse(remote, params, readableStream);
+  }
+};
+exports.StreamingMethod = StreamingMethod;
 
 /** @typedef {!{treeName: string}} GetTreeParams */
 /** @typedef {!pismoutil.TreeFile} GetTreeResponse */
@@ -97,7 +137,8 @@ exports.GetTree = new Method(
   'get-tree',
   {
     treeName: 'string'
-  });
+  },
+  pismoutil.TreeFileSchema);
 
 /** @typedef {!{treename: string, relativePath: string}} GetFileTimeParams */
 /** @typedef {!{mtimeS: number, mtimeNs: number}} GetFileTimeResponse */
@@ -107,6 +148,10 @@ exports.GetFileTime = new Method(
   {
     treename: 'string',
     relativePath: 'string'
+  },
+  {
+    mtimeS: 'number',
+    mtimeNs: 'number'
   });
 
 /**
@@ -117,7 +162,7 @@ exports.GetFileTime = new Method(
  *   mtimeNs: number
  * }} SetFileTimeParams
  */
-/** @typedef {*} SetFileTimeResponse */
+/** @typedef {void} SetFileTimeResponse */
 /** @type {!Method<SetFileTimeParams, SetFileTimeResponse>} */
 exports.SetFileTime = new Method(
   'set-file-time',
@@ -126,4 +171,17 @@ exports.SetFileTime = new Method(
     relativePath: 'string',
     mtimeS: 'number',
     mtimeNs: 'number'
+  },
+  null);
+
+/** @typedef {!{treename: string, relativePath: string}} GetFileParams */
+/** @type {!StreamingMethod<GetFileParams>} */
+exports.GetFile = new StreamingMethod(
+  'get-file',
+  {
+    treename: 'string',
+    relativePath: 'string'
   });
+
+/** @typedef {!{}} PutFileResponse */
+exports.PutFile = 

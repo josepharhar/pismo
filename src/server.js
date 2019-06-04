@@ -131,7 +131,7 @@ exports.server = async function(argv) {
     const params = req.body.params;
     async function dispatchToHandler() {
       switch (method) {
-        case 'list':
+        case 'list': // TODO
           return await handleList(params);
         case api.GetTree.id():
           return await handleGetTree(params);

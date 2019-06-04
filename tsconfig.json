@@ -4,7 +4,7 @@
     "allowJs": true,
     "checkJs": true,
     "target": "esNext",
-    "lib": ["es2018"]
+    "lib": ["esnext"]
   },
   "include": [
     "src"

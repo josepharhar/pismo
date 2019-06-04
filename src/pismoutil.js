@@ -17,10 +17,25 @@ const readFilePromise = util.promisify(fs.readFile);
 const writeFilePromise = util.promisify(fs.writeFile);
 
 /** @typedef {{path: string, mtimeS: number, mtimeNs: number, size: number, hash: string}} FileInfo */
+/** @type {!JsonSchema} */
+exports.FileInfoSchema = {
+  path: 'string',
+  mtimeS: 'number',
+  mtimeNs: 'number',
+  size: 'number',
+  hash: 'string'
+};
 // TODO change lastModified to lastUpdated
 /** @typedef {{path: string, lastModified: string, files: Array<FileInfo>}} TreeFile */
+/** @type {!JsonSchema} */
+exports.TreeFileSchema = {
+  path: 'string',
+  lastModified: 'string',
+  files: [exports.FileInfoSchema]
+};
 /** @typedef {{operator: 'rm'|'cp'|'touch', operands: !Array<{tree: 'base'|'other', relativePath: string}>}} Operation */
 /** @typedef {{baseBranch: string, otherBranch: string, operations: !Array<!Operation>}} MergeFile */
+// TODO make these numbers instead of bigints
 /** @typedef {!{mtimeS: BigInt, mtimeNs: BigInt}} FileTime */
 
 /**
