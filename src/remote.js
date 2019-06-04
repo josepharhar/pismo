@@ -255,8 +255,6 @@ class Remote {
    * @param {string} relativePath
    */
   async copyFileToRemote(absoluteLocalPath, treeName, relativePath) {
-    // TODO
-    throw new Error('NOTIMPLEMENTED');
   }
 
   /**

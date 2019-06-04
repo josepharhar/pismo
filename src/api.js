@@ -12,8 +12,8 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
 exports.Method = class {
   /**
    * @param {string} id 
-   * @param {?pismoutil.JsonSchema} requestSchema
-   * @param {?pismoutil.JsonSchema} responseSchema
+   * @param {pismoutil.JsonSchema=} requestSchema
+   * @param {pismoutil.JsonSchema=} responseSchema
    */
   constructor(id, requestSchema, responseSchema) {
     this._id = id;
@@ -57,7 +57,7 @@ exports.Method = class {
       path: '/api',
       method: 'POST',
       headers: {
-        'content-type': 'application/json'
+        'content-type': readableStream ? 'application/octet-stream' : 'application/json'
       }
     };
     const postObj = {
@@ -99,12 +99,17 @@ exports.Method = class {
 const Method = exports.Method;
 
 /**
- * @template RequestType
- * @extends {Method<RequestType, void>}
+ * @template RequestType,ResponseType
+ * @extends {Method<RequestType, ResponseType>}
  */
 class StreamingMethod extends Method {
-  constructor(id, requestSchema) {
-    super(id, requestSchema, null);
+  /**
+   * @param {string} id 
+   * @param {pismoutil.JsonSchema=} requestSchema 
+   * @param {pismoutil.JsonSchema=} responseSchema 
+   */
+  constructor(id, requestSchema, responseSchema) {
+    super(id, requestSchema, responseSchema);
   }
 
   /**
@@ -175,7 +180,7 @@ exports.SetFileTime = new Method(
   null);
 
 /** @typedef {!{treename: string, relativePath: string}} GetFileParams */
-/** @type {!StreamingMethod<GetFileParams>} */
+/** @type {!StreamingMethod<GetFileParams, void>} */
 exports.GetFile = new StreamingMethod(
   'get-file',
   {
@@ -183,5 +188,36 @@ exports.GetFile = new StreamingMethod(
     relativePath: 'string'
   });
 
-/** @typedef {!{}} PutFileResponse */
-exports.PutFile = 
+// TODO TODO TODO TODO
+// i cant put a file as the http body and have a unicode path - http headers must be ascii
+// how do i send the path? should i save these files to a temporary location and then follow up
+// with a stateful http request with it?
+// TODO im also going to need a custom endpoint because i cant have a method when this whole thing
+// is an upload stream!!!!!
+// TODO remove upload streaming capabilities from Method class
+/** @type {!StreamingMethod<void, void>} */
+exports.PutFile = new StreamingMethod(
+  'put-file',
+  null,
+  null,
+  {
+    'x-pismo-
+  }
+
+/**
+ * @typedef {!{
+ *   srcTreename: string,
+ *   srcRelativePath: string,
+ *   destTreename: string,
+ *   destRelativePath: string
+ * }} CopyWithinParams
+ */
+/** @type {!Method<CopyWithinParams, void>} */
+exports.CopyWithin = new Method(
+  'copy-within',
+  {
+    srcTreename: 'string',
+    srcRelativePath: 'string',
+    destTreename: 'string',
+    destRelativePath: 'string'
+  });
