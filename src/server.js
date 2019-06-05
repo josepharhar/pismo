@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const stream = require('stream');
+const crypto = require('crypto');
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -15,47 +16,32 @@ const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /**
- * @param {!express.Response} res
- * @param {!Error} error
- */
-function respondWithError(res, error) {
-  res.writeHead(500, {'content-type': 'text/plain'});
-  res.end(error);
-}
-
-/** @typedef {!Object<string, !pismoutil.TreeFile>} ListResponse */
-/**
  * @param {!Object} params
- * @return {!Promise<!Object>}
+ * @return {!Promise<!api.GetTreesResponse}
  */
-async function handleList(params) {
+async function handleGetTrees(params) {
   const treeNamesToPaths = await pismoutil.getTreeNamesToPaths();
 
-  /** @type {!ListResponse} */
-  const retval = {};
+  /** @type {!api.GetTreesResponse} */
+  const response = {
+    trees: []
+  };
 
   for (const name in treeNamesToPaths) {
     /** @type {!pismoutil.TreeFile} */
-    const tree = await pismoutil.readFileToJson(
+    const treefile = await pismoutil.readFileToJson(
       treeNamesToPaths[name]);
-    if (tree === null) {
-      logError('Failed to read tree json file for name: ' + name);
+    if (!treefile) {
+      logError(`Failed to read tree json file for name: ${name}`);
       continue;
     }
-
-    retval[name] = tree;
+    response.trees.push({
+      treename: name,
+      treefile: treefile
+    });
   }
-  return retval;
-}
 
-/**
- * @param {!Object} paramsObj
- * @return {!Promise<!api.GetTreeResponse>}
- */
-async function handleGetTree(paramsObj) {
-  /** @type {!api.GetTreeParams} */
-  const request = api.GetTree.parseRequest(paramsObj);
-  return await pismoutil.readTreeByName(request.treeName);
+  return response;
 }
 
 /**
@@ -93,6 +79,63 @@ async function handleSetFileTime(paramsObj) {
 }
 
 /**
+ * @param {!Object} paramsObj 
+ * @return {!Promise<stream.Readable>}
+ */
+async function handleGetFile(paramsObj) {
+  const request = api.GetFile.parseRequest(paramsObj);
+
+  const treeFile = await pismoutil.readTreeByName(request.treename);
+  const absolutePath = path.join(treeFile.path, request.relativePath);
+
+  return fs.createReadStream(absolutePath);
+}
+
+/** @type {!Map<string, !{treename: string, relativePath: string}>} */
+const _putIdToTreeAndPath = new Map();
+/**
+ * @param {!Object} paramsObj
+ * @return {!Promise<!api.PreparePutFileResponse>}
+ */
+async function handlePreparePutFile(paramsObj) {
+  const {treename, relativePath} = api.PreparePutFile.parseRequest(paramsObj);
+
+  function generatePutId() {
+    return crypto.randomBytes(20).toString('hex');
+  }
+  let newPutId = generatePutId();
+  while (_putIdToTreeAndPath.has(newPutId))
+    newPutId = generatePutId();
+
+  _putIdToTreeAndPath.set(newPutId, {
+    treename: treename,
+    relativePath: relativePath
+  });
+
+  return {
+    putId: newPutId
+  };
+}
+
+/**
+ * @param {!Object} paramsObj 
+ */
+async function handleDeleteFile(paramsObj) {
+  const request = api.DeleteFile.parseRequest(paramsObj);
+
+  const treeFile = await pismoutil.readTreeByName(request.treename);
+  const absolutePath = path.join(treeFile.path, request.relativePath);
+  await new Promise((resolve, reject) => {
+    fs.unlink(absolutePath, error => {
+      if (error)
+        reject(error)
+      else
+        resolve();
+    });
+  })
+}
+
+/**
  * @param {import('yargs').Arguments} argv
  */
 exports.server = async function(argv) {
@@ -105,13 +148,16 @@ exports.server = async function(argv) {
   app.use(bodyParser.urlencoded({extended: false}));
   app.use(bodyParser.json());
 
+  app.use((req, res) => {
+    console.log(`${req.statusCode} ${req.url} ${JSON.stringify(req.headers, null, 2)}`);
+  });
+
   app.get('/', (req, res) => {
     res.send('Hello world');
   });
 
   // TODO why doesnt this work with get?
   app.post('/api', async (req, res) => {
-    console.log(`${req.statusCode} ${req.url} ${JSON.stringify(req.headers, null, 2)}`);
     if (!req.body) {
       res.writeHead(500, {'content-type': 'text/plain'});
       res.end('!req.body');
@@ -127,18 +173,25 @@ exports.server = async function(argv) {
       return;
     }
 
+    /** @type {?stream.Readable} */
+    let readableStreamResponse = null;
     const method = req.body.method;
     const params = req.body.params;
     async function dispatchToHandler() {
       switch (method) {
-        case 'list': // TODO
-          return await handleList(params);
-        case api.GetTree.id():
-          return await handleGetTree(params);
+        case api.GetTrees.id():
+          return await handleGetTrees(params);
         case api.GetFileTime.id():
           return await handleGetFileTime(params);
         case api.SetFileTime.id():
           return await handleSetFileTime(params);
+        case api.GetFile.id():
+          readableStreamResponse = await handleGetFile(params);
+          return null;
+        case api.PreparePutFile.id():
+          return await handlePreparePutFile(params);
+        case api.DeleteFile.id():
+          return await handleDeleteFile(params);
         default:
           throw new Error('unrecognized request method: ' + method);
       }
@@ -148,65 +201,89 @@ exports.server = async function(argv) {
     try {
       retObj = await dispatchToHandler();
     } catch (error) {
-      respondWithError(res, error);
+      res.writeHead(500, {'content-type': 'text/plain'});
+      res.end(error);
       return;
     }
-    res.writeHead(200, {'content-type': 'application/json'});
+
+    if (readableStreamResponse) {
+      res.writeHead(200, {'content-type': 'application/octet-stream'});
+      await new Promise((resolve, reject) => {
+        readableStreamResponse.on('finish', resolve);
+        readableStreamResponse.on('error', reject);
+        readableStreamResponse.pipe(res);
+      });
+      return;
+    }
+
     if (retObj) {
+      res.writeHead(200, {'content-type': 'application/json'});
       res.write(JSON.stringify(retObj, null, 2));
+    } else {
+      res.writeHead(200);
     }
     res.end();
   });
 
+  app.put('/upload', async (req, res) => {
+    const putId = req.headers[api.PUT_ID_HEADER_NAME];
+    if (typeof(putId) !== 'string' || !_putIdToTreeAndPath.has(putId)) {
+      res.writeHead(400, {'content-type': 'text/plain'});
+      res.end(typeof(putId) === 'string'
+        ? 'provided putId not in _putIdToTreeAndPath'
+        : `'${api.PUT_ID_HEADER_NAME}' header missing or invalid. type: ${typeof(putId)}`);
+      return;
+    }
+    const {treename, relativePath} = _putIdToTreeAndPath.get(putId);
+    _putIdToTreeAndPath.delete(putId);
+    const fileWriteStream = fs.createWriteStream();
+  });
+
   app.listen(port);
 
-  async function writeStreamToFile(stream, filename) {
-    fs.createWriteStream(filename);
-    return new Promise((resolve, reject) => {
-    });
-  }
-  app.post('/fileupload', async (req, res) => {
-    console.log(`${req.method} ${req.url} ${JSON.stringify(req.headers, null, 2)}`);
-    const length = Number(req.headers['x-pismo-length']);
-    if (length === NaN) {
-      // TODO
-      console.log('invalid x-pismo-length header: ' + req.headers['x-pismo-length']);
-    }
-    const fileWriteStream = fs.createWriteStream('output.o');
-
-    const progressStream = progress({
-      length: length,
-      time: 1000 /* ms */
-    }, progress => {
-      console.log('progress: ' + JSON.stringify(progress));
-    });
-
-    // TODO should i be doing this?
-    res.end('hello from server');
-
-    req.pipe(progressStream).pipe(fileWriteStream);
-    //req.pipe(fileWriteStream);
-    //await streamPrint(req);
-  });
+//  app.post('/fileupload', async (req, res) => {
+//    console.log(`${req.method} ${req.url} ${JSON.stringify(req.headers, null, 2)}`);
+//    const length = Number(req.headers['x-pismo-length']);
+//    if (length === NaN) {
+//      // TODO
+//      console.log('invalid x-pismo-length header: ' + req.headers['x-pismo-length']);
+//    }
+//    const fileWriteStream = fs.createWriteStream('output.o');
+//
+//    const progressStream = progress({
+//      length: length,
+//      time: 1000 /* ms */
+//    }, progress => {
+//      console.log('progress: ' + JSON.stringify(progress));
+//    });
+//
+//    // TODO should i be doing this?
+//    res.end('hello from server');
+//
+//    req.pipe(progressStream).pipe(fileWriteStream);
+//    //req.pipe(fileWriteStream);
+//    //await streamPrint(req);
+//  });
 }
 
-async function streamPrint(stream) {
-  return new Promise((resolve, reject) => {
-    stream.on('data', chunk => {
-      console.log('data: ' + chunk);
-    });
-    stream.on('error', reject);
-    stream.on('end', resolve);
-  });
-}
-
-async function streamToString(stream) {
-  return new Promise((resolve, reject) => {
-    let chunks = '';
-    stream.on('data', chunk => {
-      chunks += chunk;
-    });
-    stream.on('error', reject);
-    stream.on('end', () => resolve(chunks));
-  });
-}
+//async function streamPrint(stream) {
+//  return new Promise((resolve, reject) => {
+//    stream.on('data', chunk => {
+//      console.log('data: ' + chunk);
+//    });
+//    stream.on('error', reject);
+//    stream.on('end', resolve);
+//  });
+//}
+//
+//async function streamToString(stream) {
+//  return new Promise((resolve, reject) => {
+//    let chunks = '';
+//    stream.on('data', chunk => {
+//      chunks += chunk;
+//    });
+//    stream.on('error', reject);
+//    stream.on('end', () => resolve(chunks));
+//  });
+//}
+//

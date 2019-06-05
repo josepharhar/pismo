@@ -86,6 +86,9 @@ exports.getAbsoluteRemotesPath = function() {
 
 /**
  * TODO TODO TODO use a caching layer for this instead, make it a class as well?
+ * this will have to also provide a way of flushing everything to disk and clearing
+ * the "cache" in case we are running in server mode and want to flush before the program
+ * ends... wait how did i even handle this for remotes???
  *
  * Returns tree files mapped from name to filepath
  * ex: {"foo": "/home/jarhar/.pismo/trees/foo.json",

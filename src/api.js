@@ -56,6 +56,7 @@ exports.Method = class {
       path: '/api',
       method: 'POST',
       headers: {
+        'connection': 'keep-alive',
         'content-type': 'application/json'
       }
     };
@@ -84,7 +85,9 @@ exports.Method = class {
   async fetchResponse(remote, params) {
     const res = await this._getResponse(remote, params);
     const responseString = await pismoutil.streamToString(res);
-    return JSON.parse(responseString);
+    if (responseString)
+      return JSON.parse(responseString);
+    return null;
   }
 }
 const Method = exports.Method;
@@ -126,6 +129,7 @@ class StreamingMethod extends Method {
 };
 exports.StreamingMethod = StreamingMethod;
 
+exports.PUT_ID_HEADER_NAME = 'x-pismo-put-id';
 /**
  * @template ResponseType
  */
@@ -138,14 +142,16 @@ class UploadMethod {
    */
   async upload(remote, putId, readableStream) {
     const url = new URL(remote.url());
+    const putIdHeaderName = exports.PUT_ID_HEADER_NAME; // TODO why do i need this
     const requestOptions = {
       hostname: url.hostname,
       port: url.port,
       path: '/upload',
       method: 'PUT',
       headers: {
+        'connection': 'keep-alive',
         'content-type': 'application/octet-stream',
-        'x-pismo-put-id': putId
+        putIdHeaderName: putId
       }
     }
 
@@ -165,27 +171,43 @@ class UploadMethod {
     const responseString = await pismoutil.streamToString(res);
     return JSON.parse(responseString);
   }
+
 };
 exports.UploadMethod = UploadMethod;
 
-/** @typedef {!{treenames: !Array<string>}} ListTreesResponse */
-/** @type {!Method<void, ListTreesResponse>} */
-exports.ListTrees = new Method(
-  'list-trees',
+// Method instances
+
+/** @typedef {!{trees: !Array<!{treename: string, treefile: !pismoutil.TreeFile}>}} GetTreesResponse */
+/** @type {!Method<void, GetTreesResponse>} */
+exports.GetTrees = new Method(
+  'get-trees',
   null,
   {
-    treenames: ['string']
-  });
+    trees: [{
+      treename: 'string',
+      treefile: pismoutil.TreeFileSchema
+    }]
+  }
+)
 
-/** @typedef {!{treeName: string}} GetTreeParams */
-/** @typedef {!pismoutil.TreeFile} GetTreeResponse */
-/** @type {!Method<GetTreeParams, GetTreeResponse>} */
-exports.GetTree = new Method(
-  'get-tree',
-  {
-    treeName: 'string'
-  },
-  pismoutil.TreeFileSchema);
+///** @typedef {!{treenames: !Array<string>}} ListTreesResponse */
+///** @type {!Method<void, ListTreesResponse>} */
+//exports.ListTrees = new Method(
+//  'list-trees',
+//  null,
+//  {
+//    treenames: ['string']
+//  });
+//
+///** @typedef {!{treeName: string}} GetTreeParams */
+///** @typedef {!pismoutil.TreeFile} GetTreeResponse */
+///** @type {!Method<GetTreeParams, GetTreeResponse>} */
+//exports.GetTree = new Method(
+//  'get-tree',
+//  {
+//    treeName: 'string'
+//  },
+//  pismoutil.TreeFileSchema);
 
 /** @typedef {!{treename: string, relativePath: string}} GetFileTimeParams */
 /** @typedef {!{mtimeS: number, mtimeNs: number}} GetFileTimeResponse */
@@ -231,6 +253,8 @@ exports.GetFile = new StreamingMethod(
   });
 
 /** @typedef {!{treename: string, relativePath: string}} PreparePutFileParams */
+/** @typedef {!{putId: string}} PreparePutFileResponse */
+/** @type {!Method<PreparePutFileParams, PreparePutFileResponse>} */
 exports.PreparePutFile = new Method(
   'prepare-put-file',
   {
