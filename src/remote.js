@@ -218,7 +218,6 @@ class Remote {
     await pismoutil.deleteDotPath(this.dotPath());
   }
 
-
   /**
    * @param {string} treename
    * @param {string} relativePath
@@ -255,16 +254,42 @@ class Remote {
    * @param {string} relativePath
    */
   async copyFileToRemote(absoluteLocalPath, treeName, relativePath) {
+    /** @type {!api.PreparePutFileParams} */
+    const request = {
+      treename: treeName,
+      relativePath: relativePath
+    };
+    const {putId} = await api.PreparePutFile.fetchResponse(this, request);
+
+    await api.PutFile.upload(this, putId, fs.createReadStream(absoluteLocalPath));
   }
 
   /**
    * @param {string} treeName
    * @param {string} relativePath
    * @param {string} absoluteLocalPath
+   * @return {!Promise<void>}
    */
-  async copyFileFromRemote(treeName, relativePath, absoluteLocalPath) {
-    // TODO
-    throw new Error('NOTIMPLEMENTED');
+  copyFileFromRemote(treeName, relativePath, absoluteLocalPath) {
+    return new Promise(async (resolve, reject) => {
+      /** @type {!api.GetFileParams} */
+      const request = {
+        treename: treeName,
+        relativePath: relativePath
+      };
+
+      const fileWriteStream = fs.createWriteStream(absoluteLocalPath);
+      const requestReadStream = await api.GetFile.streamResponse(this, request);
+      requestReadStream
+        .on('error', error => {
+          reject(new pismoutil.ErrorWrapper(error,
+            `Failed to download file from remote. treeName: ${treeName}, relativePath: ${relativePath}, absoluteLocalPath: ${absoluteLocalPath}`));
+        })
+        .pipe(fileWriteStream);
+
+      // I think that if we get an error event then finish won't happen.
+      requestReadStream.on('finish', resolve);
+    });
   }
 
   /**
@@ -274,8 +299,14 @@ class Remote {
    * @param {string} destRelativePath
    */
   async copyFileWithinRemote(srcTreeName, srcRelativePath, destTreeName, destRelativePath) {
-    // TODO
-    throw new Error('NOTIMPLEMENTED');
+    /** @type {!api.CopyWithinParams} */
+    const request = {
+      srcTreename: srcTreeName,
+      srcRelativePath: srcRelativePath,
+      destTreename: destTreeName,
+      destRelativePath: destRelativePath
+    };
+    await api.CopyWithin.fetchResponse(this, request);
   }
 
   /**
@@ -283,8 +314,12 @@ class Remote {
    * @param {string} relativePath
    */
   async deleteRemoteFile(treename, relativePath) {
-    // TODO
-    throw new Error('NOTIMPLEMENTED');
+    /** @type {!api.DeleteFileParams} */
+    const request = {
+      treename: treename,
+      relativePath: relativePath
+    };
+    await api.DeleteFile.fetchResponse(this, request);
   }
 };
 exports.Remote = Remote;

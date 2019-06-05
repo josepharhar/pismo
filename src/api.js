@@ -47,9 +47,8 @@ exports.Method = class {
   /**
    * @param {!Remote} remote
    * @param {!RequestType} params
-   * @param {stream.Readable=} readableStream
    */
-  async _getResponse(remote, params, readableStream) {
+  async _getResponse(remote, params) {
     const url = new URL(remote.url());
     const requestOptions = {
       hostname: url.hostname,
@@ -57,7 +56,7 @@ exports.Method = class {
       path: '/api',
       method: 'POST',
       headers: {
-        'content-type': readableStream ? 'application/octet-stream' : 'application/json'
+        'content-type': 'application/json'
       }
     };
     const postObj = {
@@ -67,20 +66,12 @@ exports.Method = class {
 
     return await new Promise((resolve, reject) => {
       const req = http.request(remote.url(), requestOptions, resolve);
-      if (readableStream) {
-        readableStream
-          .on('error', error => {
-            reject(new pismoutil.ErrorWrapper(error, `http.request() custom stream error. url: ${url}`))
-          })
-          .pipe(req);
-      } else {
-        req.on('error', error => {
-          logError(`http.request() error. url: ${url}`);
-          reject(error);
-        })
-        req.write(JSON.stringify(postObj, null, 2));
-        req.end();
-      }
+      req.on('error', error => {
+        logError(`http.request() error. url: ${url}`);
+        reject(error);
+      })
+      req.write(JSON.stringify(postObj, null, 2));
+      req.end();
     });
   }
 
@@ -113,6 +104,7 @@ class StreamingMethod extends Method {
   }
 
   /**
+   * TODO make a separate interface so i don't have to do this?
    * @override
    * @template T
    * @param {!Remote} remote
@@ -126,14 +118,64 @@ class StreamingMethod extends Method {
   /**
    * @param {!Remote} remote
    * @param {!RequestType} params
-   * @param {stream.Readable=} readableStream
    * @return {!Promise<!stream.Readable>}
    */
-  async streamResponse(remote, params, readableStream) {
-    return await this._getResponse(remote, params, readableStream);
+  async streamResponse(remote, params) {
+    return await this._getResponse(remote, params);
   }
 };
 exports.StreamingMethod = StreamingMethod;
+
+/**
+ * @template ResponseType
+ */
+class UploadMethod {
+  /**
+   * @param {!Remote} remote 
+   * @param {string} putId
+   * @param {!stream.Readable} readableStream
+   * @return {!Promise<!ResponseType>}
+   */
+  async upload(remote, putId, readableStream) {
+    const url = new URL(remote.url());
+    const requestOptions = {
+      hostname: url.hostname,
+      port: url.port,
+      path: '/upload',
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/octet-stream',
+        'x-pismo-put-id': putId
+      }
+    }
+
+    const res = await new Promise((resolve, reject) => {
+      // TODO do i need to have the remote.url() parameter?
+      const req = http.request(remote.url(), requestOptions, resolve);
+      req.on('error', error => {
+        reject(new pismoutil.ErrorWrapper(error, `http.request() UploadMethod request error. url: ${url}`));
+      })
+      readableStream
+        .on('error', error => {
+          reject(new pismoutil.ErrorWrapper(error, `http.request() upload stream failed. url: ${url}`));
+        })
+        .pipe(req);
+    });
+
+    const responseString = await pismoutil.streamToString(res);
+    return JSON.parse(responseString);
+  }
+};
+exports.UploadMethod = UploadMethod;
+
+/** @typedef {!{treenames: !Array<string>}} ListTreesResponse */
+/** @type {!Method<void, ListTreesResponse>} */
+exports.ListTrees = new Method(
+  'list-trees',
+  null,
+  {
+    treenames: ['string']
+  });
 
 /** @typedef {!{treeName: string}} GetTreeParams */
 /** @typedef {!pismoutil.TreeFile} GetTreeResponse */
@@ -188,21 +230,19 @@ exports.GetFile = new StreamingMethod(
     relativePath: 'string'
   });
 
-// TODO TODO TODO TODO
-// i cant put a file as the http body and have a unicode path - http headers must be ascii
-// how do i send the path? should i save these files to a temporary location and then follow up
-// with a stateful http request with it?
-// TODO im also going to need a custom endpoint because i cant have a method when this whole thing
-// is an upload stream!!!!!
-// TODO remove upload streaming capabilities from Method class
-/** @type {!StreamingMethod<void, void>} */
-exports.PutFile = new StreamingMethod(
-  'put-file',
-  null,
-  null,
+/** @typedef {!{treename: string, relativePath: string}} PreparePutFileParams */
+exports.PreparePutFile = new Method(
+  'prepare-put-file',
   {
-    'x-pismo-
-  }
+    treename: 'string',
+    relativePath: 'string'
+    // TODO add file size?
+  },
+  {
+    putId: 'string'
+  });
+
+exports.PutFile = new UploadMethod();
 
 /**
  * @typedef {!{
@@ -220,4 +260,13 @@ exports.CopyWithin = new Method(
     srcRelativePath: 'string',
     destTreename: 'string',
     destRelativePath: 'string'
+  });
+
+/** @typedef {!{treename: string, relativePath: string}} DeleteFileParams */
+/** @type {!Method<DeleteFileParams, void} */
+exports.DeleteFile = new Method(
+  'delete-file',
+  {
+    treename: 'string',
+    relativePath: 'string'
   });
