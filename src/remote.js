@@ -261,7 +261,9 @@ class Remote {
     };
     const {putId} = await api.PreparePutFile.fetchResponse(this, request);
 
-    await api.PutFile.upload(this, putId, fs.createReadStream(absoluteLocalPath));
+    await api.PutFile.upload(this, putId, fs.createReadStream(absoluteLocalPath, {
+      encoding: 'binary'
+    }));
   }
 
   /**

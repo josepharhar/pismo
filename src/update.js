@@ -20,7 +20,9 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
 async function genHash(absoluteFilepath) {
   return new Promise((resolve, reject) => {
     const hash = crypto.createHash('md5');
-    const input = fs.createReadStream(absoluteFilepath);
+    const input = fs.createReadStream(absoluteFilepath, {
+      encoding: 'binary'
+    });
     input.on('error', reject);
     hash.once('readable', () => resolve(hash.read().toString('hex')));
     input.pipe(hash);

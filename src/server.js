@@ -17,7 +17,7 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /**
  * @param {!Object} params
- * @return {!Promise<!api.GetTreesResponse}
+ * @return {!Promise<!api.GetTreesResponse>}
  */
 async function handleGetTrees(params) {
   const treeNamesToPaths = await pismoutil.getTreeNamesToPaths();
@@ -88,7 +88,9 @@ async function handleGetFile(paramsObj) {
   const treeFile = await pismoutil.readTreeByName(request.treename);
   const absolutePath = path.join(treeFile.path, request.relativePath);
 
-  return fs.createReadStream(absolutePath);
+  return fs.createReadStream(absolutePath, {
+    encoding: 'binary'
+  });
 }
 
 /** @type {!Map<string, !{treename: string, relativePath: string}>} */
@@ -236,7 +238,14 @@ exports.server = async function(argv) {
     }
     const {treename, relativePath} = _putIdToTreeAndPath.get(putId);
     _putIdToTreeAndPath.delete(putId);
-    const fileWriteStream = fs.createWriteStream();
+
+    const treefile = await pismoutil.readTreeByName(treename);
+    const absolutePath = path.join(treefile.path, relativePath);
+    const fileWriteStream = fs.createWriteStream(absolutePath, {
+      encoding: 'binary'
+    });
+    req.setEncoding('binary');
+    req.pipe(fileWriteStream);
   });
 
   app.listen(port);

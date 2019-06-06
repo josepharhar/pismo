@@ -287,7 +287,7 @@ exports.CopyWithin = new Method(
   });
 
 /** @typedef {!{treename: string, relativePath: string}} DeleteFileParams */
-/** @type {!Method<DeleteFileParams, void} */
+/** @type {!Method<DeleteFileParams, void>} */
 exports.DeleteFile = new Method(
   'delete-file',
   {
