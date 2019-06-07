@@ -242,9 +242,9 @@ class Remote {
     const request = {
       treename: treename,
       relativePath: relativePath,
-      mtimeS: Number(filetime.mtimeS),
-      mtimeNs: Number(filetime.mtimeNs)
-    }
+      mtimeS: filetime.mtimeS,
+      mtimeNs: filetime.mtimeNs
+    };
     await api.SetFileTime.fetchResponse(this, request);
   }
 

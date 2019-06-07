@@ -19,16 +19,24 @@ const Branch = branches.Branch;
 /** @typedef {remotes.Remote} Remote */
 
 /**
- * @param {string} srcFilepath
- * @param {string} destFilepath
+ * @param {string} absolutePath
+ * @return {!pismoutil.FileTime}
  */
-function copyFileTime(srcFilepath, destFilepath) {
-  const stats = nanostat.statSync(srcFilepath);
-  const atimeS = null;
-  const atimeNs = null;
-  const mtimeS = stats.mtimeMs / 1000n;
-  const mtimeNs = stats.mtimeNs;
-  nanoutimes.utimesSync(destFilepath, atimeS, atimeNs, mtimeS, mtimeNs);
+function getFileTime(absolutePath) {
+  return nanostat.statSync(absolutePath);
+}
+
+/**
+ * @param {string} absolutePath
+ * @param {!pismoutil.FileTime} filetime
+ */
+function setFileTime(absolutePath, filetime) {
+  nanoutimes.utimesSync(
+    absolutePath,
+    /* atimeS */ null,
+    /* atimeNs */ null,
+    filetime.mtimeS,
+    filetime.mtimeNs);
 }
 
 /**
@@ -88,6 +96,11 @@ exports.apply = async function(argv) {
             srcRelativePath,
             absoluteLocalDestPath);
 
+          const srcFileTime = await srcRemote.getRemoteFileTime(
+            srcBranch.name(),
+            srcRelativePath);
+          setFileTime(absoluteLocalDestPath, srcFileTime);
+
         } else if (!srcBranch.remote() && destBranch.remote()) {
           // copying srcBranch[srcRelativePath] (local)
           //     to destBranch[destRelativePath] (remote)
@@ -99,6 +112,12 @@ exports.apply = async function(argv) {
             destBranch.name(),
             destRelativePath,
             absoluteLocalSrcPath);
+
+          const srcFileTime = getFileTime(absoluteLocalSrcPath);
+          await destRemote.setRemoteFileTime(
+            destBranch.name(),
+            destRelativePath,
+            srcFileTime);
 
         } else {
           // local copy
@@ -121,7 +140,7 @@ exports.apply = async function(argv) {
           }
 
           try {
-            copyFileTime(absoluteSrcPath, absoluteDestPath);
+            setFileTime(absoluteDestPath, getFileTime(absoluteSrcPath));
           } catch (error) {
             logError(`Failed to copy file time from ${absoluteSrcPath} to ${absoluteDestPath}`);
             throw error;

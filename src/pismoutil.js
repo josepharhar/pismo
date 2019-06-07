@@ -35,8 +35,7 @@ exports.TreeFileSchema = {
 };
 /** @typedef {{operator: 'rm'|'cp'|'touch', operands: !Array<{tree: 'base'|'other', relativePath: string}>}} Operation */
 /** @typedef {{baseBranch: string, otherBranch: string, operations: !Array<!Operation>}} MergeFile */
-// TODO make these numbers instead of bigints
-/** @typedef {!{mtimeS: BigInt, mtimeNs: BigInt}} FileTime */
+/** @typedef {!{mtimeS: number, mtimeNs: number}} FileTime */
 
 /**
  * @param {string=} filepath
@@ -368,8 +367,8 @@ exports.streamToString = async function(stream) {
 exports.getLocalFileTime = function(absolutePath) {
   const stats = nanostat.statSync(absolutePath);
   return {
-    mtimeS: stats.mtimeMs / 1000n,
-    mtimeNs: stats.mtimeNs
+    mtimeS: Number(stats.mtimeMs / 1000n),
+    mtimeNs: Number(stats.mtimeNs)
   };
 }
 
