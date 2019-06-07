@@ -1,8 +1,8 @@
 const http = require('http');
+const stream = require('stream');
 const {URL} = require('url');
 
-const {Remote} = require('remote');
-const stream = require('stream');
+const {Remote} = require('./remote');
 const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
