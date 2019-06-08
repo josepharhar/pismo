@@ -8,7 +8,7 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
 /** @typedef {pismoutil.FileInfo} FileInfo */
 
 /**
- * @param {import('yargs').Arguments} argv
+ * @param {import('./pismo.js').DiffArgs} argv
  */
 exports.diff = async function(argv) {
   const baseName = argv.base;

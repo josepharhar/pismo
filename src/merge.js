@@ -98,7 +98,7 @@ function twoWayMerge(baseTree, otherTree) {
 }
 
 /**
- * @param {import('yargs').Arguments} argv
+ * @param {import('./pismo.js').MergeGenArgs} argv
  */
 exports.merge = async function(argv) {
   const outputFilepath = argv['output-filepath'];

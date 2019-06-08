@@ -7,7 +7,7 @@ const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /**
- * @param {import('yargs').Arguments} argv
+ * @param {import('./pismo.js').AddArgs} argv
  */
 exports.add = async function(argv) {
   const absolutePath = path.resolve(process.cwd(), argv.path);

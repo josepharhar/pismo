@@ -168,7 +168,7 @@ exports.updateInternal = async function(name, nocache) {
 }
 
 /**
- * @param {import('yargs').Arguments} argv
+ * @param {import('./pismo.js').UpdateArgs} argv
  */
 exports.update = async function(argv) {
   await exports.updateInternal(argv.name, argv.nocache);

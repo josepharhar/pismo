@@ -40,7 +40,7 @@ function setFileTime(absolutePath, filetime) {
 }
 
 /**
- * @param {import('yargs').Arguments} argv
+ * @param {import('./pismo.js').MergeApplyArgs} argv
  */
 exports.apply = async function(argv) {
   /** @type {pismoutil.MergeFile} */

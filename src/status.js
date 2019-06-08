@@ -1,6 +1,7 @@
 /**
- * @param {import('yargs').Arguments} argv
+ * @param {import('./pismo.js').StatusArgs} argv
  */
 exports.status = function(argv) {
   // TODO
+  throw new Error('NOTIMPLEMENTED');
 }

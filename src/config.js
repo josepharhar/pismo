@@ -5,7 +5,7 @@ const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /**
- * @param {import('yargs').Arguments} argv
+ * @param {import('./pismo.js').ConfigArgs} argv
  */
 exports.config = async function(argv) {
   let config = await pismoutil.readDotFileFromJson('config.json');

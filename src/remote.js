@@ -346,7 +346,7 @@ exports.getOrCreateRemote = async function(name) {
 }
 
 /**
- * @param {import('yargs').Arguments} argv
+ * @param {import('./pismo.js').RemoteAddArgs} argv
  */
 exports.remoteAdd = async function(argv) {
   const remote = new Remote(argv.name);
@@ -355,7 +355,7 @@ exports.remoteAdd = async function(argv) {
 }
 
 /**
- * @param {import('yargs').Arguments} argv
+ * @param {import('./pismo.js').RemoteRemoveArgs} argv
  */
 exports.remoteRemove = async function(argv) {
   const remote = new Remote(argv.name);
@@ -372,7 +372,7 @@ exports.remoteRemove = async function(argv) {
 /**
  * Print out a list of all remotes to the console.
  *
- * @param {import('yargs').Arguments} argv
+ * @param {import('./pismo.js').RemoteListArgs} argv
  */
 exports.remoteList = async function(argv) {
   const remotes = await Remote.getAllRemotes();
@@ -396,7 +396,7 @@ exports.remoteList = async function(argv) {
  * Download all of the tree files from the remote. Track them all as local branches like git.
  * Same as "git fetch <name>"
  *
- * @param {import('yargs').Arguments} argv
+ * @param {import('./pismo.js').RemoteUpdateArgs} argv
  */
 exports.remoteUpdate = async function(argv) {
 

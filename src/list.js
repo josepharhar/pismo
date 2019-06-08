@@ -11,7 +11,7 @@ const readdirPromise = util.promisify(fs.readdir);
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /**
- * @param {import('yargs').Arguments} argv
+ * @param {import('./pismo.js').ListArgs} argv
  */
 exports.list = async function(argv) {
   const treeNamesToPaths = await pismoutil.getTreeNamesToPaths();

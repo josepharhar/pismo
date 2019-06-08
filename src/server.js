@@ -138,7 +138,7 @@ async function handleDeleteFile(paramsObj) {
 }
 
 /**
- * @param {import('yargs').Arguments} argv
+ * @param {import('./pismo.js').ServerArgs} argv
  */
 exports.server = async function(argv) {
   const port = argv.port;

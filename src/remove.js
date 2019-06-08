@@ -6,7 +6,7 @@ const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /**
- * @param {import('yargs').Arguments} argv
+ * @param {import('./pismo.js').RemoveArgs} argv
  */
 exports.remove = async function(argv) {
   const treesPath = pismoutil.getAbsoluteTreesPath();
