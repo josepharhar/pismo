@@ -25,12 +25,12 @@ exports.FileInfoSchema = {
   size: 'number',
   hash: 'string'
 };
-// TODO change lastModified to lastUpdated
-/** @typedef {{path: string, lastModified: string, files: Array<FileInfo>}} TreeFile */
+// lastUpdated can be -1 to signal that an update never happened
+/** @typedef {{path: string, lastUpdated: number, files: Array<FileInfo>}} TreeFile */
 /** @type {!JsonSchema} */
 exports.TreeFileSchema = {
   path: 'string',
-  lastModified: 'string',
+  lastUpdated: 'number',
   files: [exports.FileInfoSchema]
 };
 /** @typedef {{operator: 'rm'|'cp'|'touch', operands: !Array<{tree: 'base'|'other', relativePath: string}>}} Operation */
@@ -524,3 +524,34 @@ exports.ErrorWrapper = class extends Error {
     this.stack = error.stack;
   }
 };
+
+/**
+ * @param {number} epoch
+ * @return {!Date}
+ */
+exports.epochToDate = function(epoch) {
+  // Date constructor takes ms instead of seconds, so convert
+  return new Date(epoch * 1000);
+}
+
+/**
+ * @param {!Date} date
+ * @return {string}
+ */
+exports.timeElapsedToString = function(date) {
+  const diffMs = new Date().getTime() - date.getTime();
+  const seconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(seconds / (60 * 60));
+  const days = Math.floor(seconds / (60 * 60 * 24));
+
+  if (days > 0)
+    return `${days} days ago`;
+  if (hours > 0)
+    return `${hours} hours ago`;
+  if (minutes > 0)
+    return `${minutes} minutes ago`;
+  if (seconds > 0)
+    return `${seconds} seconds ago`;
+  return 'now';
+}

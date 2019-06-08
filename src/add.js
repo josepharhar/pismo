@@ -41,9 +41,10 @@ exports.add = async function(argv) {
   }
 
   // write the new tree to the specified filepath
+  /** @type {!pismoutil.TreeFile} */
   const newTree = {
     path: absolutePath,
-    lastModified: '', // TODO set lastModified
+    lastUpdated: -1,
     files: []
   };
   const writeFileError = await new Promise(resolve => {

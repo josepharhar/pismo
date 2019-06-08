@@ -40,8 +40,8 @@ class Remote {
     this._name = name;
     /** @type {string} */
     this._url = null;
-    /** @type {string} */
-    this._lastUpdated = 'never';
+    /** @type {number} */
+    this._lastFetched = -1;
   }
 
   /**
@@ -97,14 +97,14 @@ class Remote {
   }
 
   /**
-   * @return {string}
+   * @return {number}
    */
-  lastUpdated() {
-    return this._lastUpdated;
+  lastFetched() {
+    return this._lastFetched;
   }
 
   updateTimestamp() {
-    this._lastUpdated = new Date().toISOString();
+    this._lastFetched = Math.floor(new Date().getTime() / 1000);
   }
 
   /**
@@ -197,14 +197,14 @@ class Remote {
     }
     this._name = obj.name;
     this._url = obj.url;
-    this._lastUpdated = obj.lastUpdated;
+    this._lastFetched = obj.lastFetched;
   }
 
   async writeToFile() {
     const obj = {
       name: this._name,
       url: this._url,
-      lastUpdated: this._lastUpdated
+      lastFetched: this._lastFetched
     };
     try {
       await pismoutil.writeDotFile(this.metaDotPath(), obj);
@@ -380,7 +380,15 @@ exports.remoteList = async function(argv) {
     await remote.readFromFile();
     console.log(remote.name());
     console.log(`  url: ${remote.url()}`);
-    console.log(`  lastUpdated: ${remote.lastUpdated()}`);
+
+    if (remote.lastFetched() < 0) {
+      console.log('  lastFetched: never');
+    } else {
+      const date = pismoutil.epochToDate(remote.lastFetched())
+      const dateString = pismoutil.dateToString(date);
+      const diffString = pismoutil.timeElapsedToString(date);
+      console.log(`  lastFetched: ${dateString} (${diffString})`);
+    }
   }
 }
 
@@ -484,7 +492,7 @@ exports.remoteUpdate = async function(argv) {
   for (const name in response) {
     const treeFile = response[name];
     console.log(`name: ${name}`);
-    console.log(`  lastModified: ${treeFile.lastModified}`);
+    console.log(`  lastUpdated: ${treeFile.lastUpdated}`);
     const absoluteNewTreePath = path.join(absoluteTreesPath, name + '.json');
     try {
       await writeFilePromise(absoluteNewTreePath, JSON.stringify(treeFile, null, 2));

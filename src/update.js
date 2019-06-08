@@ -122,7 +122,7 @@ exports.updateInternal = async function(name, nocache) {
   /** @type {TreeFile} */
   const newTreefile = {
     path: oldTreefile.path,
-    lastModified: new Date().toISOString(),
+    lastUpdated: Math.floor(new Date().getTime() / 1000),
     files: []
   };
 

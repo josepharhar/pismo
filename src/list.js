@@ -32,7 +32,14 @@ exports.list = async function(argv) {
     }
     console.log(name);
     console.log('  path: ' + tree.path);
-    console.log('  lastModified: ' + tree.lastModified);
+    if (tree.lastUpdated < 0) {
+      console.log('  lastUpdated: never');
+    } else {
+      const date = pismoutil.epochToDate(tree.lastUpdated);
+      const dateString = pismoutil.dateToString(date);
+      const diffString = pismoutil.timeElapsedToString(date);
+      console.log(`  lastUpdated: ${dateString} (${diffString})`);
+    }
   }
 
   // iterate remotes, print out their trees
@@ -54,7 +61,7 @@ exports.list = async function(argv) {
       }
       console.log(`${remote.name()}/${name}`);
       console.log(`  path: ${tree.path}`);
-      console.log(`  lastModified: ${tree.lastModified}`);
+      console.log(`  lastUpdated: ${tree.lastUpdated}`);
     }
   }
 }
