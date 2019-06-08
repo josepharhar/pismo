@@ -118,9 +118,9 @@ exports.merge = async function(argv) {
   }
   if (otherBranch.remote()) {
     const remote = await remotes.getOrCreateRemote(otherBranch.remote());
-    baseTree = await remote.readTreeByName(otherBranch.name());
+    otherTree = await remote.readTreeByName(otherBranch.name());
   } else {
-    baseTree = await pismoutil.readTreeByName(otherBranch.name());
+    otherTree = await pismoutil.readTreeByName(otherBranch.name());
   }
 
   // merge format will be a list of operations
