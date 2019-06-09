@@ -4,6 +4,8 @@ const util = require('util');
 const path = require('path');
 const {URL} = require('url');
 
+const progress = require('progress-stream');
+
 const pismoutil = require('./pismoutil.js');
 const api = require('./api.js');
 
@@ -255,16 +257,29 @@ class Remote {
    * @param {string} absoluteLocalPath
    */
   async copyFileToRemote(treeName, relativePath, absoluteLocalPath) {
+    const filesize = fs.statSync(absoluteLocalPath).size;
     /** @type {!api.PreparePutFileParams} */
     const request = {
       treename: treeName,
-      relativePath: relativePath
+      relativePath: relativePath,
+      filesize: filesize
     };
     const {putId} = await api.PreparePutFile.fetchResponse(this, request);
 
-    await api.PutFile.upload(this, putId, fs.createReadStream(absoluteLocalPath, {
+    const fileReadStream = fs.createReadStream(absoluteLocalPath, {encoding: 'binary'});
+
+    const progressStream = progress({
+        length: filesize,
+        time: 1000 /* ms interval to print update */
+      }, progress => {
+        console.log('progress: ' + JSON.stringify(progress));
+    });
+
+    await api.PutFile.upload(this, putId, fileReadStream.pipe(progressStream));
+
+    /*await api.PutFile.upload(this, putId, fs.createReadStream(absoluteLocalPath, {
       encoding: 'binary'
-    }));
+    }));*/
   }
 
   /**

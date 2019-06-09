@@ -163,6 +163,14 @@ class UploadMethod {
       headers: headers
     };
 
+
+    /*let req = null;
+    const res = await new Promise((resolve, reject) => {
+      req = http.request(remote.url(), requestOptions, resolve);
+    });
+    const resBodyPromise = pismoutil.streamToString(res);*/
+
+
     const res = await new Promise((resolve, reject) => {
       // TODO do i need to have the remote.url() parameter?
       const req = http.request(remote.url(), requestOptions, resolve);
@@ -181,6 +189,7 @@ class UploadMethod {
         + '\nbody: ' + await pismoutil.streamToString(res));
     }
 
+    // TODO use a response schema here!
     const responseString = await pismoutil.streamToString(res);
     return JSON.parse(responseString);
   }
@@ -266,15 +275,15 @@ exports.GetFile = new StreamingMethod(
     relativePath: 'string'
   });
 
-/** @typedef {!{treename: string, relativePath: string}} PreparePutFileParams */
+/** @typedef {!{treename: string, relativePath: string, filesize: number}} PreparePutFileParams */
 /** @typedef {!{putId: string}} PreparePutFileResponse */
 /** @type {!Method<PreparePutFileParams, PreparePutFileResponse>} */
 exports.PreparePutFile = new Method(
   'prepare-put-file',
   {
     treename: 'string',
-    relativePath: 'string'
-    // TODO add file size?
+    relativePath: 'string',
+    filesize: 'number'
   },
   {
     putId: 'string'

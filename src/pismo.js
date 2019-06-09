@@ -2,7 +2,9 @@
 
 // @ts-ignore
 BigInt.prototype.toJSON = function() {
-  return this.toString();
+  // TODO this is probably not a good idea, i think i should
+  //   actually use numbers instead of bigints in nanostat
+  return Number(this.toString());
 }
 
 const yargs = require('yargs');

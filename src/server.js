@@ -93,14 +93,14 @@ async function handleGetFile(paramsObj) {
   });
 }
 
-/** @type {!Map<string, !{treename: string, relativePath: string}>} */
+/** @type {!Map<string, !{treename: string, relativePath: string, filesize: number}>} */
 const _putIdToTreeAndPath = new Map();
 /**
  * @param {!Object} paramsObj
  * @return {!Promise<!api.PreparePutFileResponse>}
  */
 async function handlePreparePutFile(paramsObj) {
-  const {treename, relativePath} = api.PreparePutFile.parseRequest(paramsObj);
+  const {treename, relativePath, filesize} = api.PreparePutFile.parseRequest(paramsObj);
 
   function generatePutId() {
     return crypto.randomBytes(20).toString('hex');
@@ -111,7 +111,8 @@ async function handlePreparePutFile(paramsObj) {
 
   _putIdToTreeAndPath.set(newPutId, {
     treename: treename,
-    relativePath: relativePath
+    relativePath: relativePath,
+    filesize: filesize
   });
 
   return {
@@ -245,7 +246,10 @@ exports.server = async function(argv) {
         : `'${api.PUT_ID_HEADER_NAME}' header missing or invalid. headers: ${JSON.stringify(req.headers, null, 2)}`);
       return;
     }
-    const {treename, relativePath} = _putIdToTreeAndPath.get(putId);
+    res.writeHead(200, {'content-type': 'application/json'});
+    res.end(JSON.stringify({message: 'hello from /upload'}));
+
+    const {treename, relativePath, filesize} = _putIdToTreeAndPath.get(putId);
     _putIdToTreeAndPath.delete(putId);
 
     const treefile = await pismoutil.readTreeByName(treename);
@@ -254,7 +258,18 @@ exports.server = async function(argv) {
       encoding: 'binary'
     });
     req.setEncoding('binary');
-    req.pipe(fileWriteStream);
+
+    const progressStream = progress({
+      length: filesize,
+      time: 1000 /* ms interval to print update */
+    }, progress => {
+      console.log('progress: ' + JSON.stringify(progress));
+    });
+
+    req.on('done', () => {
+    })
+    req.pipe(progressStream).pipe(fileWriteStream);
+    //req.pipe(fileWriteStream);
   });
 
   app.listen(port);
