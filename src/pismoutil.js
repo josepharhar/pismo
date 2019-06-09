@@ -555,3 +555,29 @@ exports.timeElapsedToString = function(date) {
     return `${seconds} seconds ago`;
   return 'now';
 }
+
+///**
+// * TODO is this a bad design pattern?
+// *    i havent committed to reading files this way in other code
+// * This reads a dir, checking if the dir exists first. if it
+// * doesnt exist, returns an empty array.
+// * @param {string} path
+// * @return {!Promise<!Array<fs.Dirent>>}
+// */
+//exports.readdirSafe = function(path) {
+//  return new Promise((resolve, reject) => {
+//    fs.access(path, (error) => {
+//      if (error) {
+//        resolve();
+//        return;
+//      }
+//
+//      fs.readdir(path, {withFileTypes: true}, (error, dirents) => {
+//        if (error)
+//          reject(error);
+//        else
+//          resolve(dirents);
+//      });
+//    });
+//  });
+//}

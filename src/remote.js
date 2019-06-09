@@ -149,6 +149,7 @@ class Remote {
 
     let filenames;
     try {
+      await pismoutil.mkdirpPromise(absoluteTreesPath);
       filenames = await readdirPromise(absoluteTreesPath);
     } catch (error) {
       logError(`Remote.getTreeNamesToPaths() readdir(${absoluteTreesPath}) failed`);
