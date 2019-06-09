@@ -57,7 +57,7 @@ async function scanPath(
 
   for (const dirent of dirents) {
     const relativeEntPath = path.join(relativePathToScan, dirent.name);
-    const unixRelativeEntPath = relativeEntPath.replace(/\\/g, '/');
+    const unixRelativeEntPath = relativeEntPath.replace(/\\/g, '/'); // TODO this sounds scary
     const absoluteEntPath = path.join(basepath, relativeEntPath);
 
     if (dirent.isDirectory()) {
@@ -66,17 +66,19 @@ async function scanPath(
     } else if (dirent.isFile()) {
       let stat;
       try {
-        stat = nanostat.lstatSync(absoluteEntPath);
+        //stat = nanostat.lstatSync(absoluteEntPath);
+        stat = nanostat.statSync(absoluteEntPath);
       } catch (err) {
         logError(`lstat() failed. path: ${absoluteEntPath}`);
         throw err;
       }
 
+      /** @type {!pismoutil.FileInfo} */
       const newFileInfo = {
         path: unixRelativeEntPath,
         mtimeS: Number(stat.mtimeMs / 1000n),
         mtimeNs: Number(stat.mtimeNs),
-        size: stat.size,
+        size: Number(stat.size),
         hash: null
       };
 

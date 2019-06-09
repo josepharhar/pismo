@@ -61,7 +61,11 @@ exports.list = async function(argv) {
       }
       console.log(`${remote.name()}/${name}`);
       console.log(`  path: ${tree.path}`);
-      console.log(`  lastUpdated: ${tree.lastUpdated}`);
+      // TODO unify all three of the places that are printing things like this?
+      const date = pismoutil.epochToDate(tree.lastUpdated);
+      const dateString = pismoutil.dateToString(date);
+      const diffString = pismoutil.timeElapsedToString(date);
+      console.log(`  lastUpdated: ${dateString} (${diffString})`);
     }
   }
 }

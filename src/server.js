@@ -150,8 +150,9 @@ exports.server = async function(argv) {
   app.use(bodyParser.urlencoded({extended: false}));
   app.use(bodyParser.json());
 
-  app.use((req, res) => {
-    console.log(`${req.statusCode} ${req.url} ${JSON.stringify(req.headers, null, 2)}`);
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url} ${JSON.stringify(req.headers, null, 2)}`);
+    next();
   });
 
   app.get('/', (req, res) => {
@@ -180,6 +181,7 @@ exports.server = async function(argv) {
     const method = req.body.method;
     const params = req.body.params;
     async function dispatchToHandler() {
+      console.log('dispatchToHandler method: ' + method);
       switch (method) {
         case api.GetTrees.id():
           return await handleGetTrees(params);
@@ -203,8 +205,10 @@ exports.server = async function(argv) {
     try {
       retObj = await dispatchToHandler();
     } catch (error) {
-      res.writeHead(500, {'content-type': 'text/plain'});
-      res.end(error);
+      console.log('got error from dispatchToHandler()');
+      //res.writeHead(500, {'content-type': 'text/plain'});
+      res.status(500);
+      res.send(error.toString()); // .send() internally calls res.end()
       return;
     }
 

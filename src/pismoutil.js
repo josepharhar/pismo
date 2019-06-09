@@ -426,8 +426,8 @@ exports.parseJson = function(rootObj, rootSchema) {
      */
     function error(string) {
       return new Error(string
-        + '\n  rootObj: ' + JSON.stringify(rootObj)
-        + '\n  rootSchema: ' + JSON.stringify(rootSchema)
+        + '\n  rootObj: ' + JSON.stringify(rootObj, null, 4)
+        + '\n  rootSchema: ' + JSON.stringify(rootSchema, null, 4)
         + '\n  obj: ' + JSON.stringify(obj)
         + '\n  schema: ' + JSON.stringify(schema));
     }
@@ -546,13 +546,21 @@ exports.timeElapsedToString = function(date) {
   const days = Math.floor(seconds / (60 * 60 * 24));
 
   if (days > 0)
-    return `${days} days ago`;
+    return days === 1
+      ? `${days} day ago`
+      : `${days} days ago`;
   if (hours > 0)
-    return `${hours} hours ago`;
+    return hours === 1
+      ? `${hours} hour ago`
+      : `${hours} hours ago`;
   if (minutes > 0)
-    return `${minutes} minutes ago`;
+    return minutes === 1
+      ? `${minutes} minute ago`
+      : `${minutes} minutes ago`;
   if (seconds > 0)
-    return `${seconds} seconds ago`;
+    return seconds === 1
+      ? `${seconds} second ago`
+      : `${seconds} seconds ago`;
   return 'now';
 }
 

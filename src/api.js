@@ -65,7 +65,7 @@ exports.Method = class {
       params: params
     };
 
-    return await new Promise((resolve, reject) => {
+    const res = await new Promise((resolve, reject) => {
       const req = http.request(remote.url(), requestOptions, resolve);
       req.on('error', error => {
         logError(`http.request() error. url: ${url}`);
@@ -74,20 +74,29 @@ exports.Method = class {
       req.write(JSON.stringify(postObj, null, 2));
       req.end();
     });
+
+    if (Math.floor(res.statusCode / 100) !== 2) {
+      throw new Error('got bad status code: ' + res.statusCode
+        + '\nheaders: ' + JSON.stringify(res.headers, null, 2)
+        + '\nbody:\n' + await pismoutil.streamToString(res));
+    }
+
+    return res;
   }
 
   /**
-   * @template T
    * @param {!Remote} remote
-   * @param {!Object} params
-   * @return {!Promise<T>}
+   * @param {!RequestType} params
+   * @return {!Promise<!ResponseType>}
    */
   async fetchResponse(remote, params) {
     const res = await this._getResponse(remote, params);
     const responseString = await pismoutil.streamToString(res);
-    if (responseString)
-      return JSON.parse(responseString);
-    return null;
+    if (!responseString)
+      return null;
+    const obj = JSON.parse(responseString);
+    pismoutil.parseJson(obj, this._responseSchema);
+    return /** @type {!ResponseType} */ (obj);
   }
 }
 const Method = exports.Method;
@@ -109,10 +118,9 @@ class StreamingMethod extends Method {
   /**
    * TODO make a separate interface so i don't have to do this?
    * @override
-   * @template T
    * @param {!Remote} remote
    * @param {!RequestType} params
-   * @return {!Promise<T>}
+   * @return {!Promise<!ResponseType>}
    */
   async fetchResponse(remote, params) {
     throw new Error('StreamingMethod.fetchResponse - use StreamingMethod.streamResponse');
@@ -177,6 +185,7 @@ exports.UploadMethod = UploadMethod;
 
 // Method instances
 
+/** @typedef {void} GetTreesRequest */
 /** @typedef {!{trees: !Array<!{treename: string, treefile: !pismoutil.TreeFile}>}} GetTreesResponse */
 /** @type {!Method<void, GetTreesResponse>} */
 exports.GetTrees = new Method(
@@ -188,7 +197,7 @@ exports.GetTrees = new Method(
       treefile: pismoutil.TreeFileSchema
     }]
   }
-)
+);
 
 ///** @typedef {!{treenames: !Array<string>}} ListTreesResponse */
 ///** @type {!Method<void, ListTreesResponse>} */

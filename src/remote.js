@@ -426,52 +426,65 @@ exports.remoteUpdate = async function(argv) {
 //    }
 //  });
 
-  // TODO use the caching layer here
-  const remote = new Remote(argv.name);
-  await remote.readFromFile();
 
-  const url = new URL(remote.url());
-  const requestOptions = {
-    hostname: url.hostname,
-    port: url.port,
-    path: '/api',
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json'
-    }
-  };
-  const postObj = {
-    method: 'list',
-    params: {}
-  };
+//  // TODO use the caching layer here
+//  const remote = new Remote(argv.name);
+//  await remote.readFromFile();
+//  const url = new URL(remote.url());
+//  const requestOptions = {
+//    hostname: url.hostname,
+//    port: url.port,
+//    path: '/api',
+//    method: 'POST',
+//    headers: {
+//      'content-type': 'application/json',
+//      'connection': 'keep-alive'
+//    }
+//  };
+//  const postObj = {
+//    method: 'list',
+//    params: {}
+//  };
+//
+//  const res = await new Promise((resolve, reject) => {
+//    // TODO should remote.url() even be used here?
+//    const req = http.request(remote.url(), requestOptions, resolve);
+//    req.on('error', error => {
+//      logError(`http.request error`);
+//      reject(error);
+//    });
+//    req.write(JSON.stringify(postObj, null, 2));
+//    req.end();
+//  });
+//
+//  console.log(`${res.statusCode} ${JSON.stringify(res.headers, null, 2)}`);
+//
+//  let responseBody = null;
+//  try {
+//    responseBody = await pismoutil.streamToString(res);
+//  } catch (error) {
+//    logError(`Failed to read http response stream to string. url: ${remote.url()}`);
+//    throw error;
+//  }
+//
+//  if (Math.floor(res.statusCode / 100) !== 2) {
+//    logError(`Remote failed with response body:\n${responseBody}`);
+//  }
+//
+//  /** @type {!Object<string, !pismoutil.TreeFile>} */
+//  let response = null;
+//  try {
+//    response = JSON.parse(responseBody);
+//  } catch (error) {
+//    logError(`Failed to parse response body to json`);
+//    throw error;
+//  }
 
-  const res = await new Promise((resolve, reject) => {
-    const req = http.request(remote.url(), requestOptions, resolve);
-    req.on('error', error => {
-      logError(`http.request error`);
-      reject(error);
-    });
-    req.write(JSON.stringify(postObj, null, 2));
-    req.end();
-  });
-
-  console.log(`${res.statusCode} ${JSON.stringify(res.headers, null, 2)}`);
-  let responseBody = null;
-  try {
-    responseBody = await pismoutil.streamToString(res);
-  } catch (error) {
-    logError(`Failed to read http response stream to string. url: ${remote.url()}`);
-    throw error;
+  const remote = await exports.getOrCreateRemote(argv.name);
+  if (!remote) {
+    throw new Error(`unable to find remote with name: ${argv.name}`);
   }
-
-  /** @type {!Object<string, !pismoutil.TreeFile>} */
-  let response = null;
-  try {
-    response = JSON.parse(responseBody);
-  } catch (error) {
-    logError(`Failed to parse response body to json`);
-    throw error;
-  }
+  let response = await api.GetTrees.fetchResponse(remote);
 
   console.log(`updaing remotes/${remote.name()}/ with ${Object.keys(response).length} new trees`);
 
@@ -481,28 +494,43 @@ exports.remoteUpdate = async function(argv) {
   console.log('argv.prune: ' + argv.prune);
   if (argv.prune) {
     console.log('pruning local things');
-    const treeNamesToPaths = remote.getTreeNamesToPaths();
+    const treeNamesToPaths = await remote.getTreeNamesToPaths();
     for (const name in treeNamesToPaths) {
       console.log(`  deleting ${name} at ${treeNamesToPaths[name]}`);
       await unlinkPromise(treeNamesToPaths[name]);
     }
   }
 
-  // save response stuff to local files
+
   // TODO share more code with add.js and stuff to do this?
-  for (const name in response) {
-    const treeFile = response[name];
-    console.log(`name: ${name}`);
-    console.log(`  lastUpdated: ${treeFile.lastUpdated}`);
-    const absoluteNewTreePath = path.join(absoluteTreesPath, name + '.json');
+  for (const {treename, treefile} of response.trees) {
+    console.log(`name: ${treename}`);
+    console.log(`  lastUpdated: ${treefile.lastUpdated}`);
+    const absoluteNewTreePath = path.join(absoluteTreesPath, treename + '.json');
     try {
-      await writeFilePromise(absoluteNewTreePath, JSON.stringify(treeFile, null, 2));
+      writeFilePromise(absoluteNewTreePath, JSON.stringify(treefile, null, 2));
     } catch (error) {
-      logError(`Failed to write downloaded tree to path: ${absoluteNewTreePath}`);
-      throw error;
+      throw new pismoutil.ErrorWrapper(error, `Failed to write downloaded tree to path: ${absoluteNewTreePath}`);
     }
-    console.log('  wrote to file successfully!');
+    console.log(`  wrote to file successfully!`);
   }
+
+
+//  // save response stuff to local files
+//  // TODO share more code with add.js and stuff to do this?
+//  for (const name in response) {
+//    const treeFile = response[name];
+//    console.log(`name: ${name}`);
+//    console.log(`  lastUpdated: ${treeFile.lastUpdated}`);
+//    const absoluteNewTreePath = path.join(absoluteTreesPath, name + '.json');
+//    try {
+//      await writeFilePromise(absoluteNewTreePath, JSON.stringify(treeFile, null, 2));
+//    } catch (error) {
+//      logError(`Failed to write downloaded tree to path: ${absoluteNewTreePath}`);
+//      throw error;
+//    }
+//    console.log('  wrote to file successfully!');
+//  }
 
   remote.updateTimestamp();
   await remote.writeToFile();
