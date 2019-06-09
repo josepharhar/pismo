@@ -520,8 +520,9 @@ exports.ErrorWrapper = class extends Error {
   constructor(error, message) {
     super();
     this.name = 'ErrorWrapper';
-    this.message = message + '\n' + error.message;
-    this.stack = error.stack;
+    //this.message = message + '\n' + error.message;
+    this.wrappedMessage = message
+    this.message = error.message;
   }
 };
 

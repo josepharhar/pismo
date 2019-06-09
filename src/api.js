@@ -150,18 +150,18 @@ class UploadMethod {
    */
   async upload(remote, putId, readableStream) {
     const url = new URL(remote.url());
-    const putIdHeaderName = exports.PUT_ID_HEADER_NAME; // TODO why do i need this
+    /** @type {!http.OutgoingHttpHeaders} */
+    const headers = {};
+    headers['connection'] = 'keep-alive';
+    headers['content-type'] = 'application/octet-stream';
+    headers[exports.PUT_ID_HEADER_NAME] = putId;
     const requestOptions = {
       hostname: url.hostname,
       port: url.port,
       path: '/upload',
       method: 'PUT',
-      headers: {
-        'connection': 'keep-alive',
-        'content-type': 'application/octet-stream',
-        putIdHeaderName: putId
-      }
-    }
+      headers: headers
+    };
 
     const res = await new Promise((resolve, reject) => {
       // TODO do i need to have the remote.url() parameter?
@@ -171,10 +171,15 @@ class UploadMethod {
       })
       readableStream
         .on('error', error => {
-          reject(new pismoutil.ErrorWrapper(error, `http.request() upload stream failed. url: ${url}`));
+          reject(new pismoutil.ErrorWrapper(error, `failed to read from readable stream to post to request. url: ${url}`));
         })
         .pipe(req);
     });
+    if (Math.floor(res.statusCode / 100) !== 2) { // TODO this check should only appear once in code
+      throw new Error('got bad status code: ' + res.statusCode
+        + '\nheaders: ' + JSON.stringify(res.headers, null, 2)
+        + '\nbody: ' + await pismoutil.streamToString(res));
+    }
 
     const responseString = await pismoutil.streamToString(res);
     return JSON.parse(responseString);

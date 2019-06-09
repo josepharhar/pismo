@@ -208,7 +208,12 @@ exports.server = async function(argv) {
       console.log('got error from dispatchToHandler()');
       //res.writeHead(500, {'content-type': 'text/plain'});
       res.status(500);
-      res.send(error.toString()); // .send() internally calls res.end()
+      let output = '';
+      if (error.wrappedMessage)
+        output += error.wrappedMessage + '\n';
+      output += error.stack;
+      res.send(output); // .send() internally calls res.end()
+      //res.send(error.stack); // .send() internally calls res.end()
       return;
     }
 
@@ -237,7 +242,7 @@ exports.server = async function(argv) {
       res.writeHead(400, {'content-type': 'text/plain'});
       res.end(typeof(putId) === 'string'
         ? 'provided putId not in _putIdToTreeAndPath'
-        : `'${api.PUT_ID_HEADER_NAME}' header missing or invalid. type: ${typeof(putId)}`);
+        : `'${api.PUT_ID_HEADER_NAME}' header missing or invalid. headers: ${JSON.stringify(req.headers, null, 2)}`);
       return;
     }
     const {treename, relativePath} = _putIdToTreeAndPath.get(putId);

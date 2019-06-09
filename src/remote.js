@@ -250,11 +250,11 @@ class Remote {
   }
 
   /**
-   * @param {string} absoluteLocalPath
    * @param {string} treeName
    * @param {string} relativePath
+   * @param {string} absoluteLocalPath
    */
-  async copyFileToRemote(absoluteLocalPath, treeName, relativePath) {
+  async copyFileToRemote(treeName, relativePath, absoluteLocalPath) {
     /** @type {!api.PreparePutFileParams} */
     const request = {
       treename: treeName,

@@ -22,9 +22,10 @@ const {remoteAdd, remoteRemove, remoteList, remoteUpdate} = require('./remote.js
 
 function run(fn) {
   return function(argv) {
-    fn(argv).catch(err => {
+    fn(argv).catch(error => {
       console.log('Pismo failed with error:');
-      console.log(err);
+      console.log(error);
+      process.exit(1);
     });
   }
 }
