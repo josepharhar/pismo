@@ -3,6 +3,7 @@ const fs = require('fs');
 const util = require('util');
 const path = require('path');
 const {URL} = require('url');
+const stream = require('stream');
 
 const progress = require('progress-stream');
 
@@ -266,6 +267,7 @@ class Remote {
     };
     const {putId} = await api.PreparePutFile.fetchResponse(this, request);
 
+    const contentLength = fs.statSync(absoluteLocalPath).size;
     const fileReadStream = fs.createReadStream(absoluteLocalPath, {encoding: 'binary'});
 
     const progressStream = progress({
@@ -275,7 +277,14 @@ class Remote {
         console.log('progress: ' + JSON.stringify(progress));
     });
 
-    await api.PutFile.upload(this, putId, fileReadStream.pipe(progressStream));
+    const passThroughStream = new stream.PassThrough();
+    passThroughStream.on('data', chunk => {
+      logError(`SEND CHUNK TO UPLOAD!!!!: ${chunk}`);
+    });
+
+    await api.PutFile.upload(this, putId,
+      fileReadStream.pipe(progressStream).pipe(passThroughStream),
+      contentLength);
 
     /*await api.PutFile.upload(this, putId, fs.createReadStream(absoluteLocalPath, {
       encoding: 'binary'

@@ -114,7 +114,6 @@ exports.apply = async function(argv) {
             absoluteLocalSrcPath);
 
           const srcFileTime = getFileTime(absoluteLocalSrcPath);
-          logError(`calling setRemoteFileTime srcFileTime: ${JSON.stringify(srcFileTime, null, 2)}`);
           await destRemote.setRemoteFileTime(
             destBranch.name(),
             destRelativePath,

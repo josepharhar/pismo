@@ -237,7 +237,8 @@ exports.server = async function(argv) {
     res.end();
   });
 
-  app.put('/upload', async (req, res) => {
+  // TODO wrap this function in a trycatch? to respond with errors?
+  app.put('/upload', async (req, res, /* TODO ? next*/) => {
     const putId = req.headers[api.PUT_ID_HEADER_NAME];
     if (typeof(putId) !== 'string' || !_putIdToTreeAndPath.has(putId)) {
       res.writeHead(400, {'content-type': 'text/plain'});
@@ -246,18 +247,47 @@ exports.server = async function(argv) {
         : `'${api.PUT_ID_HEADER_NAME}' header missing or invalid. headers: ${JSON.stringify(req.headers, null, 2)}`);
       return;
     }
-    res.writeHead(200, {'content-type': 'application/json'});
-    res.end(JSON.stringify({message: 'hello from /upload'}));
+    //res.end(JSON.stringify({message: 'hello from /upload'}));
+    //TODO uncoment this req.on('end', () => { 
+      res.writeHead(200, {'content-type': 'application/json'});
+      res.end(JSON.stringify({message: 'hello from /upload'}));
+    //});
+    req.on('error', error => {
+      const errorString = `req.on('error'): ${error}`;
+      logError(errorString);
+      res.writeHead(500, {'content-type': 'text/plain'});
+      res.end(errorString);
+    });
+
+    // TODO delet this
+    /*const data = await pismoutil.streamToString(req);
+    console.log(';asldjhfljkhASDGFJASLDFHASDJFHASDF req body: ' + data);*/
 
     const {treename, relativePath, filesize} = _putIdToTreeAndPath.get(putId);
     _putIdToTreeAndPath.delete(putId);
 
     const treefile = await pismoutil.readTreeByName(treename);
     const absolutePath = path.join(treefile.path, relativePath);
-    const fileWriteStream = fs.createWriteStream(absolutePath, {
-      encoding: 'binary'
+    logError(`absolutePath: ${absolutePath}`);
+    let fileWriteStream = fs.createWriteStream(absolutePath, {
+      // TODO uncomment this? encoding: 'binary'
     });
-    req.setEncoding('binary');
+//    fileWriteStream = fileWriteStream
+//      .on('error', error => {
+//        console.log('GOT FILE WRITE STREM ERROR: ' + error);
+//      })
+//      .on('finish', () => {
+//        console.log("GOT FILE WRITE FINISH");
+//      })
+//      .on('close', () => {
+//        console.log("GOT FILE WRITE DLOSE");
+//      });
+//    logError('stream properties:'
+//      + '\n  req.readable: ' + req.readable
+//      + '\n  req.readableLength: ' + req.readableLength
+//      + '\n  fileWriteStream.writable: ' + fileWriteStream.writable
+//      + '\n  fileWriteStream.writableLength: ' + fileWriteStream.writableLength);
+    // TODO uncomment this req.setEncoding('binary');
 
     const progressStream = progress({
       length: filesize,
@@ -266,9 +296,41 @@ exports.server = async function(argv) {
       console.log('progress: ' + JSON.stringify(progress));
     });
 
-    req.on('done', () => {
+    const passThroughStream = new stream.PassThrough();
+    passThroughStream.on('data', chunk => {
+      logError(`/upload GOT CHUNK!!!!!!: ${chunk}`);
+    });
+
+    /*req.on('data', data => {
+      fileWriteStream.write(data);
+    });
+    req.on('close', () => {
+      fileWriteStream.close();
     })
-    req.pipe(progressStream).pipe(fileWriteStream);
+    req.on('error', error => {
+      logError(`req.on('error'): ${error}`);
+    });*/
+    //req.pipe(fileWriteStream);
+
+    class fuck extends stream.Readable {
+      constructor() {
+        super();
+      }
+
+      _read() {
+        //this.push('write this to a file');
+      }
+    };
+
+    let asdf = new fuck();
+    asdf.on('error', error => console.log('\n\n\n\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA:\n' + error));
+    asdf.push('write this to a god damn file');
+    asdf.pipe(fileWriteStream);
+
+    //req.pipe(progressStream).pipe(passThroughStream);
+    //req.pipe(progressStream).pipe(passThroughStream).pipe(fileWriteStream);
+    //req.pipe(passThroughStream).pipe(progressStream).pipe(fileWriteStream);
+    //req.pipe(progressStream).pipe(fileWriteStream);
     //req.pipe(fileWriteStream);
   });
 
