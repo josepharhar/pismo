@@ -278,18 +278,9 @@ class Remote {
         console.log('progress: ' + JSON.stringify(progress));
     });
 
-    const passThroughStream = new stream.PassThrough();
-    passThroughStream.on('data', chunk => {
-      logError(`SEND CHUNK TO UPLOAD!!!!: ${chunk}`);
-    });
-
     await api.PutFile.upload(this, putId,
-      fileReadStream.pipe(progressStream).pipe(passThroughStream),
+      fileReadStream.pipe(progressStream),
       contentLength);
-
-    /*await api.PutFile.upload(this, putId, fs.createReadStream(absoluteLocalPath, {
-      encoding: 'binary'
-    }));*/
   }
 
   /**

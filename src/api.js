@@ -153,7 +153,6 @@ class UploadMethod {
     const url = new URL(remote.url());
     /** @type {!http.OutgoingHttpHeaders} */
     const headers = {};
-    //headers['connection'] = 'keep-alive'; // TODO is this necessary?
     headers['content-length'] = contentLength;
     headers['content-type'] = 'application/octet-stream';
     headers[exports.PUT_ID_HEADER_NAME] = putId;
@@ -165,29 +164,16 @@ class UploadMethod {
       headers: headers
     };
 
-
-    /*let req = null;
-    const res = await new Promise((resolve, reject) => {
-      req = http.request(remote.url(), requestOptions, resolve);
-    });
-    const resBodyPromise = pismoutil.streamToString(res);*/
-
-
     const res = await new Promise((resolve, reject) => {
       // TODO do i need to have the remote.url() parameter?
       const req = http.request(remote.url(), requestOptions, resolve);
       req.on('error', error => {
         reject(new pismoutil.ErrorWrapper(error, `http.request() UploadMethod request error. url: ${url}`));
       })
-      const deletThis = new stream.PassThrough();
-      deletThis.on('data', data => {
-        logError(`UPLOADING OMSE DATA: ${data}`);
-      });
       readableStream
         .on('error', error => {
           reject(new pismoutil.ErrorWrapper(error, `failed to read from readable stream to post to request. url: ${url}`));
         })
-        .pipe(deletThis)
         .pipe(req);
     });
     if (Math.floor(res.statusCode / 100) !== 2) { // TODO this check should only appear once in code
