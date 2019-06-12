@@ -139,6 +139,54 @@ async function handleDeleteFile(paramsObj) {
 }
 
 /**
+ * @param {!express.Request} req 
+ * @param {!express.Response} res 
+ */
+async function handleUpload(req, res) {
+  const putId = req.headers[api.PUT_ID_HEADER_NAME];
+  if (typeof(putId) !== 'string' || !_putIdToTreeAndPath.has(putId)) {
+    res.writeHead(400, {'content-type': 'text/plain'});
+    res.end(typeof(putId) === 'string'
+      ? 'provided putId not in _putIdToTreeAndPath'
+      : `'${api.PUT_ID_HEADER_NAME}' header missing or invalid. headers: ${JSON.stringify(req.headers, null, 2)}`);
+    return;
+  }
+  const {treename, relativePath, filesize} = _putIdToTreeAndPath.get(putId);
+  _putIdToTreeAndPath.delete(putId);
+  const treefile = await pismoutil.readTreeByName(treename);
+  const absolutePath = path.join(treefile.path, relativePath);
+  const fileWriteStream = fs.createWriteStream(absolutePath);
+
+  req.on('error', error => {
+    if (!res.headersSent) {
+      res.writeHead(500, {'content-type': 'text/plain'});
+      res.end('req read error: ' + error);
+    }
+  })
+  fileWriteStream.on('error', error => {
+    if (!res.headersSent) {
+      res.writeHead(500, {'content-type': 'text/plain'});
+      res.end('fileWriteStream error: ' + error);
+    }
+  });
+  fileWriteStream.on('finish', () => {
+    if (!res.headersSent) {
+      res.writeHead(200, {'content-type': 'application/json'});
+      res.end(JSON.stringify({message: 'successful upload to handleUpload'}));
+    }
+  });
+
+  const progressStream = progress({
+      length: filesize,
+      time: 1000 /* ms interval to print updates */
+    }, progress => {
+      console.log('progress: ' + JSON.stringify(progress));
+  });
+
+  req.pipe(progressStream).pipe(fileWriteStream);
+}
+
+/**
  * @param {import('./pismo.js').ServerArgs} argv
  */
 exports.server = async function(argv) {
@@ -146,13 +194,9 @@ exports.server = async function(argv) {
   logInfo(`Running server on port ${port}`);
 
   const app = express();
-  //app.use(express.json());
-  //app.use(express.urlencoded());
-  app.use(bodyParser.urlencoded({extended: false}));
-  app.use(bodyParser.json());
 
   app.use((req, res, next) => {
-    console.log(`${req.method} ${req.url} ${JSON.stringify(req.headers, null, 2)}`);
+    console.log(`${req.method} ${req.url}`);
     next();
   });
 
@@ -161,6 +205,7 @@ exports.server = async function(argv) {
   });
 
   // TODO why doesnt this work with get?
+  app.post('/api', bodyParser.json());
   app.post('/api', async (req, res) => {
     if (!req.body) {
       res.writeHead(500, {'content-type': 'text/plain'});
@@ -182,7 +227,7 @@ exports.server = async function(argv) {
     const method = req.body.method;
     const params = req.body.params;
     async function dispatchToHandler() {
-      console.log('dispatchToHandler method: ' + method);
+      //console.log('dispatchToHandler method: ' + method);
       switch (method) {
         case api.GetTrees.id():
           return await handleGetTrees(params);
@@ -237,148 +282,14 @@ exports.server = async function(argv) {
     res.end();
   });
 
-  // TODO wrap this function in a trycatch? to respond with errors?
-  app.put('/upload', async (req, res, /* TODO ? next*/) => {
-    const putId = req.headers[api.PUT_ID_HEADER_NAME];
-    if (typeof(putId) !== 'string' || !_putIdToTreeAndPath.has(putId)) {
-      res.writeHead(400, {'content-type': 'text/plain'});
-      res.end(typeof(putId) === 'string'
-        ? 'provided putId not in _putIdToTreeAndPath'
-        : `'${api.PUT_ID_HEADER_NAME}' header missing or invalid. headers: ${JSON.stringify(req.headers, null, 2)}`);
-      return;
-    }
-    //res.end(JSON.stringify({message: 'hello from /upload'}));
-    //TODO uncoment this req.on('end', () => { 
-      res.writeHead(200, {'content-type': 'application/json'});
-      res.end(JSON.stringify({message: 'hello from /upload'}));
-    //});
-    req.on('error', error => {
-      const errorString = `req.on('error'): ${error}`;
-      logError(errorString);
+  app.put('/upload', async (req, res) => {
+    try {
+      await handleUpload(req, res);
+    } catch (error) {
       res.writeHead(500, {'content-type': 'text/plain'});
-      res.end(errorString);
-    });
-
-    // TODO delet this
-    /*const data = await pismoutil.streamToString(req);
-    console.log(';asldjhfljkhASDGFJASLDFHASDJFHASDF req body: ' + data);*/
-
-    const {treename, relativePath, filesize} = _putIdToTreeAndPath.get(putId);
-    _putIdToTreeAndPath.delete(putId);
-
-    const treefile = await pismoutil.readTreeByName(treename);
-    const absolutePath = path.join(treefile.path, relativePath);
-    logError(`absolutePath: ${absolutePath}`);
-    let fileWriteStream = fs.createWriteStream(absolutePath, {
-      // TODO uncomment this? encoding: 'binary'
-    });
-//    fileWriteStream = fileWriteStream
-//      .on('error', error => {
-//        console.log('GOT FILE WRITE STREM ERROR: ' + error);
-//      })
-//      .on('finish', () => {
-//        console.log("GOT FILE WRITE FINISH");
-//      })
-//      .on('close', () => {
-//        console.log("GOT FILE WRITE DLOSE");
-//      });
-//    logError('stream properties:'
-//      + '\n  req.readable: ' + req.readable
-//      + '\n  req.readableLength: ' + req.readableLength
-//      + '\n  fileWriteStream.writable: ' + fileWriteStream.writable
-//      + '\n  fileWriteStream.writableLength: ' + fileWriteStream.writableLength);
-    // TODO uncomment this req.setEncoding('binary');
-
-    const progressStream = progress({
-      length: filesize,
-      time: 1000 /* ms interval to print update */
-    }, progress => {
-      console.log('progress: ' + JSON.stringify(progress));
-    });
-
-    const passThroughStream = new stream.PassThrough();
-    passThroughStream.on('data', chunk => {
-      logError(`/upload GOT CHUNK!!!!!!: ${chunk}`);
-    });
-
-    /*req.on('data', data => {
-      fileWriteStream.write(data);
-    });
-    req.on('close', () => {
-      fileWriteStream.close();
-    })
-    req.on('error', error => {
-      logError(`req.on('error'): ${error}`);
-    });*/
-    //req.pipe(fileWriteStream);
-
-    class fuck extends stream.Readable {
-      constructor() {
-        super();
-      }
-
-      _read() {
-        //this.push('write this to a file');
-      }
-    };
-
-    let asdf = new fuck();
-    asdf.on('error', error => console.log('\n\n\n\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA:\n' + error));
-    asdf.push('write this to a god damn file');
-    asdf.pipe(fileWriteStream);
-
-    //req.pipe(progressStream).pipe(passThroughStream);
-    //req.pipe(progressStream).pipe(passThroughStream).pipe(fileWriteStream);
-    //req.pipe(passThroughStream).pipe(progressStream).pipe(fileWriteStream);
-    //req.pipe(progressStream).pipe(fileWriteStream);
-    //req.pipe(fileWriteStream);
+      res.end('handleUpload failed with error:' + error.stack);
+    }
   });
 
   app.listen(port);
-
-//  app.post('/fileupload', async (req, res) => {
-//    console.log(`${req.method} ${req.url} ${JSON.stringify(req.headers, null, 2)}`);
-//    const length = Number(req.headers['x-pismo-length']);
-//    if (length === NaN) {
-//      // TODO
-//      console.log('invalid x-pismo-length header: ' + req.headers['x-pismo-length']);
-//    }
-//    const fileWriteStream = fs.createWriteStream('output.o');
-//
-//    const progressStream = progress({
-//      length: length,
-//      time: 1000 /* ms */
-//    }, progress => {
-//      console.log('progress: ' + JSON.stringify(progress));
-//    });
-//
-//    // TODO should i be doing this?
-//    res.end('hello from server');
-//
-//    req.pipe(progressStream).pipe(fileWriteStream);
-//    //req.pipe(fileWriteStream);
-//    //await streamPrint(req);
-//  });
 }
-
-//async function streamPrint(stream) {
-//  return new Promise((resolve, reject) => {
-//    stream.on('data', chunk => {
-//      console.log('data: ' + chunk);
-//    });
-//    stream.on('error', reject);
-//    stream.on('end', resolve);
-//  });
-//}
-//
-//async function streamToString(stream) {
-//  return new Promise((resolve, reject) => {
-//    let chunks = '';
-//    stream.on('data', chunk => {
-//      chunks += chunk;
-//    });
-//    stream.on('error', reject);
-//    stream.on('end', () => resolve(chunks));
-//  });
-//}
-//

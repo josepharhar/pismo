@@ -192,6 +192,8 @@ class UploadMethod {
     });
     if (Math.floor(res.statusCode / 100) !== 2) { // TODO this check should only appear once in code
       throw new Error('got bad status code: ' + res.statusCode
+        + '\nrequest url: ' + remote.url()
+        + '\nrequestOptions: ' + JSON.stringify(requestOptions, null, 2)
         + '\nheaders: ' + JSON.stringify(res.headers, null, 2)
         + '\nbody: ' + await pismoutil.streamToString(res));
     }

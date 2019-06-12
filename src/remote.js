@@ -268,7 +268,8 @@ class Remote {
     const {putId} = await api.PreparePutFile.fetchResponse(this, request);
 
     const contentLength = fs.statSync(absoluteLocalPath).size;
-    const fileReadStream = fs.createReadStream(absoluteLocalPath, {encoding: 'binary'});
+    // TODO const fileReadStream = fs.createReadStream(absoluteLocalPath, {encoding: 'binary'});
+    const fileReadStream = fs.createReadStream(absoluteLocalPath);
 
     const progressStream = progress({
         length: filesize,
