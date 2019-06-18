@@ -306,8 +306,13 @@ class Remote {
         })
         .pipe(fileWriteStream);
 
+      fileWriteStream.on('error', error => {
+        reject(new pismoutil.ErrorWrapper(error,
+          `Failed to write file downloaded from remote. treename: ${treeName}, relativePath: ${relativePath}, absoluteLocalPath: ${absoluteLocalPath}`));
+      });
+
       // I think that if we get an error event then finish won't happen.
-      requestReadStream.on('finish', resolve);
+      fileWriteStream.on('finish', resolve);
     });
   }
 
