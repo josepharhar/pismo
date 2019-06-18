@@ -88,9 +88,7 @@ async function handleGetFile(paramsObj) {
   const treeFile = await pismoutil.readTreeByName(request.treename);
   const absolutePath = path.join(treeFile.path, request.relativePath);
 
-  return fs.createReadStream(absolutePath, {
-    encoding: 'binary'
-  });
+  return fs.createReadStream(absolutePath);
 }
 
 /** @type {!Map<string, !{treename: string, relativePath: string, filesize: number}>} */
