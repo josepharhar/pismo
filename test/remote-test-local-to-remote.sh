@@ -11,15 +11,15 @@ fi
 REMOTE_IP=$1
 REMOTE_USER=jarhar
 SSH_CMD=ssh ${REMOTE_USER}@${REMOTE_IP}
-remote_cmd() {
+REMOTE() {
   $SSH_CMD "cd pismo/test && source remote-test-shared-config.sh && $@"
 }
 
 # clean up stuff from previous test runs
 rm -rf out1 || true
-remote_cmd rm -rf out2 || true
+REMOTE rm -rf out2 || true
 pismo remove test1 || true
-remote_cmd pismo remove test2 || true
+REMOTE pismo remove test2 || true
 
 # set up remote
 pismo remote remove test_remote || true
@@ -32,7 +32,10 @@ touch --date=@1524222671 -m data1/420m
 cp -r -p data1 out1
 
 # create expected output files
-cp -r -p data1 out2
+REMOTE cp -r -p data1 out2
 jcmp out1 > out1-expected.txt
-jcmp out2 > out2-expected.txt
-rm -rf out2
+REMOTE jcmp out2 > out2-expected.txt # this outputs to file locally, not remotely
+REMOTE rm -rf out2
+
+# set up out2
+REMOTE find data2 -type f | xargs touch # TODO how do i internally pipe stuff? do i have to put quotes around it?
