@@ -38,10 +38,10 @@ touch --date=@1524222671 -m data1/420m
 cp -r -p data1 out1
 
 # create expected output files
-REMOTE cp -r -p data1 out2
+#REMOTE cp -r -p data1 out2
 jcmp out1 > out1-expected.txt
-REMOTE jcmp out2 > out2-expected.txt # this outputs to file locally, not remotely
-REMOTE rm -rf out2
+#REMOTE jcmp out2 > out2-expected.txt # this outputs to file locally, not remotely
+#REMOTE rm -rf out2
 
 # set up out2
 #REMOTE_QUOTE find data2 -type f | xargs touch" # TODO how do i internally pipe stuff? do i have to put quotes around it?
@@ -74,6 +74,7 @@ REMOTE jcmp out2 > out2-actual.txt
 
 # compare
 diff out1-expected.txt out1-actual.txt
+jcmp out1 | sed 's/out1/out2/g' > out2-expected.txt
 diff out2-expected.txt out2-actual.txt
 
 echo "test passed successfully"
