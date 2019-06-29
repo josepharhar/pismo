@@ -14,8 +14,8 @@ pismo remove test2 || true
 rm -rf out1 out2 || true
 
 # set up remote
-pismo remote remove local || true
-pismo remote add local http://localhost:48880
+pismo remote-remove local || true
+pismo remote-add local http://localhost:48880
 
 # set up out1
 touch --date=@1524222671 data1/420am

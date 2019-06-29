@@ -114,6 +114,7 @@ yargs.command(
   ['remote', 'remote-list'],
   'Lists all of the remotes you are currently tracking.',
   yargs => yargs
+      .strict(true)
       .help(false)
       .version(false),
   run(remoteList));

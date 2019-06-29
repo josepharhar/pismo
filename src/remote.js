@@ -397,6 +397,12 @@ exports.remoteRemove = async function(argv) {
  * @param {import('./pismo.js').RemoteListArgs} argv
  */
 exports.remoteList = async function(argv) {
+  if (argv._.length > 1) {
+    // TODO this only exists because yargs.strict() doesn't do anything!!!
+    //   yargs should take care of this logic but i dont know if it even can.
+    throw new Error('too many args given, expected one. given: ' + JSON.stringify(argv._));
+  }
+
   const remotes = await Remote.getAllRemotes();
   for (const remote of remotes) {
     await remote.readFromFile();

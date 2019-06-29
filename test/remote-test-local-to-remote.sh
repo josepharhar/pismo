@@ -26,8 +26,8 @@ pismo remove test1 || true
 REMOTE pismo remove test2 || true
 
 # set up remote
-pismo remote remove test_remote || true
-pismo remote add test_remote http://${REMOTE_IP}:48880
+pismo remote-remove test_remote || true
+pismo remote-add test_remote http://${REMOTE_IP}:48880
 
 # set up out1
 touch --date=@1524222671 data1/420am
