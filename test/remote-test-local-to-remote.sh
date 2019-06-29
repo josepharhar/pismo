@@ -11,8 +11,12 @@ fi
 REMOTE_IP=$1
 REMOTE_USER=jarhar
 SSH_CMD=ssh ${REMOTE_USER}@${REMOTE_IP}
+SFTP_CMD=sftp ${REMOTE_USER}@${REMOTE_IP}:
 REMOTE() {
   $SSH_CMD "cd pismo/test && source remote-test-shared-config.sh && $@"
+}
+REMOTE_QUOTE() {
+  $SSH_CMD "\"cd pismo/test && source remote-test-shared-config.sh && $@"
 }
 
 # clean up stuff from previous test runs
@@ -38,4 +42,36 @@ REMOTE jcmp out2 > out2-expected.txt # this outputs to file locally, not remotel
 REMOTE rm -rf out2
 
 # set up out2
-REMOTE find data2 -type f | xargs touch # TODO how do i internally pipe stuff? do i have to put quotes around it?
+#REMOTE_QUOTE find data2 -type f | xargs touch" # TODO how do i internally pipe stuff? do i have to put quotes around it?
+$SSH_CMD << EOF
+cd pismo/test;
+find data2 -type f | xargs touch
+cp -r -p data2 out2
+EOF
+
+# scan with pismo
+pismo add test1 out1
+pismo update test1
+# TODO make it so i can do these commands remotely?
+$SSH_CMD << EOF
+cd pismo/test
+pismo add test2 out2
+pismo update test2
+EOF
+
+# update remote
+pismo fetch test_remote
+
+# copy with pismo
+pismo merge-gen test1 test_remote/test2 merge.json
+pismo merge-apply merge.json
+
+# create actual output
+jcmp out1 > out1-actual.txt
+REMOTE jcmp out2 > out2-expected.txt
+
+# compare
+diff out1-expected.txt out1-actual.txt
+diff out2-expected.txt out2-actual.txt
+
+echo "test passed successfully"
