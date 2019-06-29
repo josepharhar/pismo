@@ -2,6 +2,8 @@
 set -e
 set -x
 
+source remote-test-shared-config.sh
+
 if [ $# -eq 0 ]; then
   echo "missing required remote host parameter. usage: ./remote-test.sh 192.168.56.132"
   exit 1
@@ -10,8 +12,8 @@ fi
 #REMOTE_IP=192.168.56.132
 REMOTE_IP=$1
 REMOTE_USER=jarhar
-SSH_CMD=ssh ${REMOTE_USER}@${REMOTE_IP}
-SFTP_CMD=sftp ${REMOTE_USER}@${REMOTE_IP}:
+SSH_CMD="ssh ${REMOTE_USER}@${REMOTE_IP}"
+SFTP_CMD="sftp ${REMOTE_USER}@${REMOTE_IP}:"
 REMOTE() {
   $SSH_CMD "cd pismo/test && source remote-test-shared-config.sh && $@"
 }
@@ -68,7 +70,7 @@ pismo merge-apply merge.json
 
 # create actual output
 jcmp out1 > out1-actual.txt
-REMOTE jcmp out2 > out2-expected.txt
+REMOTE jcmp out2 > out2-actual.txt
 
 # compare
 diff out1-expected.txt out1-actual.txt
