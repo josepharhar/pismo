@@ -85,10 +85,47 @@ function twoWayMerge(baseTree, otherTree) {
     } else if (treeFile === otherTree) {
       output.push({
         operator: 'cp',
+        // TODO should this be this way? i should write a test for this or something
+        operands: [{tree: 'other', relativePath: fileInfo.path},
+                   {tree: 'base', relativePath: fileInfo.path}]
+      });
+
+    } else {
+      throw new Error('this should never happen');
+    }
+  }
+
+  return output;
+}
+
+/**
+ * @param {!TreeFile} baseTree
+ * @param {!TreeFile} otherTree
+ * @return {!Array<!Operation>}
+ */
+function oneWayAdd(baseTree, otherTree) {
+  /** @type {!Array<!Operation>} */
+  const output = [];
+
+  const differator = diff.differator(baseTree, otherTree);
+  while (differator.hasNext()) {
+    const [{treeFile, fileInfo}, second] = differator.next();
+
+    if (second) {
+      console.log('warning: file found on both sides: "' + fileInfo.path + '", using base');
+      output.push({
+        operator: second.fileInfo.hash === fileInfo.hash ? 'touch' : 'cp',
+        operands: [{tree: 'base', relativePath: fileInfo.path},
+                   {tree: 'other', relativePath: second.fileInfo.path}]
+      });
+    } else if (treeFile === baseTree) {
+      output.push({
+        operator: 'cp',
         operands: [{tree: 'base', relativePath: fileInfo.path},
                    {tree: 'other', relativePath: fileInfo.path}]
       });
-
+    } else if (treeFile === otherTree) {
+      // do nothing, thats the point of this style of merge.
     } else {
       throw new Error('this should never happen');
     }
@@ -140,6 +177,10 @@ exports.merge = async function(argv) {
 
     case 'two-way-sync':
       operations = twoWayMerge(baseTree, otherTree);
+      break;
+
+    case 'one-way-add':
+      operations = oneWayAdd(baseTree, otherTree);
       break;
 
     default:

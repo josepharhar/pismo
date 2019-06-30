@@ -94,6 +94,7 @@ async function scanPath(
       } else {
         // recompute hash
         newFileInfo.hash = await genHash(absoluteEntPath);
+        // TODO make a progress bar for this
         logInfo(`Recomputing hash for ${newFileInfo.path}`);
       }
 

@@ -108,7 +108,15 @@ class Differator {
     // calling hasNext() triggers _goToNextDiff(), so heads are ready
     const baseFile = this._getNextBaseFile();
     const otherFile = this._getNextOtherFile();
-    if (!otherFile || baseFile.path < otherFile.path) {
+
+    /*let useBase = null;
+    if (!otherFile)
+      useBase = true;
+    else if ()*/
+
+    // otherfile = {}
+    // basefile = null
+    if (!otherFile || (baseFile && baseFile.path < otherFile.path)) {
       this._baseIndex++;
       return [{
         treeFile: this._baseTree,

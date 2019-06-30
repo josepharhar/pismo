@@ -27,6 +27,7 @@ function run(fn) {
     fn(argv).catch(error => {
       console.log('Pismo failed with error:');
       console.log(error);
+      console.error(error);
       process.exit(1);
     });
   }
@@ -147,7 +148,7 @@ yargs.command(
   'Compares the directory trees named <base> and <other> and writes a merge file to the path <output-filepath>, which can then be applied by using merge-apply.',
   yargs => yargs
       .option('mode', {
-        choices: ['one-way-mirror', 'two-way-sync'],
+        choices: ['one-way-mirror', 'two-way-sync', 'one-way-add'],
         default: 'one-way-mirror',
         description: 'Preset to generate merge file with'
       })

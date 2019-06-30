@@ -65,6 +65,7 @@ exports.apply = async function(argv) {
     const srcRelativePath = operands.length > 0 ? operands[0].relativePath : null;
     const destRelativePath = operands.length > 1 ? operands[1].relativePath : null;
 
+    // TODO print something for each one of these operations!
     switch (operator) {
       case 'touch':
         try {
