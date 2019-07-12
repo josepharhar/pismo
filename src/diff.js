@@ -22,6 +22,14 @@ exports.diff = async function(argv) {
       + `\n + ${baseTree.path}`
       + `\n - ${otherTree.path}`);
 
+  exports.diffTrees(baseTree, otherTree);
+}
+
+/**
+ * @param {!TreeFile} baseTree
+ * @param {!TreeFile} otherTree
+ */
+exports.diffTrees = async function(baseTree, otherTree) {
   const differator = exports.differator(baseTree, otherTree);
   while (differator.hasNext()) {
     const [{treeFile, fileInfo}, second] = differator.next();

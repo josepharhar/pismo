@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const nanostat = require('nanostat');
 
 const pismoutil = require('./pismoutil.js');
+const diff = require('./diff.js');
 //const {TreeFile} = require('./treefile.js');
 
 const readFilePromise = util.promisify(fs.readFile);
@@ -166,6 +167,10 @@ exports.updateInternal = async function(name, nocache) {
     logError(`Failed to write updated tree file to path: ${treefilepath}`);
     throw writeFileError;
   }
+
+  logInfo('');
+  diff.diffTrees(newTreefile, oldTreefile);
+  logInfo('');
 
   logInfo(`Successfully updated tree: ${name}`);
 }
