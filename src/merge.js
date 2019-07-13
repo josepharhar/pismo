@@ -14,6 +14,37 @@ const Branch = branches.Branch;
 /** @typedef {pismoutil.MergeFile} MergeFile */
 
 /**
+ * "Updates" otherTree with new information from baseTree by adding/overwriting
+ * all files present in baseTree to otherTree.
+ * 
+ * @param {!TreeFile} baseTree 
+ * @param {!TreeFile} otherTree 
+ * @return {!Array<!FileInfo>}
+ */
+exports.oneWayUpdate = function(baseTree, otherTree) {
+  /** @type {!Array<!FileInfo>} */
+  const files = [];
+
+  /** @type {!Map<string, !FileInfo>} */
+  const oldTreeFilesMap = new Map();
+  for (const file of otherTree.files) {
+    oldTreeFilesMap.set(file.path, file);
+  }
+
+  for (const file of baseTree.files) {
+    if (oldTreeFilesMap.has(file.path))
+      oldTreeFilesMap.delete(file.path);
+    files.push(file);
+  }
+  for (const file of oldTreeFilesMap.values()) {
+    files.push(file);
+  }
+
+  files.sort(pismoutil.fileInfoComparator);
+  return files;
+}
+
+/**
  * @param {!TreeFile} baseTree
  * @param {!TreeFile} otherTree
  * @return {!Array<!Operation>}

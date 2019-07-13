@@ -3,6 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const util = require('util');
 const stream = require('stream');
+const events = require('events');
+
 // @ts-ignore
 const nanostat = require('nanostat');
 // @ts-ignore
@@ -590,3 +592,16 @@ exports.timeElapsedToString = function(date) {
 //    });
 //  });
 //}
+
+/**
+ * @param {!FileInfo} a 
+ * @param {!FileInfo} b 
+ * @return {number}
+ */
+exports.fileInfoComparator = function(a, b) {
+  if (a.path < b.path)
+    return -1;
+  if (a.path > b.path)
+    return 1;
+  return 0;
+}
