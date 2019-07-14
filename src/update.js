@@ -4,9 +4,11 @@ const os = require('os');
 const util = require('util');
 const crypto = require('crypto');
 const events = require('events');
+const stream = require('stream');
 
 // @ts-ignore
 const nanostat = require('nanostat');
+const progressStream = require('progress-stream');
 
 const pismoutil = require('./pismoutil.js');
 const diff = require('./diff.js');
@@ -17,7 +19,6 @@ const readFilePromise = util.promisify(fs.readFile);
 const readdirPromise = util.promisify(fs.readdir);
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
-// TODO this is pretty gross.
 class CancelError extends Error {
   constructor(message) {
     super(message);
@@ -29,20 +30,50 @@ class CancelError extends Error {
  * @param {!events.EventEmitter} cancelEmitter
  */
 async function genHash(absoluteFilepath, cancelEmitter) {
-  return new Promise((resolve, reject) => {
-    const hash = crypto.createHash('md5');
-    const input = fs.createReadStream(absoluteFilepath, {
-      encoding: 'binary'
-    });
-    input.on('error', reject);
-    hash.once('readable', () => resolve(hash.read().toString('hex')));
-    input.pipe(hash);
-
-    cancelEmitter.on('cancel', () => {
+  return new Promise((_resolve, _reject) => {
+    function cancelHandler() {
       const error = new CancelError('hash generation cancelled');
       input.destroy(error);
       reject(error);
+    }
+    function resolve(data) {
+      cancelEmitter.removeListener('cancel', cancelHandler);
+      _resolve(data);
+    }
+    function reject(data) {
+      cancelEmitter.removeListener('cancel', cancelHandler);
+      _reject(data);
+    }
+    cancelEmitter.on('cancel', cancelHandler);
+
+    const hash = crypto.createHash('md5');
+    const input = fs.createReadStream(absoluteFilepath);
+    input.on('error', reject);
+
+    hash.once('readable', () => {
+      console.log(); // progress is done, so print a newline so we dont overwrite that line
+      resolve(hash.read().toString('hex'))
     });
+
+    const filesize = fs.statSync(absoluteFilepath).size;
+    const progress = progressStream({
+      length: filesize,
+      time: 100 /* ms */
+    })
+    progress.on('progress', progress => {
+      const numChars = Math.floor(progress.percentage / 10);
+      let output = `\rComputing hash [`;
+      for (let i = 0; i < 10; i++) {
+        if (i < numChars)
+          output += '=';
+        else
+          output += ' ';
+      }
+      output += `] ${Math.floor(progress.percentage)}% for "${absoluteFilepath}"`;
+      process.stdout.write(output);
+    })
+
+    input.pipe(progress).pipe(hash);
   });
 }
 
@@ -116,12 +147,10 @@ async function scanPath(
           && cachedFileinfo.mtimeNs === newFileInfo.mtimeNs
           && cachedFileinfo.size === newFileInfo.size) {
         newFileInfo.hash = cachedFileinfo.hash;
-        logInfo(`Using cached hash for ${newFileInfo.path}`);
+        console.log(`Reusing cached hash for ${newFileInfo.path}`);
 
       } else {
         // recompute hash
-        // TODO make a progress bar for this
-        logInfo(`Recomputing hash for ${newFileInfo.path}`);
         try {
           newFileInfo.hash = await genHash(absoluteEntPath, cancelEmitter);
         } catch (error) {
@@ -175,7 +204,7 @@ exports.updateInternal = async function(name, nocache) {
 
   let gotSigint = false;
   process.on('SIGINT', () => {
-    console.log('received sigint, writing updates to file...');
+    console.log('\nreceived sigint, writing updates to file...');
     if (gotSigint)
       return;
     gotSigint = true;
@@ -194,13 +223,19 @@ exports.updateInternal = async function(name, nocache) {
   const pathsToScan = [];
   pathsToScan.push('/');
   while (pathsToScan.length && !gotSigint) {
-    await scanPath(
-      pathsToScan.pop(),
-      newPathToScan => pathsToScan.push(newPathToScan),
-      newFileInfo => newTreefile.files.push(newFileInfo),
-      basepath,
-      fileinfoCache,
-      cancelEmitter);
+    try {
+      await scanPath(
+        pathsToScan.pop(),
+        newPathToScan => pathsToScan.push(newPathToScan),
+        newFileInfo => newTreefile.files.push(newFileInfo),
+        basepath,
+        fileinfoCache,
+        cancelEmitter);
+      } catch (error) {
+        logError('got error while updating:' + error);
+        logError('writing the stuff we got to file.');
+        gotSigint = true;
+      }
     cancelEmitter.removeAllListeners();
   }
 

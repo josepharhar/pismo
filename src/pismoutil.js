@@ -605,3 +605,58 @@ exports.fileInfoComparator = function(a, b) {
     return 1;
   return 0;
 }
+
+//exports.ProgressStream = class extends stream.Transform {
+//  /**
+//   * @param {number} totalLength
+//   * @param {number} updateIntervalMs
+//   */
+//  constructor(totalLength, updateIntervalMs) {
+//    super();
+//    this._totalLength = totalLength;
+//    this._updateIntervalMs = updateIntervalMs;
+//    /** @type {number} */
+//    this._lastUpdatedMs = 0;
+//    this._elapsedLength = 0;
+//
+//    this._maybeUpdateProgress();
+//  }
+//
+//  _maybeUpdateProgress() {
+//    const currentTimeMs = new Date().getTime();
+//    const doUpdated = this._lastUpdatedMs + this._updateIntervalMs < currentTimeMs;
+//    console.log('_maybeUpdateProgress'
+//      + '\n           currentTimeMs: ' + currentTimeMs
+//      + '\n     this._lastUpdatedMs: ' + this._lastUpdatedMs
+//      + '\n  this._updateIntervalMs: ' + this._updateIntervalMs
+//      + '\n     this._elapsedLength: ' + this._elapsedLength
+//      + '\n       this._totalLength: ' + this._totalLength
+//      + '\n                doUpdate: ' + doUpdated
+//    );
+//    if (this._lastUpdatedMs + this._updateIntervalMs < currentTimeMs) {
+//      // do update
+//      this._lastUpdatedMs = currentTimeMs;
+//      this.emit('progress', {
+//        percentage: this._elapsedLength / this._totalLength,
+//        complete: false
+//      });
+//    }
+//  }
+//
+//  _transform(chunk, encoding, callback) {
+//    if (encoding !== 'buffer')
+//      logError('ProgressStream._transform bad encoding: ' + encoding);
+//    this._elapsedLength += chunk.length;
+//    this._maybeUpdateProgress();
+//    this.push(chunk);
+//    callback();
+//  }
+//
+//  // input stream has ended
+//  _flush() {
+//    this.emit('progress', {
+//      percentage: 100,
+//      complete: true
+//    });
+//  }
+//}
