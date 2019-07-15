@@ -1,6 +1,8 @@
 const path = require('path');
 const fs = require('fs');
 
+const filesize = require('filesize');
+
 const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
@@ -15,14 +17,16 @@ exports.diff = async function(argv) {
   const otherName = argv.other;
 
   const baseTree = await pismoutil.readTreeByName(baseName);
-  const otherTree = await pismoutil.readTreeByName(otherName);
+  const otherTree = otherName ? await pismoutil.readTreeByName(otherName) : null;
 
-  pismoutil.logColor(pismoutil.Colors.bright,
-    `pismo diff ${baseName} ${otherName}`
-      + `\n + ${baseTree.path}`
-      + `\n - ${otherTree.path}`);
-
-  exports.diffTrees(baseTree, otherTree);
+  if (otherTree) {
+    pismoutil.logColor(pismoutil.Colors.bright,
+      `pismo diff ${baseName} ${otherName}`
+        + `\n + ${baseTree.path}`
+        + `\n - ${otherTree.path}`);
+    exports.diffTrees(baseTree, otherTree);
+  }
+  exports.findDuplicates(baseTree, otherTree);
 }
 
 /**
@@ -57,6 +61,74 @@ exports.diffTrees = async function(baseTree, otherTree) {
     } else {
       throw new Error('this should never happen.');
     }
+  }
+}
+
+/**
+ * @param {!TreeFile} baseTree
+ * @param {?TreeFile} otherTree
+ */
+exports.findDuplicates = function(baseTree, otherTree) {
+  /** @type {!Map<string, {'base': !Array<FileInfo>, 'other': !Array<FileInfo>}>} */
+  const hashToFiles = new Map();
+
+  for (const file of baseTree.files) {
+    if (!hashToFiles.has(file.hash))
+      hashToFiles.set(file.hash, {'base': [], 'other': []});
+    hashToFiles.get(file.hash).base.push(file);
+  }
+
+  if (otherTree) {
+    for (const file of otherTree.files) {
+      if (!hashToFiles.has(file.hash))
+        hashToFiles.set(file.hash, {'base': [], 'other': []});
+      hashToFiles.get(file.hash).other.push(file);
+    }
+  }
+
+  const entries = Array.from(hashToFiles.entries())
+    .sort(([oneHash, oneObj], [twoHash, twoObj]) => {
+      const oneSize = oneObj.base.length
+        ? oneObj.base[0].size
+        : oneObj.other[0].size;
+      const twoSize = twoObj.base.length
+        ? twoObj.base[0].size
+        : twoObj.other[0].size;
+
+      if (oneSize < twoSize)
+        return -1;
+      if (oneSize > twoSize)
+        return 1;
+      return 0;
+    });
+
+  let printedDupe = false;
+  let totalSize = 0;
+  for (const [hash, {base, other}] of entries) {
+    if (base.length + other.length < 2)
+      continue;
+    printedDupe = true;
+
+    const size = base.length ? base[0].size : other[0].size;
+    console.log(`  hash: ${hash}, size: ${filesize(size)}`);
+    for (const file of base) {
+      totalSize += size;
+      pismoutil.logColor(pismoutil.Colors.yellow, `    ${path.join(baseTree.path, file.path)}`);
+    }
+    for (const file of other) {
+      totalSize += size;
+      pismoutil.logColor(pismoutil.Colors.yellow, `    ${path.join(otherTree.path, file.path)}`);
+    }
+    totalSize -= size;
+  }
+
+  if (printedDupe) {
+  console.log('Total size that could be saved by deleting duplicates: ' + filesize(totalSize));
+  } else {
+    if (otherTree)
+      console.log(`No duplicates found within or between "${baseTree.path}" and "${otherTree.path}"`)
+    else
+      console.log(`No duplicates found within "${baseTree.path}"`);
   }
 }
 
@@ -117,13 +189,6 @@ class Differator {
     const baseFile = this._getNextBaseFile();
     const otherFile = this._getNextOtherFile();
 
-    /*let useBase = null;
-    if (!otherFile)
-      useBase = true;
-    else if ()*/
-
-    // otherfile = {}
-    // basefile = null
     if (!otherFile || (baseFile && baseFile.path < otherFile.path)) {
       this._baseIndex++;
       return [{
