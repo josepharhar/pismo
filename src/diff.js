@@ -8,6 +8,7 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /** @typedef {pismoutil.TreeFile} TreeFile */
 /** @typedef {pismoutil.FileInfo} FileInfo */
+/** @typedef {'filesize'|'name'} OrderArg */
 
 /**
  * @param {import('./pismo.js').DiffArgs} argv
@@ -15,6 +16,11 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
 exports.diff = async function(argv) {
   const baseName = argv.base;
   const otherName = argv.other;
+  const order = /** @type {!OrderArg} */ (argv.order);
+  const printAll = /** @type {boolean} */ (argv.printall);
+  if (order !== 'filesize' && order !== 'name') {
+    throw new Error('invalid "order" arg: ' + order);
+  }
 
   const baseTree = await pismoutil.readTreeByName(baseName);
   const otherTree = otherName ? await pismoutil.readTreeByName(otherName) : null;
@@ -26,7 +32,7 @@ exports.diff = async function(argv) {
         + `\n - ${otherTree.path}`);
     exports.diffTrees(baseTree, otherTree);
   }
-  exports.findDuplicates(baseTree, otherTree);
+  findDuplicates(baseTree, otherTree, order, printAll);
 }
 
 /**
@@ -67,8 +73,10 @@ exports.diffTrees = async function(baseTree, otherTree) {
 /**
  * @param {!TreeFile} baseTree
  * @param {?TreeFile} otherTree
+ * @param {!OrderArg} order
+ * @param {boolean} printAll
  */
-exports.findDuplicates = function(baseTree, otherTree) {
+function findDuplicates(baseTree, otherTree, order, printAll) {
   /** @type {!Map<string, {'base': !Array<FileInfo>, 'other': !Array<FileInfo>}>} */
   const hashToFiles = new Map();
 
@@ -86,8 +94,9 @@ exports.findDuplicates = function(baseTree, otherTree) {
     }
   }
 
-  const entries = Array.from(hashToFiles.entries())
-    .sort(([oneHash, oneObj], [twoHash, twoObj]) => {
+  let entries = Array.from(hashToFiles.entries());
+  if (order === 'filesize') {
+    entries = entries.sort(([oneHash, oneObj], [twoHash, twoObj]) => {
       const oneSize = oneObj.base.length
         ? oneObj.base[0].size
         : oneObj.other[0].size;
@@ -101,12 +110,15 @@ exports.findDuplicates = function(baseTree, otherTree) {
         return 1;
       return 0;
     });
+  }
 
   let printedDupe = false;
   let totalSize = 0;
   for (const [hash, {base, other}] of entries) {
-    if (base.length + other.length < 2)
+    if (!printAll && base.length + other.length < 2)
       continue;
+    if (!printedDupe)
+      console.log('Duplicates:');
     printedDupe = true;
 
     const size = base.length ? base[0].size : other[0].size;

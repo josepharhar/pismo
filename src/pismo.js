@@ -136,8 +136,16 @@ yargs.command(
 /** @typedef {yargs.Arguments<{base: string, other: string}>} DiffArgs */
 yargs.command(
   'diff <base> [other]',
-  'Compares the contents of the directory trees named <base> and [other], and prints out the differences. If [other] is unset and backups are enabled, compares between backup and newest version of <base>.',
+  'Compares the contents of the directory trees named <base> and [other], and prints out the differences. If [other] is unset and backups are enabled, compares between backup and newest version of <base>.', // TODO this is wrong
   yargs => yargs
+      .option('order', {
+        choices: ['filesize', 'name'],
+        default: 'name',
+        description: 'order to list duplicates in'
+      })
+      .option('printall', {
+        default: false
+      })
       .help(false)
       .version(false),
   run(diff));
