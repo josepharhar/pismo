@@ -3,6 +3,7 @@ const fs = require('fs');
 
 const filesize = require('filesize');
 
+const {Branch} = require('./branch.js');
 const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
@@ -14,20 +15,21 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
  * @param {import('./pismo.js').DiffArgs} argv
  */
 exports.diff = async function(argv) {
-  const baseName = argv.base;
-  const otherName = argv.other;
+  const baseBranch = new Branch(argv.base);
+  const otherBranch = argv.other ? new Branch(argv.other) : null;
+
   const order = /** @type {!OrderArg} */ (argv.order);
   const printAll = /** @type {boolean} */ (argv.printall);
   if (order !== 'filesize' && order !== 'name') {
     throw new Error('invalid "order" arg: ' + order);
   }
 
-  const baseTree = await pismoutil.readTreeByName(baseName);
-  const otherTree = otherName ? await pismoutil.readTreeByName(otherName) : null;
+  const baseTree = await baseBranch.readTreeByName();
+  const otherTree = otherBranch ? await otherBranch.readTreeByName() : null;
 
   if (otherTree) {
     pismoutil.logColor(pismoutil.Colors.bright,
-      `pismo diff ${baseName} ${otherName}`
+      `pismo diff ${baseBranch.rawString()} ${otherBranch.rawString()}`
         + `\n + ${baseTree.path}`
         + `\n - ${otherTree.path}`);
     exports.diffTrees(baseTree, otherTree);

@@ -50,6 +50,17 @@ exports.Branch = class {
   }
 
   /**
+   * @return {!Promise<!pismoutil.TreeFile>}
+   */
+  async readTreeByName() {
+    if (this.remote()) {
+      const remote = await remotes.getOrCreateRemote(this.remote());
+      return await remote.readTreeByName(this.name());
+    }
+    return pismoutil.readTreeByName(this.name());
+  }
+
+  /**
    * @param {string} relativePath
    * @return {!Promise<!pismoutil.FileTime>}
    */
