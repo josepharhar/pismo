@@ -21,6 +21,7 @@ const {commit} = require('./commit.js');
 const {status} = require('./status.js');
 const {server} = require('./server.js');
 const {remoteAdd, remoteRemove, remoteList, remoteUpdate} = require('./remote.js');
+const {mergePrint} = require('./mergeprint.js');
 
 function run(fn) {
   return function(argv) {
@@ -172,6 +173,15 @@ yargs.command(
       .help(false)
       .version(false),
   run(apply));
+
+/** @typedef {yargs.Arguments<{mergefile: string}>} MergePrintArgs */
+yargs.command(
+  'merge-print <mergefile>',
+  'Prints out a merge json file generated with merge-gen in a human readable diff format',
+  yargs => yargs
+      .help(false)
+      .version(false),
+  run(mergePrint));
 
 /** @typedef {yargs.Arguments<{setting: string, value: string}>} ConfigArgs */
 yargs.command(
