@@ -42,8 +42,6 @@ function printTree(name, tree, verbose) {
     size += file.size;
   }
   console.log(`  total size: ${filesize(size)}`);
-
-  console.log();
 }
 
 /**
