@@ -270,3 +270,13 @@ exports.updateInternal = async function(name, nocache) {
 exports.update = async function(argv) {
   await exports.updateInternal(argv.name, argv.nocache);
 }
+
+/**
+ * @param {import('./pismo.js').UpdateAllArgs} argv
+ */
+exports.updateAll = async function(argv) {
+  const treeNamesToPaths = await pismoutil.getTreeNamesToPaths();
+  for (const treename of Object.keys(treeNamesToPaths)) {
+    exports.updateInternal(treename, argv.nocache);
+  }
+}

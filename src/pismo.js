@@ -11,7 +11,7 @@ const yargs = require('yargs');
 
 const {list} = require('./list.js');
 const {add} = require('./add.js');
-const {update} = require('./update.js');
+const {update, updateAll} = require('./update.js');
 const {remove} = require('./remove.js');
 const {merge} = require('./merge.js');
 const {diff} = require('./diff.js');
@@ -37,11 +37,15 @@ function run(fn) {
 // TODO delet this
 const defaultHandler = argv => console.log('Not implemented yet. argv: ' + JSON.stringify(argv, null, 2));
 
-/** @typedef {yargs.Arguments<{}>} ListArgs */
+/** @typedef {yargs.Arguments<{verbose: boolean}>} ListArgs */
 yargs.command(
   'list',
   'Lists directory trees stored in ~/.pismo.',
   yargs => yargs
+      .option('verbose', {
+        description: 'Print out extra information about each tree',
+        default: true
+      })
       .help(false)
       .version(false),
   run(list));
@@ -133,6 +137,19 @@ yargs.command(
       .help(false)
       .version(false),
   run(update));
+
+/** @typedef {yargs.Arguments<{nocache: boolean}>} UpdateAllArgs */
+yargs.command(
+  'update-all',
+  'Scans all local file trees',
+  yargs => yargs
+      .option('nocache', {
+        description: 'Recalculate hashes for each file instead of reusing them based on file modified time',
+        default: false
+      })
+      .help(false)
+      .version(false),
+  run(updateAll));
 
 /** @typedef {yargs.Arguments<{base: string, other: string}>} DiffArgs */
 yargs.command(

@@ -3,12 +3,48 @@ const path = require('path');
 const util = require('util');
 const os = require('os');
 
+const filesize = require('filesize');
+
 const pismoutil = require('./pismoutil.js');
 const remote = require('./remote.js');
 
 const readFilePromise = util.promisify(fs.readFile);
 const readdirPromise = util.promisify(fs.readdir);
 const {logInfo, logError} = pismoutil.getLogger(__filename);
+
+/**
+ * @param {string} name
+ * @param {!pismoutil.TreeFile} tree
+ * @param {boolean} verbose
+ */
+function printTree(name, tree, verbose) {
+  console.log(name);
+  if (!verbose)
+    return;
+
+  console.log('  path: ' + tree.path);
+
+  if (tree.lastUpdated < 0) {
+    console.log('  lastUpdated: never');
+  } else {
+    const date = pismoutil.epochToDate(tree.lastUpdated);
+    const dateString = pismoutil.dateToString(date);
+    const diffString = pismoutil.timeElapsedToString(date);
+    console.log(`  last updated: ${dateString} (${diffString})`);
+  }
+
+  // number of files
+  console.log(`  number of files: ${tree.files.length}`);
+
+  // total size
+  let size = 0;
+  for (const file of tree.files) {
+    size += file.size;
+  }
+  console.log(`  total size: ${filesize(size)}`);
+
+  console.log();
+}
 
 /**
  * @param {import('./pismo.js').ListArgs} argv
@@ -30,16 +66,7 @@ exports.list = async function(argv) {
       logError('Failed to read tree json file for name: ' + name);
       return;
     }
-    console.log(name);
-    console.log('  path: ' + tree.path);
-    if (tree.lastUpdated < 0) {
-      console.log('  lastUpdated: never');
-    } else {
-      const date = pismoutil.epochToDate(tree.lastUpdated);
-      const dateString = pismoutil.dateToString(date);
-      const diffString = pismoutil.timeElapsedToString(date);
-      console.log(`  lastUpdated: ${dateString} (${diffString})`);
-    }
+    printTree(name, tree, argv.verbose);
   }
 
   // iterate remotes, print out their trees
@@ -59,13 +86,7 @@ exports.list = async function(argv) {
         logError(`Failed to read treeFile. remote: ${remote.name()}, name: ${name}`);
         return;
       }
-      console.log(`${remote.name()}/${name}`);
-      console.log(`  path: ${tree.path}`);
-      // TODO unify all three of the places that are printing things like this?
-      const date = pismoutil.epochToDate(tree.lastUpdated);
-      const dateString = pismoutil.dateToString(date);
-      const diffString = pismoutil.timeElapsedToString(date);
-      console.log(`  lastUpdated: ${dateString} (${diffString})`);
+      printTree(`${remote.name()}/${name}`, tree, argv.verbose);
     }
   }
 }
