@@ -271,11 +271,21 @@ class Remote {
     // TODO const fileReadStream = fs.createReadStream(absoluteLocalPath, {encoding: 'binary'});
     const fileReadStream = fs.createReadStream(absoluteLocalPath);
 
+    console.log(`Sending "${absoluteLocalPath}" to remote "${relativePath}"`);
     const progressStream = progress({
         length: filesize,
         time: 1000 /* ms interval to print update */
       }, progress => {
-        console.log('progress: ' + JSON.stringify(progress));
+        const numChars = Math.floor(progress.percentage / 20);
+        let output = `\r[`;
+        for (let i = 0; i < 20; i++) {
+          if (i < numChars)
+            output += '=';
+          else
+            output += ' ';
+        }
+        output += `] ${Math.floor(progress.percentage)}%\r`;
+        process.stdout.write(output);
     });
 
     await api.PutFile.upload(this, putId,
