@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const express = require('express');
 const bodyParser = require('body-parser');
 const progress = require('progress-stream');
+const mkdirp = require('mkdirp');
 // @ts-ignore
 const nanostat = require('nanostat');
 // @ts-ignore
@@ -137,6 +138,9 @@ async function handleDeleteFile(paramsObj) {
 }
 
 /**
+ * TODO TODO TODO make this update the local file during this
+ * i have the problem where id update a file with the same modified time
+ * and then it doesnt propogate
  * @param {!express.Request} req 
  * @param {!express.Response} res 
  */
@@ -153,6 +157,11 @@ async function handleUpload(req, res) {
   _putIdToTreeAndPath.delete(putId);
   const treefile = await pismoutil.readTreeByName(treename);
   const absolutePath = path.join(treefile.path, relativePath);
+  await new Promise(resolve => {
+    mkdirp(path.dirname(absolutePath), error => {
+      resolve();
+    });
+  });
   const fileWriteStream = fs.createWriteStream(absolutePath);
 
   req.on('error', error => {
