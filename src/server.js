@@ -153,7 +153,6 @@ async function handleUpload(req, res) {
   _putIdToTreeAndPath.delete(putId);
   const treefile = await pismoutil.readTreeByName(treename);
   const absolutePath = path.join(treefile.path, relativePath);
-  fs.unlink(absolutePath, err => {}); // TODO i shouldn't have to do this.
   const fileWriteStream = fs.createWriteStream(absolutePath);
 
   req.on('error', error => {
