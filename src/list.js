@@ -33,15 +33,17 @@ function printTree(name, tree, verbose) {
     console.log(`  last updated: ${dateString} (${diffString})`);
   }
 
-  // number of files
-  console.log(`  number of files: ${tree.files.length}`);
+  if (verbose) {
+    // number of files
+    console.log(`  number of files: ${tree.files.length}`);
 
-  // total size
-  let size = 0;
-  for (const file of tree.files) {
-    size += file.size;
+    // total size
+    let size = 0;
+    for (const file of tree.files) {
+      size += file.size;
+    }
+    console.log(`  total size: ${filesize(size)}`);
   }
-  console.log(`  total size: ${filesize(size)}`);
 }
 
 /**
@@ -52,10 +54,12 @@ exports.list = async function(argv) {
 
   let first = true;
   for (const name in treeNamesToPaths) {
-    if (first)
-      first = false;
-    else
-      console.log();
+    if (argv.verbose) {
+      if (first)
+        first = false;
+      else
+        console.log();
+    }
 
     /** @type {!pismoutil.TreeFile} */
     const tree = await pismoutil.readFileToJson(
@@ -73,10 +77,12 @@ exports.list = async function(argv) {
     await remote.readFromFile();
     const remoteTreeNamesToPaths = await remote.getTreeNamesToPaths();
     for (const name in remoteTreeNamesToPaths) {
-      if (first)
-        first = false;
-      else
-        console.log();
+      if (argv.verbose) {
+        if (first)
+          first = false;
+        else
+          console.log();
+      }
 
       const tree = await pismoutil.readFileToJson(
         remoteTreeNamesToPaths[name]);

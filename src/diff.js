@@ -34,6 +34,27 @@ exports.diff = async function(argv) {
         + `\n - ${otherTree.path}`);
     exports.diffTrees(baseTree, otherTree);
   }
+
+  if (argv.printdupes)
+    findDuplicates(baseTree, otherTree, order, printAll);
+}
+
+/**
+ * @param {import('./pismo.js').DupesArgs} argv
+ */
+exports.dupes = async function(argv) {
+  const baseBranch = new Branch(argv.base);
+  const otherBranch = argv.other ? new Branch(argv.other) : null;
+
+  const order = /** @type {!OrderArg} */ (argv.order);
+  const printAll = /** @type {boolean} */ (argv.printall);
+  if (order !== 'filesize' && order !== 'name') {
+    throw new Error('invalid "order" arg: ' + order);
+  }
+
+  const baseTree = await baseBranch.readTreeByName();
+  const otherTree = otherBranch ? await otherBranch.readTreeByName() : null;
+
   findDuplicates(baseTree, otherTree, order, printAll);
 }
 

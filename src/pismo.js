@@ -14,7 +14,7 @@ const {add} = require('./add.js');
 const {update, updateAll} = require('./update.js');
 const {remove} = require('./remove.js');
 const {merge} = require('./merge.js');
-const {diff} = require('./diff.js');
+const {diff, dupes} = require('./diff.js');
 const {apply} = require('./apply.js');
 const {config} = require('./config.js');
 const {commit} = require('./commit.js');
@@ -44,7 +44,8 @@ yargs.command(
   yargs => yargs
       .option('verbose', {
         description: 'Print out extra information about each tree',
-        default: true
+        default: false,
+        alias: 'l'
       })
       .help(false)
       .version(false),
@@ -162,11 +163,34 @@ yargs.command(
         description: 'order to list duplicates in'
       })
       .option('printall', {
-        default: false
+        default: false,
+        alias: 'a'
+      })
+      .option('printdupes', {
+        default: false,
+        alias: 'd'
       })
       .help(false)
       .version(false),
   run(diff));
+
+/** @typedef {yargs.Arguments<{base: string, other: string}>} DupesArgs */
+yargs.command(
+  'dupes <base> [other]',
+  'Lists files with the same hash within one directory and optionally another',
+  yargs => yargs
+      .option('order', {
+        choices: ['filesize', 'name'],
+        default: 'name',
+        description: 'order to list duplicates in'
+      })
+      .option('printall', {
+        default: false,
+        alias: 'a'
+      })
+      .help(false)
+      .version(false),
+  run(dupes));
 
 /** @typedef {yargs.Arguments<{base: string, other: string, 'output-filepath': string}>} MergeGenArgs */
 yargs.command(
