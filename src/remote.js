@@ -6,6 +6,7 @@ const {URL} = require('url');
 const stream = require('stream');
 
 const progress = require('progress-stream');
+const mkdirp = require('mkdirp');
 
 const pismoutil = require('./pismoutil.js');
 const api = require('./api.js');
@@ -307,6 +308,11 @@ class Remote {
         relativePath: relativePath
       };
 
+      await new Promise(resolve => {
+        mkdirp(path.dirname(absoluteLocalPath), error => {
+          resolve();
+        })
+      });
       const fileWriteStream = fs.createWriteStream(absoluteLocalPath);
       const requestReadStream = await api.GetFile.streamResponse(this, request);
       requestReadStream

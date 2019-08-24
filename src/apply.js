@@ -164,8 +164,12 @@ exports.apply = async function(argv) {
             fs.unlink(absolutePath, resolve);
           });
           if (error) {
-            logError(`Failed to delete ${absolutePath}`);
-            throw error;
+            if (error.code === 'ENOENT') {
+              logError(`Couldn't delete ${absolutePath} because it doesn't exist.`);
+            } else {
+              logError(`Failed to delete ${absolutePath}`);
+              throw error;
+            }
           }
         }
         break;
