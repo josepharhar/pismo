@@ -41,7 +41,7 @@ exports.TreeFileSchema = {
 
 /**
  * @param {string=} filepath
- * @return {{logInfo: function(string), logError: function(string)}}
+ * @return {{logInfo: function(string), logError: function(string), logVerbose: function(string)}}
  */
 exports.getLogger = function(filepath) {
   if (filepath)
@@ -57,7 +57,11 @@ exports.getLogger = function(filepath) {
   // TODO suppress INFO messages if --verbose is not supplied
   return {
     logInfo: message => console.log(infoPrefix + message),
-    logError: message => console.log(errorPrefix + message)
+    logError: message => console.log(errorPrefix + message),
+    logVerbose: message => {
+      // @ts-ignore
+      if (global.__pismo_verbose) console.log(message);
+    }
   };
 }
 

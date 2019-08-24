@@ -37,12 +37,12 @@ function run(fn) {
 // TODO delet this
 const defaultHandler = argv => console.log('Not implemented yet. argv: ' + JSON.stringify(argv, null, 2));
 
-/** @typedef {yargs.Arguments<{verbose: boolean}>} ListArgs */
+/** @typedef {yargs.Arguments<{extra: boolean}>} ListArgs */
 yargs.command(
   'list',
   'Lists directory trees stored in ~/.pismo.',
   yargs => yargs
-      .option('verbose', {
+      .option('extra', {
         description: 'Print out extra information about each tree',
         default: false,
         alias: 'l'
@@ -278,9 +278,17 @@ yargs.command(
 
   // TODO add global config to change ~/.pismo to custom directory
 
-yargs
+const argv = yargs
+  .option('verbose', {
+    description: 'Recalculate hashes for each file instead of reusing them based on file modified time',
+    default: false,
+    alias: 'v'
+  })
   .demandCommand() // TODO why do i have this??
   .strict() // TODO what does this do?
   // .wrap(Math.min(80, yargs.terminalWidth()) // default
   .wrap(null) // TODO why?
   .argv; // TODO why?
+
+// @ts-ignore
+global.__pismo_verbose = argv.verbose;

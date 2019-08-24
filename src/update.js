@@ -17,7 +17,7 @@ const merge = require('./merge.js');
 
 const readFilePromise = util.promisify(fs.readFile);
 const readdirPromise = util.promisify(fs.readdir);
-const {logInfo, logError} = pismoutil.getLogger(__filename);
+const {logInfo, logError, logVerbose} = pismoutil.getLogger(__filename);
 
 class CancelError extends Error {
   constructor(message) {
@@ -147,7 +147,7 @@ async function scanPath(
           && cachedFileinfo.mtimeNs === newFileInfo.mtimeNs
           && cachedFileinfo.size === newFileInfo.size) {
         newFileInfo.hash = cachedFileinfo.hash;
-        console.log(`Reusing cached hash for ${newFileInfo.path}`);
+        logVerbose(`Reusing cached hash for ${newFileInfo.path}`);
 
       } else {
         // recompute hash

@@ -68,7 +68,7 @@ exports.list = async function(argv) {
       logError('Failed to read tree json file for name: ' + name);
       return;
     }
-    printTree(name, tree, argv.verbose);
+    printTree(name, tree, argv.extra);
   }
 
   // iterate remotes, print out their trees
@@ -90,7 +90,7 @@ exports.list = async function(argv) {
         logError(`Failed to read treeFile. remote: ${remote.name()}, name: ${name}`);
         return;
       }
-      printTree(`${remote.name()}/${name}`, tree, argv.verbose);
+      printTree(`${remote.name()}/${name}`, tree, argv.extra);
     }
   }
 }
