@@ -1,7 +1,6 @@
 import React from 'react';
-import logo from './logo.svg';
+import {BrowserRouter as Router, Route, Link} from 'react-router-dom';
 import './App.css';
-import { isConstructorDeclaration } from 'typescript';
 
 class App extends React.Component {
   constructor(props, address) {
@@ -9,7 +8,7 @@ class App extends React.Component {
     this.state = {};
   }
 
-  render() {
+  /*render() {
     return (
       <div className="App">
         <header className="App-header">
@@ -17,6 +16,17 @@ class App extends React.Component {
         </header>
       </div>
     );
+  }*/
+
+  render() {
+    <Router>
+      <div class="split-container">
+        <Link to="/">Home</Link>
+      </div>
+      <Route exact path="/" component={Home} />
+      <Route path="/about" component={About} />
+      <Route path="/topics" component={Topics} />
+    </Router>
   }
 }
 
@@ -78,6 +88,26 @@ class AddressGetter extends React.Component {
   }
 }
 
+class BranchListComparer extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {};
+  }
+
+  render() {
+    return (
+      <div class="split-container">
+        <div class="split-child">
+          <div>one</div>
+        </div>
+        <div class="split-child">
+          <div>two</div>
+        </div>
+      </div>
+    );
+  }
+};
+
 class BranchList extends React.Component {
   constructor(props) {
     super(props);
@@ -102,3 +132,8 @@ class BranchList extends React.Component {
 }
 
 export default App;
+
+// Workflow:
+// - pick server?
+// - pick two branches to compare
+// - get a list with each of them with a toggle button to show things that are ok or not with expandable details of each file and buttons to delete or copy to the other side... or rename?
