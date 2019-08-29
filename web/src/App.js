@@ -1,38 +1,30 @@
 import React from 'react';
-import {BrowserRouter as Router, Route, Link} from 'react-router-dom';
+//import {BrowserRouter as Router, Route, Link} from 'react-router-dom';
 import './App.css';
 
 class App extends React.Component {
-  constructor(props, address) {
+  constructor(props) {
     super(props);
-    this.state = {};
+
+    this.state = {
+      currentComponent: new ServerPicker(this)
+    };
   }
 
-  /*render() {
+  render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <AddressGetter></AddressGetter>
-        </header>
+      <div class="app">
+        {this.state.currentComponent.render()}
       </div>
     );
-  }*/
-
-  render() {
-    <Router>
-      <div class="split-container">
-        <Link to="/">Home</Link>
-      </div>
-      <Route exact path="/" component={Home} />
-      <Route path="/about" component={About} />
-      <Route path="/topics" component={Topics} />
-    </Router>
   }
 }
 
-class AddressGetter extends React.Component {
-  constructor(props) {
+class ServerPicker extends React.Component {
+  constructor(app, props) {
     super(props);
+
+    this.app = app;
 
     this.state = {
       inputText: '',
@@ -65,43 +57,57 @@ class AddressGetter extends React.Component {
         totalSize: 12341234
       }
     ];
-    this.setState({
-      getBranchesResponse
+
+    this.app.setState({
+      currentComponent: new BranchesPicker(this.app, getBranchesResponse)
     });
   }
 
   render() {
     return (
       <div>
-        {!this.state.getBranchesResponse ?
-          <div>
-            enter server address:
-            <form onSubmit={this.onSubmit.bind(this)}>
-              <input type="text" onChange={this.onInputChanged.bind(this)}></input>
-              <input type="button" value="go"></input>
-            </form>
-          </div>
-          : <BranchList branches={this.state.getBranchesResponse}></BranchList>
-        }
+        <div>
+          enter server address:
+          <form onSubmit={this.onSubmit.bind(this)}>
+            <input type="text" onChange={this.onInputChanged.bind(this)}></input>
+            <input type="button" value="go"></input>
+          </form>
+        </div>
       </div>
     );
   }
 }
 
-class BranchListComparer extends React.Component {
-  constructor(props) {
+class BranchesPicker extends React.Component {
+  constructor(app, getBranchesResponse, props) {
     super(props);
+    this.app = app;
+    this.getBranchesResponse = getBranchesResponse;
     this.state = {};
+  }
+
+  renderBranches(groupId) {
+    return this.getBranchesResponse.map((branch, index)=> {
+      const id = `${branch.name}-${groupId}`
+      return (
+        <div>
+          {index === 0
+            ? <input type="radio" id={id} name={groupId} checked />
+            : <input type="radio" id={id} name={groupId} />}
+          <label for={id}>{branch.name}</label>
+        </div>
+      );
+    });
   }
 
   render() {
     return (
       <div class="split-container">
         <div class="split-child">
-          <div>one</div>
+          {this.renderBranches('left')}
         </div>
         <div class="split-child">
-          <div>two</div>
+          {this.renderBranches('right')}
         </div>
       </div>
     );
