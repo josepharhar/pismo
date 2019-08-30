@@ -100,35 +100,91 @@ class BranchesPicker extends React.Component {
     });
   }
 
+  onButtonClicked() {
+    console.log('TODO');
+    const fakeTreeFileOne = {
+      path: '/fake/tree/file/one',
+      lastUpdated: 1234,
+      files: [
+        {
+          path: '/subresource_one',
+          mtimeS: 1234,
+          mtimeNs: 5678,
+          size: 1234,
+          hash: 'hash'
+        },
+        {
+          path: '/subresource_two',
+          mtimeS: 1234,
+          mtimeNs: 5678,
+          size: 1234,
+          hash: 'hash'
+        }
+      ]
+    };
+    const fakeTreeFileTwo = {
+      path: '/fake/tree/file/two',
+      lastUpdated: 1234,
+      files: [
+        {
+          path: '/subresource_one',
+          mtimeS: 1234,
+          mtimeNs: 5678,
+          size: 1234,
+          hash: 'hash'
+        },
+        {
+          path: '/subresource_two',
+          mtimeS: 1234,
+          mtimeNs: 5678,
+          size: 1234,
+          hash: 'hash'
+        }
+      ]
+    };
+    this.app.setState({
+      currentComponent: new TreeFilesComparer(this.app, fakeTreeFileOne, fakeTreeFileTwo)
+    })
+  }
+
   render() {
     return (
-      <div class="split-container">
-        <div class="split-child">
-          {this.renderBranches('left')}
+      <div class="branches-picker">
+        <div class="split-container">
+          <div class="split-child">
+            {this.renderBranches('left')}
+          </div>
+          <div class="split-child">
+            {this.renderBranches('right')}
+          </div>
         </div>
-        <div class="split-child">
-          {this.renderBranches('right')}
+        <div class="center">
+          <button onClick={this.onButtonClicked.bind(this)}>
+            go
+          </button>
         </div>
       </div>
     );
   }
 };
 
-class BranchList extends React.Component {
-  constructor(props) {
+class TreeFilesComparer extends React.Component {
+  constructor(app, treeFileOne, treeFileTwo, props) {
     super(props);
+    this.app = app;
+    this.treeFileOne = treeFileOne;
+    this.treeFileTwo = treeFileTwo;
     this.state = {};
   }
 
   render() {
     return (
       <div>
-        {this.props.branches.map((branch, index)=> {
+        {this.treeFileOne.files.map(file => {
+          const {path, mtimeS, mtimeNs, size, hash} = file;
           return (
-            <div key={index}>
-              <p>name: {branch.name}</p>
-              <p>branch: {branch.path}</p>
-              <p>lastUpdated: {branch.lastUpdated}</p>
+            <div key={path}>
+              path: {path}
             </div>
           );
         })}

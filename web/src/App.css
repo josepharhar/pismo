@@ -5,5 +5,24 @@
 }
 
 .split-child {
-  flex: 1 1 0
+  flex: 1 1 0;
+}
+
+.branches-picker {
+  font-size: 16px;
+}
+
+.branches-picker label {
+  font-family: monospace;
+}
+
+.center {
+  width: 100%;
+  text-align: center;
+}
+
+.branches-picker button {
+  margin: 30px;
+  padding: 10px;
+  font-size: 24px;
 }
