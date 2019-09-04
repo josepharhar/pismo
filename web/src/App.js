@@ -13,7 +13,7 @@ class App extends React.Component {
 
   render() {
     return (
-      <div class="app">
+      <div className="app">
         {this.state.currentComponent.render()}
       </div>
     );
@@ -90,11 +90,11 @@ class BranchesPicker extends React.Component {
     return this.getBranchesResponse.map((branch, index)=> {
       const id = `${branch.name}-${groupId}`
       return (
-        <div>
+        <div key={id}>
           {index === 0
-            ? <input type="radio" id={id} name={groupId} checked />
+            ? <input type="radio" id={id} name={groupId} />
             : <input type="radio" id={id} name={groupId} />}
-          <label for={id}>{branch.name}</label>
+          <label htmlFor={id}>{branch.name}</label>
         </div>
       );
     });
@@ -134,7 +134,7 @@ class BranchesPicker extends React.Component {
           hash: 'hash'
         },
         {
-          path: '/subresource_two',
+          path: '/subresource_three',
           mtimeS: 1234,
           mtimeNs: 5678,
           size: 1234,
@@ -149,16 +149,16 @@ class BranchesPicker extends React.Component {
 
   render() {
     return (
-      <div class="branches-picker">
-        <div class="split-container">
-          <div class="split-child">
+      <div className="branches-picker">
+        <div className="split-container">
+          <div className="split-child">
             {this.renderBranches('left')}
           </div>
-          <div class="split-child">
+          <div className="split-child">
             {this.renderBranches('right')}
           </div>
         </div>
-        <div class="center">
+        <div className="center">
           <button onClick={this.onButtonClicked.bind(this)}>
             go
           </button>
@@ -174,17 +174,80 @@ class TreeFilesComparer extends React.Component {
     this.app = app;
     this.treeFileOne = treeFileOne;
     this.treeFileTwo = treeFileTwo;
+
+    /** @type {!Array<{left: ?FileInfo, right: ?FileInfo}>} */
+    let rows = [];
+    const leftFiles = this.treeFileOne.files;
+    const rightFiles = this.treeFileTwo.files;
+    let leftIndex = 0;
+    let rightIndex = 0;
+    while (leftIndex < leftFiles.length && rightIndex < rightFiles.length) {
+      const leftFilename = leftIndex < leftFiles.length ? leftFiles[leftIndex].path : null;
+      const rightFilename = rightIndex < rightFiles.length ? rightFiles[rightIndex].path : null;
+      if (!leftFilename || rightFilename < leftFilename) {
+        rows.push({
+          right: rightFiles[rightIndex++]
+        });
+        rightIndex++;
+      } else if (!rightFilename || leftFilename < rightFilename) {
+        rows.push({
+          left: leftFiles[leftIndex++]
+        });
+      } else {
+        rows.push({
+          right: rightFiles[rightIndex++],
+          left: leftFiles[leftIndex++]
+        });
+      }
+    }
+    function fileToCell(file) {
+      if (!file) {
+        return (
+          <div class="empty"></div>
+        );
+      }
+      const {path, mtimeS, mtimeNs, size, hash} = file;
+      return (
+        <div key={path}>
+          <span className="monospace" title={`mtime: ${mtimeS}.${mtimeNs}, size: ${size}, hash: ${hash}`}>{path}</span>
+          <button title="copy to other side">copy</button>
+          <button title="delete from this side">delete</button>
+        </div>
+      );
+    }
+    rows = rows.map(row => {
+      return [fileToCell(row.left), fileToCell(row.right)];
+    });
+    this.datagrid = new DataGrid(rows);
+
     this.state = {};
   }
 
   render() {
+    return this.datagrid.render();
+  }
+}
+
+class DataGrid extends React.Component {
+  /**
+   * @param {!Array<!Array<!Element>>} rows 
+   */
+  constructor(rows) {
+    super();
+    this.rows = rows;
+  }
+
+  render() {
     return (
-      <div>
-        {this.treeFileOne.files.map(file => {
-          const {path, mtimeS, mtimeNs, size, hash} = file;
+      <div className="datagrid">
+        {this.rows.map(row => {
           return (
-            <div key={path}>
-              path: {path}
+            <div className="datagrid-row">
+              {row.map(cell => {
+                return (
+                  <div className="datagrid-cell">{cell}</div>
+                );
+              })}
             </div>
           );
         })}
