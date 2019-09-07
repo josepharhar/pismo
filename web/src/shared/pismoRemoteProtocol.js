@@ -7,15 +7,8 @@
 /** @typedef {{baseBranch: string, otherBranch: string, operations: !Array<!Operation>}} MergeFile */
 /** @typedef {!{mtimeS: number, mtimeNs: number}} FileTime */
 
-const TreeFileSchema = {
-  path: 'string',
-  // lastUpdated can be -1 to signal that an update never happened
-  lastUpdated: 'number',
-  files: [exports.FileInfoSchema]
-};
-
 /** @type {!JsonSchema} */
-exports.FileInfoSchema = {
+export const FileInfoSchema = {
   path: 'string',
   mtimeS: 'number',
   mtimeNs: 'number',
@@ -23,10 +16,17 @@ exports.FileInfoSchema = {
   hash: 'string'
 };
 
+export const TreeFileSchema = {
+  path: 'string',
+  // lastUpdated can be -1 to signal that an update never happened
+  lastUpdated: 'number',
+  files: [FileInfoSchema]
+};
+
 /** @typedef {void} GetTreesRequest */
 /** @typedef {!{trees: !Array<!{treename: string, treefile: !TreeFile}>}} GetTreesResponse */
 /** @type {!PismoMethod} */
-exports.GetTrees = {
+export const GetTrees = {
   id: 'get-trees',
   requestSchema: null,
   responseSchema: {
@@ -40,7 +40,7 @@ exports.GetTrees = {
 /** @typedef {!{treename: string, relativePath: string}} GetFileTimeParams */
 /** @typedef {!{mtimeS: number, mtimeNs: number}} GetFileTimeResponse */
 /** @type {!PismoMethod} */
-exports.GetFileTime = {
+export const GetFileTime = {
   id: 'get-file-time',
   requestSchema: {
     treename: 'string',
@@ -62,7 +62,7 @@ exports.GetFileTime = {
  */
 /** @typedef {void} SetFileTimeResponse */
 /** @type {!PismoMethod} */
-exports.SetFileTime = {
+export const SetFileTime = {
   id: 'set-file-time',
   requestSchema: {
     treename: 'string',
@@ -75,7 +75,7 @@ exports.SetFileTime = {
 
 /** @typedef {!{treename: string, relativePath: string}} GetFileParams */
 /** @type {!PismoMethod} */
-exports.GetFile = {
+export const GetFile = {
   id: 'get-file',
   requestSchema: {
     treename: 'string',
@@ -87,7 +87,7 @@ exports.GetFile = {
 /** @typedef {!{treename: string, relativePath: string, filesize: number}} PreparePutFileParams */
 /** @typedef {!{putId: string}} PreparePutFileResponse */
 /** @type {!PismoMethod} */
-exports.PreparePutFile = {
+export const PreparePutFile = {
   id: 'prepare-put-file',
   requestSchema: {
     treename: 'string',
@@ -108,7 +108,7 @@ exports.PreparePutFile = {
  * }} CopyWithinParams
  */
 /** @type {!PismoMethod} */
-exports.CopyWithin = {
+export const CopyWithin = {
   id: 'copy-within',
   requestSchema: {
     srcTreename: 'string',
@@ -121,7 +121,7 @@ exports.CopyWithin = {
 
 /** @typedef {!{treename: string, relativePath: string}} DeleteFileParams */
 /** @type {!PismoMethod} */
-exports.DeleteFile = {
+export const DeleteFile = {
   id: 'delete-file',
   requestSchema: {
     treename: 'string',
