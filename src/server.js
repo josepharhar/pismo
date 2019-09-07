@@ -15,7 +15,7 @@ const nanoutimes = require('nanoutimes');
 const api = require('./api.js');
 const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
-const protocol = require('./shared/pismoRemoteProtocol.js');
+const protocol = require('../gen/pismoRemoteProtocol.js');
 
 /**
  * @param {!Object} params

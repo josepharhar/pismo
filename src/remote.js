@@ -10,7 +10,7 @@ const mkdirp = require('mkdirp');
 
 const pismoutil = require('./pismoutil.js');
 const api = require('./api.js');
-const protocol = require('./shared/pismoRemoteProtocol.js');
+const protocol = require('../gen/pismoRemoteProtocol.js');
 
 const readdirPromise = util.promisify(fs.readdir);
 const unlinkPromise = util.promisify(fs.unlink);
