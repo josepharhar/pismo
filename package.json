@@ -4,8 +4,7 @@
   "description": "file tree comparison tool",
   "main": "pismo.js",
   "scripts": {
-    "genold": "babel --plugins @babel/plugin-transform-modules-commonjs web/src/shared -d gen",
-    "gen": "babel web/src/shared -d gen",
+    "gen": "babel --config-file ./server.babelrc shared -d src/gen && babel --config-file ./web.babelrc shared -d web/src/gen",
     "tsc": "tsc -p .",
     "link": "npm link",
     "upload-file": "node upload-file.js",

@@ -1,3 +1,10 @@
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.DeleteFile = exports.CopyWithin = exports.PreparePutFile = exports.GetFile = exports.SetFileTime = exports.GetFileTime = exports.GetTrees = exports.TreeFileSchema = exports.FileInfoSchema = void 0;
+
 /** @typedef {'string'|'number'|'boolean'|!Array<*>|!Object<string, *>} JsonSchema */
 
 /** @typedef {!{id: string, requestSchema: JsonSchema, responseSchema: JsonSchema}} PismoMethod */
@@ -13,14 +20,15 @@
 /** @typedef {!{mtimeS: number, mtimeNs: number}} FileTime */
 
 /** @type {!JsonSchema} */
-export const FileInfoSchema = {
+const FileInfoSchema = {
   path: 'string',
   mtimeS: 'number',
   mtimeNs: 'number',
   size: 'number',
   hash: 'string'
 };
-export const TreeFileSchema = {
+exports.FileInfoSchema = FileInfoSchema;
+const TreeFileSchema = {
   path: 'string',
   // lastUpdated can be -1 to signal that an update never happened
   lastUpdated: 'number',
@@ -32,7 +40,8 @@ export const TreeFileSchema = {
 
 /** @type {!PismoMethod} */
 
-export const GetTrees = {
+exports.TreeFileSchema = TreeFileSchema;
+const GetTrees = {
   id: 'get-trees',
   requestSchema: null,
   responseSchema: {
@@ -48,7 +57,8 @@ export const GetTrees = {
 
 /** @type {!PismoMethod} */
 
-export const GetFileTime = {
+exports.GetTrees = GetTrees;
+const GetFileTime = {
   id: 'get-file-time',
   requestSchema: {
     treename: 'string',
@@ -72,7 +82,8 @@ export const GetFileTime = {
 
 /** @type {!PismoMethod} */
 
-export const SetFileTime = {
+exports.GetFileTime = GetFileTime;
+const SetFileTime = {
   id: 'set-file-time',
   requestSchema: {
     treename: 'string',
@@ -86,7 +97,8 @@ export const SetFileTime = {
 
 /** @type {!PismoMethod} */
 
-export const GetFile = {
+exports.SetFileTime = SetFileTime;
+const GetFile = {
   id: 'get-file',
   requestSchema: {
     treename: 'string',
@@ -100,7 +112,8 @@ export const GetFile = {
 
 /** @type {!PismoMethod} */
 
-export const PreparePutFile = {
+exports.GetFile = GetFile;
+const PreparePutFile = {
   id: 'prepare-put-file',
   requestSchema: {
     treename: 'string',
@@ -122,7 +135,8 @@ export const PreparePutFile = {
 
 /** @type {!PismoMethod} */
 
-export const CopyWithin = {
+exports.PreparePutFile = PreparePutFile;
+const CopyWithin = {
   id: 'copy-within',
   requestSchema: {
     srcTreename: 'string',
@@ -136,7 +150,8 @@ export const CopyWithin = {
 
 /** @type {!PismoMethod} */
 
-export const DeleteFile = {
+exports.CopyWithin = CopyWithin;
+const DeleteFile = {
   id: 'delete-file',
   requestSchema: {
     treename: 'string',
@@ -144,3 +159,4 @@ export const DeleteFile = {
   },
   responseSchema: null
 };
+exports.DeleteFile = DeleteFile;
