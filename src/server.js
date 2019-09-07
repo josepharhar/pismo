@@ -15,15 +15,16 @@ const nanoutimes = require('nanoutimes');
 const api = require('./api.js');
 const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
+const protocol = require('./shared/pismoRemoteProtocol.js');
 
 /**
  * @param {!Object} params
- * @return {!Promise<!api.GetTreesResponse>}
+ * @return {!Promise<!protocol.GetTreesResponse>}
  */
 async function handleGetTrees(params) {
   const treeNamesToPaths = await pismoutil.getTreeNamesToPaths();
 
-  /** @type {!api.GetTreesResponse} */
+  /** @type {!protocol.GetTreesResponse} */
   const response = {
     trees: []
   };
@@ -47,7 +48,7 @@ async function handleGetTrees(params) {
 
 /**
  * @param {!Object} paramsObj
- * @return {!Promise<!api.GetFileTimeResponse>}
+ * @return {!Promise<!protocol.GetFileTimeResponse>}
  */
 async function handleGetFileTime(paramsObj) {
   const request = api.GetFileTime.parseRequest(paramsObj);
@@ -67,7 +68,7 @@ async function handleGetFileTime(paramsObj) {
 
 /**
  * @param {!Object} paramsObj
- * @return {!Promise<!api.SetFileTimeResponse>}
+ * @return {!Promise<!protocol.SetFileTimeResponse>}
  */
 async function handleSetFileTime(paramsObj) {
   const request = api.SetFileTime.parseRequest(paramsObj);
@@ -96,7 +97,7 @@ async function handleGetFile(paramsObj) {
 const _putIdToTreeAndPath = new Map();
 /**
  * @param {!Object} paramsObj
- * @return {!Promise<!api.PreparePutFileResponse>}
+ * @return {!Promise<!protocol.PreparePutFileResponse>}
  */
 async function handlePreparePutFile(paramsObj) {
   const {treename, relativePath, filesize} = api.PreparePutFile.parseRequest(paramsObj);

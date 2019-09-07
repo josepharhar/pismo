@@ -10,6 +10,7 @@ const mkdirp = require('mkdirp');
 
 const pismoutil = require('./pismoutil.js');
 const api = require('./api.js');
+const protocol = require('./shared/pismoRemoteProtocol.js');
 
 const readdirPromise = util.promisify(fs.readdir);
 const unlinkPromise = util.promisify(fs.unlink);
@@ -229,7 +230,7 @@ class Remote {
    * @return {!Promise<!pismoutil.FileTime>}
    */
   async getRemoteFileTime(treename, relativePath) {
-    /** @type {!api.GetFileTimeParams} */
+    /** @type {!protocol.GetFileTimeParams} */
     const request = {
       treename: treename,
       relativePath: relativePath
@@ -243,7 +244,7 @@ class Remote {
    * @param {!pismoutil.FileTime} filetime
    */
   async setRemoteFileTime(treename, relativePath, filetime) {
-    /** @type {!api.SetFileTimeParams} */
+    /** @type {!protocol.SetFileTimeParams} */
     const request = {
       treename: treename,
       relativePath: relativePath,
@@ -260,7 +261,7 @@ class Remote {
    */
   async copyFileToRemote(treeName, relativePath, absoluteLocalPath) {
     const filesize = fs.statSync(absoluteLocalPath).size;
-    /** @type {!api.PreparePutFileParams} */
+    /** @type {!protocol.PreparePutFileParams} */
     const request = {
       treename: treeName,
       relativePath: relativePath,
@@ -302,7 +303,7 @@ class Remote {
    */
   copyFileFromRemote(treeName, relativePath, absoluteLocalPath) {
     return new Promise(async (resolve, reject) => {
-      /** @type {!api.GetFileParams} */
+      /** @type {!protocol.GetFileParams} */
       const request = {
         treename: treeName,
         relativePath: relativePath
@@ -339,7 +340,7 @@ class Remote {
    * @param {string} destRelativePath
    */
   async copyFileWithinRemote(srcTreeName, srcRelativePath, destTreeName, destRelativePath) {
-    /** @type {!api.CopyWithinParams} */
+    /** @type {!protocol.CopyWithinParams} */
     const request = {
       srcTreename: srcTreeName,
       srcRelativePath: srcRelativePath,
@@ -354,7 +355,7 @@ class Remote {
    * @param {string} relativePath
    */
   async deleteRemoteFile(treename, relativePath) {
-    /** @type {!api.DeleteFileParams} */
+    /** @type {!protocol.DeleteFileParams} */
     const request = {
       treename: treename,
       relativePath: relativePath

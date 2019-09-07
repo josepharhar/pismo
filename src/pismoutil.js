@@ -5,6 +5,9 @@ const util = require('util');
 const stream = require('stream');
 const events = require('events');
 
+const protocol = require('./shared/pismoRemoteProtocol.js');
+/** @typedef {protocol.JsonSchema} JsonSchema */
+
 // @ts-ignore
 const nanostat = require('nanostat');
 // @ts-ignore
@@ -18,26 +21,16 @@ const readdirPromise = util.promisify(fs.readdir);
 const readFilePromise = util.promisify(fs.readFile);
 const writeFilePromise = util.promisify(fs.writeFile);
 
-/** @typedef {{path: string, mtimeS: number, mtimeNs: number, size: number, hash: string}} FileInfo */
-/** @type {!JsonSchema} */
-exports.FileInfoSchema = {
-  path: 'string',
-  mtimeS: 'number',
-  mtimeNs: 'number',
-  size: 'number',
-  hash: 'string'
-};
-// lastUpdated can be -1 to signal that an update never happened
-/** @typedef {{path: string, lastUpdated: number, files: Array<FileInfo>}} TreeFile */
-/** @type {!JsonSchema} */
-exports.TreeFileSchema = {
-  path: 'string',
-  lastUpdated: 'number',
-  files: [exports.FileInfoSchema]
-};
-/** @typedef {{operator: 'rm'|'cp'|'touch', operands: !Array<{tree: 'base'|'other', relativePath: string}>}} Operation */
-/** @typedef {{baseBranch: string, otherBranch: string, operations: !Array<!Operation>}} MergeFile */
-/** @typedef {!{mtimeS: number, mtimeNs: number}} FileTime */
+///** @typedef {{path: string, mtimeS: number, mtimeNs: number, size: number, hash: string}} FileInfo */
+///** @typedef {{path: string, lastUpdated: number, files: Array<FileInfo>}} TreeFile */
+///** @typedef {{operator: 'rm'|'cp'|'touch', operands: !Array<{tree: 'base'|'other', relativePath: string}>}} Operation */
+///** @typedef {{baseBranch: string, otherBranch: string, operations: !Array<!Operation>}} MergeFile */
+///** @typedef {!{mtimeS: number, mtimeNs: number}} FileTime */
+/** @typedef {!protocol.FileInfo} FileInfo */
+/** @typedef {!protocol.TreeFile} TreeFile */
+/** @typedef {!protocol.Operation} Operation */
+/** @typedef {!protocol.MergeFile} MergeFile */
+/** @typedef {!protocol.FileTime} FileTime */
 
 /**
  * @param {string=} filepath
@@ -386,9 +379,6 @@ exports.setLocalFileTime = function(absolutePath, filetime) {
   nanoutimes.utimesSync(absolutePath, null, null, filetime.mtimeS, filetime.mtimeNs);
 }
 
-///** @typedef {'string'|'number'|'boolean'|!Array<!JsonSchema>|!Object<string, !JsonSchema>} JsonSchema */
-/** @typedef {'string'|'number'|'boolean'|!Array<*>|!Object<string, *>} JsonSchema */
-///** @typedef {*} JsonSchema */
 /**
  * ex obj: {
  *   nested: {

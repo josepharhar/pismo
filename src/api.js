@@ -6,19 +6,19 @@ const {Remote} = require('./remote');
 const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
+const protocol = require('./shared/pismoRemoteProtocol.js');
+
 /**
  * @template RequestType,ResponseType
  */
 exports.Method = class {
   /**
-   * @param {string} id 
-   * @param {pismoutil.JsonSchema=} requestSchema
-   * @param {pismoutil.JsonSchema=} responseSchema
+   * @param {!protocol.PismoMethod} protocolMethod
    */
-  constructor(id, requestSchema, responseSchema) {
-    this._id = id;
-    this._requestSchema = requestSchema;
-    this._responseSchema = responseSchema;
+  constructor(protocolMethod) {
+    this._id = protocolMethod.id;
+    this._requestSchema = protocolMethod.requestSchema;
+    this._responseSchema = protocolMethod.responseSchema;
   }
 
   /**
@@ -107,12 +107,10 @@ const Method = exports.Method;
  */
 class StreamingMethod extends Method {
   /**
-   * @param {string} id 
-   * @param {pismoutil.JsonSchema=} requestSchema 
-   * @param {pismoutil.JsonSchema=} responseSchema 
+   * @param {!protocol.PismoMethod} protocolMethod
    */
-  constructor(id, requestSchema, responseSchema) {
-    super(id, requestSchema, responseSchema);
+  constructor(protocolMethod) {
+    super(protocolMethod);
   }
 
   /**
@@ -194,19 +192,8 @@ exports.UploadMethod = UploadMethod;
 
 // Method instances
 
-/** @typedef {void} GetTreesRequest */
-/** @typedef {!{trees: !Array<!{treename: string, treefile: !pismoutil.TreeFile}>}} GetTreesResponse */
-/** @type {!Method<void, GetTreesResponse>} */
-exports.GetTrees = new Method(
-  'get-trees',
-  null,
-  {
-    trees: [{
-      treename: 'string',
-      treefile: pismoutil.TreeFileSchema
-    }]
-  }
-);
+/** @type {!Method<void, protocol.GetTreesResponse>} */
+exports.GetTrees = new Method(protocol.GetTrees);
 
 ///** @typedef {!{treenames: !Array<string>}} ListTreesResponse */
 ///** @type {!Method<void, ListTreesResponse>} */
@@ -227,88 +214,22 @@ exports.GetTrees = new Method(
 //  },
 //  pismoutil.TreeFileSchema);
 
-/** @typedef {!{treename: string, relativePath: string}} GetFileTimeParams */
-/** @typedef {!{mtimeS: number, mtimeNs: number}} GetFileTimeResponse */
-/** @type {!Method<GetFileTimeParams, GetFileTimeResponse>} */
-exports.GetFileTime = new Method(
-  'get-file-time',
-  {
-    treename: 'string',
-    relativePath: 'string'
-  },
-  {
-    mtimeS: 'number',
-    mtimeNs: 'number'
-  });
+/** @type {!Method<protocol.GetFileTimeParams, protocol.GetFileTimeResponse>} */
+exports.GetFileTime = new Method(protocol.GetFileTime);
 
-/**
- * @typedef {!{
- *   treename: string,
- *   relativePath: string,
- *   mtimeS: number,
- *   mtimeNs: number
- * }} SetFileTimeParams
- */
-/** @typedef {void} SetFileTimeResponse */
-/** @type {!Method<SetFileTimeParams, SetFileTimeResponse>} */
-exports.SetFileTime = new Method(
-  'set-file-time',
-  {
-    treename: 'string',
-    relativePath: 'string',
-    mtimeS: 'number',
-    mtimeNs: 'number'
-  },
-  null);
+/** @type {!Method<protocol.SetFileTimeParams, protocol.SetFileTimeResponse>} */
+exports.SetFileTime = new Method(protocol.SetFileTime);
 
-/** @typedef {!{treename: string, relativePath: string}} GetFileParams */
-/** @type {!StreamingMethod<GetFileParams, void>} */
-exports.GetFile = new StreamingMethod(
-  'get-file',
-  {
-    treename: 'string',
-    relativePath: 'string'
-  });
+/** @type {!StreamingMethod<protocol.GetFileParams, void>} */
+exports.GetFile = new StreamingMethod(protocol.GetFile);
 
-/** @typedef {!{treename: string, relativePath: string, filesize: number}} PreparePutFileParams */
-/** @typedef {!{putId: string}} PreparePutFileResponse */
-/** @type {!Method<PreparePutFileParams, PreparePutFileResponse>} */
-exports.PreparePutFile = new Method(
-  'prepare-put-file',
-  {
-    treename: 'string',
-    relativePath: 'string',
-    filesize: 'number'
-  },
-  {
-    putId: 'string'
-  });
+/** @type {!Method<protocol.PreparePutFileParams, protocol.PreparePutFileResponse>} */
+exports.PreparePutFile = new Method(protocol.PreparePutFile);
 
 exports.PutFile = new UploadMethod();
 
-/**
- * @typedef {!{
- *   srcTreename: string,
- *   srcRelativePath: string,
- *   destTreename: string,
- *   destRelativePath: string
- * }} CopyWithinParams
- */
-/** @type {!Method<CopyWithinParams, void>} */
-exports.CopyWithin = new Method(
-  'copy-within',
-  {
-    srcTreename: 'string',
-    srcRelativePath: 'string',
-    destTreename: 'string',
-    destRelativePath: 'string'
-  });
+/** @type {!Method<protocol.CopyWithinParams, void>} */
+exports.CopyWithin = new Method(protocol.CopyWithin);
 
-/** @typedef {!{treename: string, relativePath: string}} DeleteFileParams */
-/** @type {!Method<DeleteFileParams, void>} */
-exports.DeleteFile = new Method(
-  'delete-file',
-  {
-    treename: 'string',
-    relativePath: 'string'
-  });
+/** @type {!Method<protocol.DeleteFileParams, void>} */
+exports.DeleteFile = new Method(protocol.DeleteFile);
