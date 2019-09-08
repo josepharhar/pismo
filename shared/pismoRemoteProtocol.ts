@@ -1,14 +1,11 @@
-/** @typedef {'string'|'number'|'boolean'|!Array<*>|!Object<string, *>} JsonSchema */
 type JsonSchema = string | number | boolean | Array<any> | Object;
 
-/** @typedef {!{id: string, requestSchema: JsonSchema, responseSchema: JsonSchema}} PismoMethod */
 interface PismoMethod {
   id: string;
   requestSchema: JsonSchema;
   responseSchema: JsonSchema;
 }
 
-/** @typedef {{path: string, mtimeS: number, mtimeNs: number, size: number, hash: string}} FileInfo */
 interface FileInfo {
   path: string;
   mtimeS: number;
@@ -17,32 +14,35 @@ interface FileInfo {
   hash: string;
 }
 
-/** @typedef {{path: string, lastUpdated: number, files: Array<FileInfo>}} TreeFile */
 interface TreeFile {
   path: string;
   lastUpdated: number;
   files: Array<FileInfo>;
 }
 
-/** @typedef {{operator: 'rm'|'cp'|'touch', operands: !Array<{tree: 'base'|'other', relativePath: string}>}} Operation */
 interface Operation {
   operator: 'rm'|'cp'|'touch';
   operands: Array<{tree: 'base'|'other', relativePath: string}>;
 }
 
-/** @typedef {{baseBranch: string, otherBranch: string, operations: !Array<!Operation>}} MergeFile */
 interface MergeFile {
   baseBranch: string;
   otherBranch: string;
   operations: Array<Operation>;
 }
 
-/** @typedef {!{mtimeS: number, mtimeNs: number}} FileTime */
 interface FileTime {
   mtimeS: number;
   mtimeNs: number;
 }
 
+/** @typedef {'string'|'number'|'boolean'|!Array<*>|!Object<string, *>} JsonSchema */
+/** @typedef {!{id: string, requestSchema: JsonSchema, responseSchema: JsonSchema}} PismoMethod */
+/** @typedef {{path: string, mtimeS: number, mtimeNs: number, size: number, hash: string}} FileInfo */
+/** @typedef {{path: string, lastUpdated: number, files: Array<FileInfo>}} TreeFile */
+/** @typedef {{operator: 'rm'|'cp'|'touch', operands: !Array<{tree: 'base'|'other', relativePath: string}>}} Operation */
+/** @typedef {{baseBranch: string, otherBranch: string, operations: !Array<!Operation>}} MergeFile */
+/** @typedef {!{mtimeS: number, mtimeNs: number}} FileTime */
 /** @type {!JsonSchema} */
 export const FileInfoSchema: JsonSchema = {
   path: 'string',
