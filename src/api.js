@@ -6,7 +6,8 @@ const {Remote} = require('./remote');
 const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
-const protocol = require('./gen/pismoRemoteProtocol.js');
+const filesize = require('filesize');
+const protocol = require('pismo-remote-protocol');
 
 /**
  * @template RequestType,ResponseType

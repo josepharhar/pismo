@@ -1,0 +1,12 @@
+{
+  "name": "pismo-remote-protocol",
+  "version": "0.0.1",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "scripts": {
+    "build": "tsc -d index.ts"
+  },
+  "devDependencies": {
+    "typescript": "^3.6.2"
+  }
+}

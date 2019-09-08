@@ -5,7 +5,7 @@
   "main": "pismo.js",
   "scripts": {
     "genold": "babel --config-file ./server.babelrc shared -d src/gen && babel --config-file ./web.babelrc shared -d web/src/gen",
-    "gen": "tsc -d --outDir src/gen --outDir web/src/gen shared/pismoRemoteProtocol.ts",
+    "gen": "tsc -d --outDir src/gen shared/pismoRemoteProtocol.ts && tsc -d --outDir web/src/gen shared/pismoRemoteProtocol.ts",
     "tsc": "tsc -p .",
     "link": "npm link",
     "upload-file": "node upload-file.js",
@@ -47,6 +47,7 @@
     "mkdirp": "^0.5.1",
     "nanostat": "file:../nanostat",
     "nanoutimes": "file:../nanoutimes",
+    "pismo-remote-protocol": "file:./protocol",
     "progress-stream": "^2.0.0",
     "request": "^2.88.0",
     "rimraf": "^2.6.3",
