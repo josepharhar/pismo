@@ -6,6 +6,9 @@
     "target": "esNext",
     "lib": ["esnext"]
   },
+  "files": [
+    "shared/pismoRemoteProtocol.ts"
+  ],
   "include": [
     "src"
   ]
