@@ -1,11 +1,14 @@
+/** @typedef {'string'|'number'|'boolean'|!Array<*>|!Object<string, *>} JsonSchema */
 type JsonSchema = string | number | boolean | Array<any> | Object;
 
+/** @typedef {!{id: string, requestSchema: JsonSchema, responseSchema: JsonSchema}} PismoMethod */
 interface PismoMethod {
   id: string;
   requestSchema: JsonSchema;
   responseSchema: JsonSchema;
 }
 
+/** @typedef {{path: string, mtimeS: number, mtimeNs: number, size: number, hash: string}} FileInfo */
 interface FileInfo {
   path: string;
   mtimeS: number;
@@ -14,28 +17,33 @@ interface FileInfo {
   hash: string;
 }
 
+/** @typedef {{path: string, lastUpdated: number, files: Array<FileInfo>}} TreeFile */
 interface TreeFile {
   path: string;
   lastUpdated: number;
   files: Array<FileInfo>;
 }
 
+/** @typedef {{operator: 'rm'|'cp'|'touch', operands: !Array<{tree: 'base'|'other', relativePath: string}>}} Operation */
 interface Operation {
   operator: 'rm'|'cp'|'touch';
   operands: Array<{tree: 'base'|'other', relativePath: string}>;
 }
 
+/** @typedef {{baseBranch: string, otherBranch: string, operations: !Array<!Operation>}} MergeFile */
 interface MergeFile {
   baseBranch: string;
   otherBranch: string;
   operations: Array<Operation>;
 }
 
+/** @typedef {!{mtimeS: number, mtimeNs: number}} FileTime */
 interface FileTime {
   mtimeS: number;
   mtimeNs: number;
 }
 
+/** @type {!JsonSchema} */
 export const FileInfoSchema: JsonSchema = {
   path: 'string',
   mtimeS: 'number',
@@ -44,6 +52,7 @@ export const FileInfoSchema: JsonSchema = {
   hash: 'string'
 };
 
+/** @type {!JsonSchema} */
 export const TreeFileSchema: JsonSchema = {
   path: 'string',
   // lastUpdated can be -1 to signal that an update never happened
@@ -51,10 +60,14 @@ export const TreeFileSchema: JsonSchema = {
   files: [FileInfoSchema]
 };
 
+
+/** @typedef {void} GetTreesRequest */
 type GetTreesRequest = void;
+/** @typedef {!{trees: !Array<!{treename: string, treefile: !TreeFile}>}} GetTreesResponse */
 interface GetTreesResponse {
   trees: Array<{treename: string, treefile: TreeFile}>;
 }
+/** @type {!PismoMethod} */
 export const GetTrees: PismoMethod = {
   id: 'get-trees',
   requestSchema: null,
@@ -66,14 +79,17 @@ export const GetTrees: PismoMethod = {
   }
 };
 
+/** @typedef {!{treename: string, relativePath: string}} GetFileTimeParams */
 interface GetFileTimeParams {
   treename: string;
   relativePath: string;
 }
+/** @typedef {!{mtimeS: number, mtimeNs: number}} GetFileTimeResponse */
 interface GetFileTimeResponse {
   mtimeS: number;
   mtimeNs: number;
 }
+/** @type {!PismoMethod} */
 export const GetFileTime: PismoMethod = {
   id: 'get-file-time',
   requestSchema: {
@@ -86,13 +102,23 @@ export const GetFileTime: PismoMethod = {
   }
 };
 
+/**
+ * @typedef {!{
+ *   treename: string,
+ *   relativePath: string,
+ *   mtimeS: number,
+ *   mtimeNs: number
+ * }} SetFileTimeParams
+ */
 interface SetFileTimeParams {
   treename: string;
   relativePath: string;
   mtimeS: number;
   mtimeNs: number;
 }
+/** @typedef {void} SetFileTimeResponse */
 type SetFileTimeResponse = void;
+/** @type {!PismoMethod} */
 export const SetFileTime: PismoMethod = {
   id: 'set-file-time',
   requestSchema: {
@@ -104,10 +130,12 @@ export const SetFileTime: PismoMethod = {
   responseSchema: null
 };
 
+/** @typedef {!{treename: string, relativePath: string}} GetFileParams */
 interface GetFileParams {
   treename: string;
   relativePath: string;
 }
+/** @type {!PismoMethod} */
 export const GetFile: PismoMethod = {
   id: 'get-file',
   requestSchema: {
@@ -117,14 +145,18 @@ export const GetFile: PismoMethod = {
   responseSchema: null
 };
 
+
+/** @typedef {!{treename: string, relativePath: string, filesize: number}} PreparePutFileParams */
 interface PreparePutFileParams {
   treename: string;
   relativePath: string;
   filesize: number;
 }
+/** @typedef {!{putId: string}} PreparePutFileResponse */
 interface PreparePutFileResponse {
   putId: string;
 }
+/** @type {!PismoMethod} */
 export const PreparePutFile: PismoMethod = {
   id: 'prepare-put-file',
   requestSchema: {
@@ -137,12 +169,21 @@ export const PreparePutFile: PismoMethod = {
   }
 };
 
+/**
+ * @typedef {!{
+ *   srcTreename: string,
+ *   srcRelativePath: string,
+ *   destTreename: string,
+ *   destRelativePath: string
+ * }} CopyWithinParams
+ */
 interface CopyWithinParams {
   srcTreename: string;
   srcRelativePath: string;
   destTreename: string;
   destRelativePath: string;
 }
+/** @type {!PismoMethod} */
 export const CopyWithin: PismoMethod = {
   id: 'copy-within',
   requestSchema: {
@@ -154,10 +195,13 @@ export const CopyWithin: PismoMethod = {
   responseSchema: null
 };
 
+
+/** @typedef {!{treename: string, relativePath: string}} DeleteFileParams */
 interface DeleteFileParams {
   treename: string;
   relativePath: string;
 }
+/** @type {!PismoMethod} */
 export const DeleteFile: PismoMethod = {
   id: 'delete-file',
   requestSchema: {
