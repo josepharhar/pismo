@@ -20,6 +20,24 @@ class App extends React.Component {
   }
 }
 
+class LoadingPage extends React.Component {
+  constructor(app, promise) {
+    super();
+    this.app = app;
+    promise.then(component => {
+      this.app.setState({
+        currentComponent: component
+      });
+    });
+  }
+
+  render() {
+    return (
+      <div>loading...</div>
+    );
+  }
+}
+
 class ServerPicker extends React.Component {
   constructor(app, props) {
     super(props);
@@ -181,14 +199,13 @@ class TreeFilesComparer extends React.Component {
     const rightFiles = this.treeFileTwo.files;
     let leftIndex = 0;
     let rightIndex = 0;
-    while (leftIndex < leftFiles.length && rightIndex < rightFiles.length) {
+    while (leftIndex < leftFiles.length || rightIndex < rightFiles.length) {
       const leftFilename = leftIndex < leftFiles.length ? leftFiles[leftIndex].path : null;
       const rightFilename = rightIndex < rightFiles.length ? rightFiles[rightIndex].path : null;
       if (!leftFilename || rightFilename < leftFilename) {
         rows.push({
           right: rightFiles[rightIndex++]
         });
-        rightIndex++;
       } else if (!rightFilename || leftFilename < rightFilename) {
         rows.push({
           left: leftFiles[leftIndex++]
@@ -200,10 +217,10 @@ class TreeFilesComparer extends React.Component {
         });
       }
     }
-    function fileToCell(file) {
+    function fileToCell(file, key) {
       if (!file) {
         return (
-          <div class="empty"></div>
+          <div key={key} className="empty"></div>
         );
       }
       const {path, mtimeS, mtimeNs, size, hash} = file;
@@ -215,8 +232,8 @@ class TreeFilesComparer extends React.Component {
         </div>
       );
     }
-    rows = rows.map(row => {
-      return [fileToCell(row.left), fileToCell(row.right)];
+    rows = rows.map((row, index) => {
+      return [fileToCell(row.left, `left-${index}`), fileToCell(row.right, `right-${index}`)];
     });
     this.datagrid = new DataGrid(rows);
 
@@ -262,3 +279,5 @@ export default App;
 // - pick server?
 // - pick two branches to compare
 // - get a list with each of them with a toggle button to show things that are ok or not with expandable details of each file and buttons to delete or copy to the other side... or rename?
+
+// TODO add a checkbox for dry run mode
