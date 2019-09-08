@@ -59,6 +59,11 @@ class ServerPicker extends React.Component {
   onSubmit(event) {
     event.preventDefault();
     console.log('submit, this.state.inputText: ' + this.state.inputText);
+
+    // create new connection to pismo server?
+    // no, not a new connection, but a new request
+    const serverAddress = this.state.inputText;
+
     const getBranchesResponse = [
       {
         name: 'music',
@@ -85,10 +90,9 @@ class ServerPicker extends React.Component {
     return (
       <div>
         <div>
-          enter server address:
+          enter server address, then press enter:
           <form onSubmit={this.onSubmit.bind(this)}>
             <input type="text" onChange={this.onInputChanged.bind(this)}></input>
-            <input type="button" value="go"></input>
           </form>
         </div>
       </div>
@@ -101,7 +105,18 @@ class BranchesPicker extends React.Component {
     super(props);
     this.app = app;
     this.getBranchesResponse = getBranchesResponse;
-    this.state = {};
+    this.state = {
+      leftSelectedId: null,
+      rightSelectedId: null
+    };
+  }
+
+
+  onRadioButtonChanged(newId) {
+    this.setState({
+      leftSelectedId: null,
+      rightSelectedId: null
+    });
   }
 
   renderBranches(groupId) {
@@ -109,10 +124,14 @@ class BranchesPicker extends React.Component {
       const id = `${branch.name}-${groupId}`
       return (
         <div key={id}>
-          {index === 0
-            ? <input type="radio" id={id} name={groupId} />
-            : <input type="radio" id={id} name={groupId} />}
-          <label htmlFor={id}>{branch.name}</label>
+          <label>
+            <input
+              type="radio"
+              name={groupId}
+              checked={this.state.selectedId === groupId}
+              onChange={() => this.onRadioButtonChanged(groupId)} />
+            {branch.name}
+          </label>
         </div>
       );
     });

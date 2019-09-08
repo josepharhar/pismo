@@ -32,6 +32,8 @@
     "@types/progress-stream": "^2.0.0",
     "@types/rimraf": "^2.0.2",
     "@types/yargs": "^12.0.12",
+    "babel": "^6.23.0",
+    "babel-cli": "^6.26.0",
     "create-react-app": "^3.1.1",
     "typescript": "^3.5.1"
   },
