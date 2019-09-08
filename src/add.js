@@ -57,5 +57,3 @@ exports.add = async function(argv) {
 
   // TODO call scan or not based on argv.noupdate
 }
-
-export {};

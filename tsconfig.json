@@ -1,11 +1,14 @@
 {
   "compilerOptions": {
-    "types": ["node"],
-    "outDir": "build",
+    "noEmit": true,
     "allowJs": true,
+    "checkJs": true,
     "target": "esNext",
     "lib": ["esnext"]
   },
+  "files": [
+    "shared/pismoRemoteProtocol.ts"
+  ],
   "include": [
     "src"
   ]

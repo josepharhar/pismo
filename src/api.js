@@ -233,5 +233,3 @@ exports.CopyWithin = new Method(protocol.CopyWithin);
 
 /** @type {!Method<protocol.DeleteFileParams, void>} */
 exports.DeleteFile = new Method(protocol.DeleteFile);
-
-export {};
