@@ -1,4 +1,4 @@
-#!/usr/bin/env node --experimental-modules
+#!/usr/bin/env node
 
 // @ts-ignore
 BigInt.prototype.toJSON = function() {
