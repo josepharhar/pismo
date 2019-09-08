@@ -1,7 +1,10 @@
 {
   "plugins": [
     ["@babel/plugin-transform-modules-commonjs", {
-      "allowTopLevelThis": true
+      "loose": true,
+      "strict": false,
+      "noInterop": true,
+      "lazy": true
     }]
   ]
 }

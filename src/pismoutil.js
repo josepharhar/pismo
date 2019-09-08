@@ -5,7 +5,7 @@ const util = require('util');
 const stream = require('stream');
 const events = require('events');
 
-const protocol = require('../gen/pismoRemoteProtocol.js');
+const protocol = require('./gen/pismoRemoteProtocol.js');
 /** @typedef {protocol.JsonSchema} JsonSchema */
 
 // @ts-ignore
