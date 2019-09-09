@@ -1,292 +1,53 @@
 import React from 'react';
-//import {BrowserRouter as Router, Route, Link} from 'react-router-dom';
+import ServerPicker from './ServerPicker.js';
+import BranchesPicker from './BranchesPicker.js';
+import PismoClient from './PismoClient.js';
 import './App.css';
+import TreeFilesComparer from './TreeFilesComparer.js';
 
 class App extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      currentComponent: new ServerPicker(this)
-    };
+    this.run();
+  }
+
+  async run() {
+    const serverAddress = await new Promise(resolve => {
+      const serverPicker = <ServerPicker onServerPicked={resolve} />;
+      this.state = {
+        currentComponent: serverPicker
+      };
+    });
+
+    const pismoClient = new PismoClient(serverAddress);
+    const {trees} = await pismoClient.getTrees();
+    if (!trees.length) {
+      this.setState({
+        currentComponent: <p>server has no trees!</p>
+      });
+      return;
+    }
+
+    const [leftBranch, rightBranch] = await new Promise(resolve => {
+      const branchesPicker = <BranchesPicker trees={trees} onBranchesPicked={resolve} />;
+      this.setState({
+        currentComponent: branchesPicker
+      });
+    });
+
+    const comparer = <TreeFilesComparer trees={trees} leftBranch={leftBranch} rightBranch={rightBranch} />;
+    this.setState({
+      currentComponent: comparer
+    })
+
+    console.log('TODO');
   }
 
   render() {
     return (
       <div className="app">
-        {this.state.currentComponent.render()}
-      </div>
-    );
-  }
-}
-
-class LoadingPage extends React.Component {
-  constructor(app, promise) {
-    super();
-    this.app = app;
-    promise.then(component => {
-      this.app.setState({
-        currentComponent: component
-      });
-    });
-  }
-
-  render() {
-    return (
-      <div>loading...</div>
-    );
-  }
-}
-
-class ServerPicker extends React.Component {
-  constructor(app, props) {
-    super(props);
-
-    this.app = app;
-
-    this.state = {
-      inputText: '',
-      getBranchesResponse: null
-    };
-  }
-
-  onInputChanged(event) {
-    this.setState({
-      inputText: event.target.value
-    })
-  }
-
-  onSubmit(event) {
-    event.preventDefault();
-    console.log('submit, this.state.inputText: ' + this.state.inputText);
-
-    // create new connection to pismo server?
-    // no, not a new connection, but a new request
-    const serverAddress = this.state.inputText;
-
-    const getBranchesResponse = [
-      {
-        name: 'music',
-        path: 'E:\\music',
-        lastUpdated: 1234,
-        numFiles: 11749,
-        totalSize: 12341234
-      },
-      {
-        name: 'rofl',
-        path: 'C:\\lol',
-        lastUpdated: 12341234,
-        numFiles: 12341234,
-        totalSize: 12341234
-      }
-    ];
-
-    this.app.setState({
-      currentComponent: new BranchesPicker(this.app, getBranchesResponse)
-    });
-  }
-
-  render() {
-    return (
-      <div>
-        <div>
-          enter server address, then press enter:
-          <form onSubmit={this.onSubmit.bind(this)}>
-            <input type="text" onChange={this.onInputChanged.bind(this)}></input>
-          </form>
-        </div>
-      </div>
-    );
-  }
-}
-
-class BranchesPicker extends React.Component {
-  constructor(app, getBranchesResponse, props) {
-    super(props);
-    this.app = app;
-    this.getBranchesResponse = getBranchesResponse;
-    this.state = {
-      leftSelectedId: null,
-      rightSelectedId: null
-    };
-  }
-
-
-  onRadioButtonChanged(newId) {
-    this.setState({
-      leftSelectedId: null,
-      rightSelectedId: null
-    });
-  }
-
-  renderBranches(groupId) {
-    return this.getBranchesResponse.map((branch, index)=> {
-      const id = `${branch.name}-${groupId}`
-      return (
-        <div key={id}>
-          <label>
-            <input
-              type="radio"
-              name={groupId}
-              checked={this.state.selectedId === groupId}
-              onChange={() => this.onRadioButtonChanged(groupId)} />
-            {branch.name}
-          </label>
-        </div>
-      );
-    });
-  }
-
-  onButtonClicked() {
-    console.log('TODO');
-    const fakeTreeFileOne = {
-      path: '/fake/tree/file/one',
-      lastUpdated: 1234,
-      files: [
-        {
-          path: '/subresource_one',
-          mtimeS: 1234,
-          mtimeNs: 5678,
-          size: 1234,
-          hash: 'hash'
-        },
-        {
-          path: '/subresource_two',
-          mtimeS: 1234,
-          mtimeNs: 5678,
-          size: 1234,
-          hash: 'hash'
-        }
-      ]
-    };
-    const fakeTreeFileTwo = {
-      path: '/fake/tree/file/two',
-      lastUpdated: 1234,
-      files: [
-        {
-          path: '/subresource_one',
-          mtimeS: 1234,
-          mtimeNs: 5678,
-          size: 1234,
-          hash: 'hash'
-        },
-        {
-          path: '/subresource_three',
-          mtimeS: 1234,
-          mtimeNs: 5678,
-          size: 1234,
-          hash: 'hash'
-        }
-      ]
-    };
-    this.app.setState({
-      currentComponent: new TreeFilesComparer(this.app, fakeTreeFileOne, fakeTreeFileTwo)
-    })
-  }
-
-  render() {
-    return (
-      <div className="branches-picker">
-        <div className="split-container">
-          <div className="split-child">
-            {this.renderBranches('left')}
-          </div>
-          <div className="split-child">
-            {this.renderBranches('right')}
-          </div>
-        </div>
-        <div className="center">
-          <button onClick={this.onButtonClicked.bind(this)}>
-            go
-          </button>
-        </div>
-      </div>
-    );
-  }
-};
-
-class TreeFilesComparer extends React.Component {
-  constructor(app, treeFileOne, treeFileTwo, props) {
-    super(props);
-    this.app = app;
-    this.treeFileOne = treeFileOne;
-    this.treeFileTwo = treeFileTwo;
-
-    /** @type {!Array<{left: ?FileInfo, right: ?FileInfo}>} */
-    let rows = [];
-    const leftFiles = this.treeFileOne.files;
-    const rightFiles = this.treeFileTwo.files;
-    let leftIndex = 0;
-    let rightIndex = 0;
-    while (leftIndex < leftFiles.length || rightIndex < rightFiles.length) {
-      const leftFilename = leftIndex < leftFiles.length ? leftFiles[leftIndex].path : null;
-      const rightFilename = rightIndex < rightFiles.length ? rightFiles[rightIndex].path : null;
-      if (!leftFilename || rightFilename < leftFilename) {
-        rows.push({
-          right: rightFiles[rightIndex++]
-        });
-      } else if (!rightFilename || leftFilename < rightFilename) {
-        rows.push({
-          left: leftFiles[leftIndex++]
-        });
-      } else {
-        rows.push({
-          right: rightFiles[rightIndex++],
-          left: leftFiles[leftIndex++]
-        });
-      }
-    }
-    function fileToCell(file, key) {
-      if (!file) {
-        return (
-          <div key={key} className="empty"></div>
-        );
-      }
-      const {path, mtimeS, mtimeNs, size, hash} = file;
-      return (
-        <div key={path}>
-          <span className="monospace" title={`mtime: ${mtimeS}.${mtimeNs}, size: ${size}, hash: ${hash}`}>{path}</span>
-          <button title="copy to other side">copy</button>
-          <button title="delete from this side">delete</button>
-        </div>
-      );
-    }
-    rows = rows.map((row, index) => {
-      return [fileToCell(row.left, `left-${index}`), fileToCell(row.right, `right-${index}`)];
-    });
-    this.datagrid = new DataGrid(rows);
-
-    this.state = {};
-  }
-
-  render() {
-    return this.datagrid.render();
-  }
-}
-
-class DataGrid extends React.Component {
-  /**
-   * @param {!Array<!Array<!Element>>} rows 
-   */
-  constructor(rows) {
-    super();
-    this.rows = rows;
-  }
-
-  render() {
-    return (
-      <div className="datagrid">
-        {this.rows.map(row => {
-          return (
-            <div className="datagrid-row">
-              {row.map(cell => {
-                return (
-                  <div className="datagrid-cell">{cell}</div>
-                );
-              })}
-            </div>
-          );
-        })}
+        {this.state.currentComponent}
       </div>
     );
   }
