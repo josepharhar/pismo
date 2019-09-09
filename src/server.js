@@ -208,8 +208,10 @@ exports.server = async function(argv) {
   });
 
   app.get('/', (req, res) => {
-    res.send('Hello world');
+    res.redirect('/web');
   });
+
+  app.use(express.static('static'));
 
   // TODO why doesnt this work with get?
   app.post('/api', bodyParser.json());
