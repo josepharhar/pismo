@@ -527,7 +527,7 @@ exports.remoteUpdate = async function(argv) {
   if (!remote) {
     throw new Error(`unable to find remote with name: ${argv.name}`);
   }
-  let response = await api.GetTrees.fetchResponse(remote);
+  let response = await api.GetTrees.fetchResponse(remote, {includeRemotes: false});
 
   console.log(`updaing remotes/${remote.name()}/ with ${Object.keys(response).length} new trees`);
 

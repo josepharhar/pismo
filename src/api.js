@@ -194,12 +194,14 @@ exports.UploadMethod = UploadMethod;
 
 // Method instances
 
-/** @typedef {void} GetTreesRequest */
+/** @typedef {!{includeRemotes: boolean}} GetTreesRequest */
 /** @typedef {!{trees: !Array<!{treename: string, treefile: !pismoutil.TreeFile}>}} GetTreesResponse */
-/** @type {!Method<void, GetTreesResponse>} */
+/** @type {!Method<GetTreesRequest, GetTreesResponse>} */
 exports.GetTrees = new Method(
   'get-trees',
-  null,
+  {
+    includeRemotes: 'boolean'
+  },
   {
     trees: [{
       treename: 'string',

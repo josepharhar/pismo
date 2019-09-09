@@ -7,12 +7,14 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const progress = require('progress-stream');
 const mkdirp = require('mkdirp');
+const cors = require('cors');
 // @ts-ignore
 const nanostat = require('nanostat');
 // @ts-ignore
 const nanoutimes = require('nanoutimes');
 
 const api = require('./api.js');
+const remote = require('./remote.js');
 const pismoutil = require('./pismoutil.js');
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
@@ -21,6 +23,8 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
  * @return {!Promise<!api.GetTreesResponse>}
  */
 async function handleGetTrees(params) {
+  const request = api.GetTrees.parseRequest(params);
+
   const treeNamesToPaths = await pismoutil.getTreeNamesToPaths();
 
   /** @type {!api.GetTreesResponse} */
@@ -40,6 +44,24 @@ async function handleGetTrees(params) {
       treename: name,
       treefile: treefile
     });
+  }
+
+  if (request.includeRemotes) {
+    // TODO reduce duplication with list.js
+    const remotes = await remote.Remote.getAllRemotes();
+    for (const remote of remotes) {
+      // TODO is this how this should be used...?
+      await remote.readFromFile();
+      const remoteTreeNamesToPaths = await remote.getTreeNamesToPaths();
+      for (const name in remoteTreeNamesToPaths) {
+        const treefile = await pismoutil.readFileToJson(
+          remoteTreeNamesToPaths[name]);
+        response.trees.push({
+          treename: `${remote.name()}/${name}`,
+          treefile
+        });
+      }
+    }
   }
 
   return response;
@@ -207,11 +229,12 @@ exports.server = async function(argv) {
     next();
   });
 
-  app.get('/', (req, res) => {
+  app.use(cors());
+
+  /*app.get('/', (req, res) => {
     res.redirect('/web');
   });
-
-  app.use(express.static('static'));
+  app.use(express.static('static'));*/
 
   // TODO why doesnt this work with get?
   app.post('/api', bodyParser.json());
