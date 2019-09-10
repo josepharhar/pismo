@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
-import DataGrid from './DataGrid.js';
-import { GetTreesResponse } from './PismoTypes.js';
+import DataGrid from './DataGrid';
+import { GetTreesResponse, FileInfo } from './PismoTypes';
 
 interface Props {
   getTreesResponse: GetTreesResponse;
@@ -34,7 +34,7 @@ class TreeFilesComparer extends React.Component<Props> {
     while (leftIndex < leftFiles.length || rightIndex < rightFiles.length) {
       const leftFilename = leftIndex < leftFiles.length ? leftFiles[leftIndex].path : null;
       const rightFilename = rightIndex < rightFiles.length ? rightFiles[rightIndex].path : null;
-      if (!leftFilename || rightFilename < leftFilename) {
+      if (!leftFilename || (rightFilename && rightFilename < leftFilename)) {
         rows.push({
           right: rightFiles[rightIndex++]
         });
@@ -49,7 +49,7 @@ class TreeFilesComparer extends React.Component<Props> {
         });
       }
     }
-    function fileToCell(file, key) {
+    function fileToCell(file: FileInfo|undefined, key: string): ReactNode {
       if (!file) {
         return (
           <div key={key} className="empty"></div>
@@ -64,58 +64,15 @@ class TreeFilesComparer extends React.Component<Props> {
         </div>
       );
     }
-    rows = rows.map((row, index) => {
+    /** @type {!Array<!Array<!ReactNode>>} */
+    const rowElements = rows.map((row, index) => {
       return [fileToCell(row.left, `left-${index}`), fileToCell(row.right, `right-${index}`)];
     });
-    this.datagrid = <DataGrid rows={rows} />;
+    this.datagrid = <DataGrid rows={rowElements} />;
   }
 
   render() {
     return this.datagrid;
-  }
-
-  // TODO delet this
-  onButtonClicked() {
-    const fakeTreeFileOne = {
-      path: '/fake/tree/file/one',
-      lastUpdated: 1234,
-      files: [
-        {
-          path: '/subresource_one',
-          mtimeS: 1234,
-          mtimeNs: 5678,
-          size: 1234,
-          hash: 'hash'
-        },
-        {
-          path: '/subresource_two',
-          mtimeS: 1234,
-          mtimeNs: 5678,
-          size: 1234,
-          hash: 'hash'
-        }
-      ]
-    };
-    const fakeTreeFileTwo = {
-      path: '/fake/tree/file/two',
-      lastUpdated: 1234,
-      files: [
-        {
-          path: '/subresource_one',
-          mtimeS: 1234,
-          mtimeNs: 5678,
-          size: 1234,
-          hash: 'hash'
-        },
-        {
-          path: '/subresource_three',
-          mtimeS: 1234,
-          mtimeNs: 5678,
-          size: 1234,
-          hash: 'hash'
-        }
-      ]
-    };
   }
 }
 

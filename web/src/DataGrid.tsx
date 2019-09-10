@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 
 interface Props {
-  rows: Array<Array<Element>>;
+  rows: Array<Array<ReactNode>>;
 }
 
 class DataGrid extends React.Component<Props> {

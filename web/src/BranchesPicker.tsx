@@ -27,8 +27,7 @@ class BranchesPicker extends React.Component<Props> {
   renderBranches(groupId: 'left'|'right') {
     return this.props.getTreesResponse.trees.map((tree, index) => {
 
-      const {treename, treefile} = tree;
-      const {path, lastUpdated, files} = treefile;
+      const { treename } = tree;
 
       const id = `${groupId}-${treename}`;
 
@@ -40,8 +39,11 @@ class BranchesPicker extends React.Component<Props> {
               name={groupId}
               checked={this.state[groupId] === treename}
               onChange={event => {
-                this.state[groupId] = treename;
-                this.setState(this.state);
+                const newState = {
+                  left: groupId === 'left' ? treename : null,
+                  right: groupId === 'right' ? treename : null
+                };
+                this.setState(newState);
               }} />
             {treename}
           </label>
