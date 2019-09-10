@@ -2,6 +2,7 @@ import React from 'react';
 import ServerPicker from './ServerPicker.js';
 import BranchesPicker from './BranchesPicker.js';
 import PismoClient from './PismoClient.js';
+import LoadingScreen from './LoadingScreen.js';
 import './App.css';
 import TreeFilesComparer from './TreeFilesComparer.js';
 
@@ -21,7 +22,11 @@ class App extends React.Component {
     });
 
     const pismoClient = new PismoClient(serverAddress);
-    const {trees} = await pismoClient.getTrees();
+    const getTreesPromise = pismoClient.getTrees();
+    this.setState({
+      currentComponent: <LoadingScreen promise={} />
+    });
+    const {trees} = await getTreesPromise;
     if (!trees.length) {
       this.setState({
         currentComponent: <p>server has no trees!</p>

@@ -6,10 +6,10 @@ class TreeFilesComparer extends React.Component {
   constructor(props) {
     super(props);
 
-    const {trees, leftBranch, rightBranch} = props;
+    const {trees, leftBranchName, rightBranchName} = props;
 
-    this.treeFileOne = trees.find(tree => tree.treename === leftBranch);
-    this.treeFileTwo = trees.find(tree => tree.treename === rightBranch);
+    this.treeFileOne = trees.find(tree => tree.treename === leftBranchName);
+    this.treeFileTwo = trees.find(tree => tree.treename === rightBranchName);
 
     /** @type {!Array<{left: ?FileInfo, right: ?FileInfo}>} */
     let rows = [];
