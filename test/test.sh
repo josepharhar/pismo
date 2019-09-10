@@ -3,7 +3,8 @@ set -e
 set -x
 
 jcmp() {
-  find $1 -type f -exec sh -c 'md5sum --tag "{}" ; stat --printf="%y\n" "{}" ;' \; | paste -d " " - -
+  #find $1 -type f -exec sh -c 'md5sum --tag "{}" ; stat --printf="%y\n" "{}" ;' \; | paste -d " " - -
+  find $1 -type f -exec sh -c 'md5sum --tag "{}" ; stat -f "%y\n" "{}" ;' \; | paste -d " " - -
 }
 
 # This test does TODO
@@ -15,9 +16,12 @@ pismo remove test2 || true
 
 
 # set up out1
-touch --date=@1524222671 data1/420am
-touch --date=@1524222671 -a data1/420a
-touch --date=@1524222671 -m data1/420m
+#touch --date=@1524222671 data1/420am
+#touch --date=@1524222671 -a data1/420a
+#touch --date=@1524222671 -m data1/420m
+touch -t 201804201620.42 data1/420am
+touch -t 201804201620.42 -a data1/420am
+touch -t 201804201620.42 -m data1/420am
 cp -r -p data1 out1
 
 # create expected output files
