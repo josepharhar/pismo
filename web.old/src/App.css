@@ -1,0 +1,52 @@
+.split-container {
+  display: flex;
+  flex: auto; /* TODO what does this do */
+  flex-direction: row;
+}
+
+.split-child {
+  flex: 1 1 0;
+}
+
+.branches-picker {
+  font-size: 16px;
+}
+
+.branches-picker label {
+  font-family: monospace;
+}
+
+.center {
+  width: 100%;
+  text-align: center;
+}
+
+.branches-picker button {
+  margin: 30px;
+  padding: 10px;
+  font-size: 24px;
+}
+
+.monospace {
+  font-family: monospace;
+}
+
+.datagrid {
+  display: table;
+  border-collapse: collapse;
+}
+
+.datagrid-row {
+  display: table-row;
+}
+
+.datagrid-cell {
+  display: table-cell;
+  border: 1px solid black;
+}
+
+.empty {
+  width: 100%;
+  height: 100%;
+  background-color: black;
+}
