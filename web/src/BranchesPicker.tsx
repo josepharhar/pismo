@@ -26,9 +26,7 @@ class BranchesPicker extends React.Component<Props> {
 
   renderBranches(groupId: 'left'|'right') {
     return this.props.getTreesResponse.trees.map((tree, index) => {
-
       const { treename } = tree;
-
       const id = `${groupId}-${treename}`;
 
       return (
@@ -39,10 +37,10 @@ class BranchesPicker extends React.Component<Props> {
               name={groupId}
               checked={this.state[groupId] === treename}
               onChange={event => {
-                const newState = {
-                  left: groupId === 'left' ? treename : null,
-                  right: groupId === 'right' ? treename : null
-                };
+                if (!event.target.checked)
+                  return;
+                const newState: {left?: string; right?: string;} = {};
+                newState[groupId] = treename;
                 this.setState(newState);
               }} />
             {treename}
@@ -65,6 +63,7 @@ class BranchesPicker extends React.Component<Props> {
         </div>
         <div className="center">
           <button onClick={event => {
+              console.log('calling onBranchesPicked. left: ' + this.state.left + ', right: ' + this.state.right);
               this.props.onBranchesPicked({
                 leftBranchName: this.state.left,
                 rightBranchName: this.state.right
