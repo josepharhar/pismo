@@ -2,7 +2,10 @@ import React, { ReactNode } from 'react';
 import './DataGrid.css';
 
 interface Props {
-  rows: Array<Array<ReactNode>>;
+  rows: Array<Array<{
+    cell: ReactNode;
+    textNode: ReactNode;
+  }>>;
 }
 
 class DataGrid extends React.Component<Props> {
@@ -14,7 +17,7 @@ class DataGrid extends React.Component<Props> {
             <div className="datagrid-row">
               {row.map(cell => {
                 return (
-                  <div className="datagrid-cell">{cell}</div>
+                  <div className="datagrid-cell">{children}{textContent}{cell}</div>
                 );
               })}
             </div>

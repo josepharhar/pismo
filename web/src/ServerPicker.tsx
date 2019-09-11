@@ -6,7 +6,7 @@ interface Props {
 
 class ServerPicker extends React.Component<Props> {
   state = {
-    inputText: ''
+    inputText: 'localhost:48880'
   };
 
   render() {

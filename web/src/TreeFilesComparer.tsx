@@ -73,14 +73,18 @@ class TreeFilesComparer extends React.Component<Props> {
         </div>
       );
     }
-    const rowElements: Array<Array<ReactNode>> = rows.map((row, index) => {
+    /*const rowElements: Array<Array<ReactNode>> = rows.map((row, index) => {
       return [fileToCell(row.left, `left-${index}`, 'left'), fileToCell(row.right, `right-${index}`, 'right')];
     });
     const headerElements: Array<Array<ReactNode>> = [[
       <p>{leftTreeWithName.treename}</p>,
       <p>{rightTreeWithName.treename}</p>
     ]];
-    this.datagrid = <DataGrid rows={headerElements.concat(rowElements)} />;
+    this.datagrid = <DataGrid rows={headerElements.concat(rowElements)} />;*/
+    const asdf: Array<Array<ReactNode>> = rows.map(row => {
+      return [row.left ? row.left.path : 'empty', row.right ? row.right.path : 'empty'];
+    });
+    this.datagrid = <DataGrid rows={asdf} />;
   }
 
   render() {
