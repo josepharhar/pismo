@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react';
+import './DataGrid.css';
 
 interface Props {
   rows: Array<Array<ReactNode>>;

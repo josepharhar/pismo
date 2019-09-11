@@ -1,0 +1,5 @@
+.clip-overflow {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}

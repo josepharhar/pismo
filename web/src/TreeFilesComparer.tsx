@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import DataGrid from './DataGrid';
 import { GetTreesResponse, FileInfo } from './PismoTypes';
+import './TreeFilesComparer.css';
 
 interface Props {
   getTreesResponse: GetTreesResponse;
@@ -49,26 +50,37 @@ class TreeFilesComparer extends React.Component<Props> {
         });
       }
     }
-    function fileToCell(file: FileInfo|undefined, key: string): ReactNode {
+    function fileToCell(file: FileInfo|undefined, key: string, side: 'left'|'right'): ReactNode {
       if (!file) {
         return (
           <div key={key} className="empty"></div>
         );
       }
       const {path, mtimeS, mtimeNs, size, hash} = file;
+      const text = <span
+          className="monospace clip-overflow"
+          title={`mtime: ${mtimeS}.${mtimeNs}, size: ${size}, hash: ${hash}`}>
+        {path}
+      </span>;
+      const buttons = <span>
+        <button title="copy to other side">copy</button>
+        <button title="delete from this side">delete</button>
+      </span>;
       return (
         <div key={path}>
-          <span className="monospace" title={`mtime: ${mtimeS}.${mtimeNs}, size: ${size}, hash: ${hash}`}>{path}</span>
-          <button title="copy to other side">copy</button>
-          <button title="delete from this side">delete</button>
+          <span className="left">{/*side === 'left' ? text : buttons*/buttons}</span>
+          <span className="right">{/*side === 'left' ? buttons : text*/text}</span>
         </div>
       );
     }
-    /** @type {!Array<!Array<!ReactNode>>} */
-    const rowElements = rows.map((row, index) => {
-      return [fileToCell(row.left, `left-${index}`), fileToCell(row.right, `right-${index}`)];
+    const rowElements: Array<Array<ReactNode>> = rows.map((row, index) => {
+      return [fileToCell(row.left, `left-${index}`, 'left'), fileToCell(row.right, `right-${index}`, 'right')];
     });
-    this.datagrid = <DataGrid rows={rowElements} />;
+    const headerElements: Array<Array<ReactNode>> = [[
+      <p>{leftTreeWithName.treename}</p>,
+      <p>{rightTreeWithName.treename}</p>
+    ]];
+    this.datagrid = <DataGrid rows={headerElements.concat(rowElements)} />;
   }
 
   render() {

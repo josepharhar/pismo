@@ -15,7 +15,12 @@ class App extends React.Component {
     this.state = {
       currentComponent: <p>hello world</p>
     };
-    this.run();
+    this.run().catch(error => {
+      // TODO turn this off for production?
+      this.setState({
+        currentComponent: <p>error: ${error}</p>
+      });
+    });
   }
 
   async run() {
@@ -31,7 +36,7 @@ class App extends React.Component {
     this.setState({
       currentComponent: <LoadingScreen promise={getTreesPromise} />
     });
-    const trees: GetTreesResponse = await getTreesPromise;
+    let trees: GetTreesResponse = await getTreesPromise;
     if (!trees.trees.length) {
       this.setState({
         currentComponent: <p>server has no trees!</p>
@@ -52,9 +57,7 @@ class App extends React.Component {
       rightBranchName={rightBranchName} />;
     this.setState({
       currentComponent: comparer
-    })
-
-    console.log('TODO');
+    });
   }
 
   render() {
@@ -63,3 +66,7 @@ class App extends React.Component {
 }
 
 export default App;
+
+// TODO add a checkbox for dry run mode
+// TODO make the files expandable for more info or have a tooltip or expanded / not expanded mode
+// TODO use viewporting with a search menu to find the right file that fuzzy searches for a file then you press enter on a dropdown and go to that one
