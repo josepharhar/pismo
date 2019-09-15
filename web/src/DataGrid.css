@@ -17,3 +17,7 @@
 
   border: 1px solid black;
 }
+
+.datagrid-cell.datagrid-cell-no-grow {
+  flex-grow: 0;
+}

@@ -32,7 +32,27 @@
 }
 
 .empty {
-  width: 100%;
-  height: 100%;
-  background-color: black;
+  background-color: gray;
+  text-align: center;
+  font-size: 14px;
+  vertical-align: center;
+
+  display: flex;
+  align-items: center;
+}
+.empty>div {
+  flex: 1;
+}
+
+.clip-overflow {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+table.table-borders,
+table.table-borders>tbody>tr,
+table.table-borders>tbody>tr>td{
+  border: 1px solid black;
+  border-collapse: collapse;
 }
