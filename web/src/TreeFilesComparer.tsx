@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
-import DataGrid from './DataGrid';
 import { GetTreesResponse, FileInfo } from './PismoTypes';
 import './TreeFilesComparer.css';
+import './DataGrid.css';
 
 interface Props {
   getTreesResponse: GetTreesResponse;
@@ -10,7 +10,10 @@ interface Props {
 }
 
 class TreeFilesComparer extends React.Component<Props> {
-  datagrid: ReactNode;
+  rows: Array<{
+    left?: FileInfo;
+    right?: FileInfo;
+  }>;
 
   constructor(props: Props) {
     super(props);
@@ -26,8 +29,7 @@ class TreeFilesComparer extends React.Component<Props> {
     const treeFileOne = leftTreeWithName.treefile;
     const treeFileTwo = rightTreeWithName.treefile;
 
-    /** @type {!Array<{left: ?FileInfo, right: ?FileInfo}>} */
-    let rows = [];
+    this.rows = [];
     const leftFiles = treeFileOne.files;
     const rightFiles = treeFileTwo.files;
     let leftIndex = 0;
@@ -36,59 +38,51 @@ class TreeFilesComparer extends React.Component<Props> {
       const leftFilename = leftIndex < leftFiles.length ? leftFiles[leftIndex].path : null;
       const rightFilename = rightIndex < rightFiles.length ? rightFiles[rightIndex].path : null;
       if (!leftFilename || (rightFilename && rightFilename < leftFilename)) {
-        rows.push({
+        this.rows.push({
           right: rightFiles[rightIndex++]
         });
       } else if (!rightFilename || leftFilename < rightFilename) {
-        rows.push({
+        this.rows.push({
           left: leftFiles[leftIndex++]
         });
       } else {
-        rows.push({
+        this.rows.push({
           right: rightFiles[rightIndex++],
           left: leftFiles[leftIndex++]
         });
       }
     }
-    function fileToCell(file: FileInfo|undefined, key: string, side: 'left'|'right'): ReactNode {
-      if (!file) {
-        return (
-          <div key={key} className="empty"></div>
-        );
-      }
-      const {path, mtimeS, mtimeNs, size, hash} = file;
-      const text = <span
-          className="monospace clip-overflow"
-          title={`mtime: ${mtimeS}.${mtimeNs}, size: ${size}, hash: ${hash}`}>
-        {path}
-      </span>;
-      const buttons = <span>
-        <button title="copy to other side">copy</button>
-        <button title="delete from this side">delete</button>
-      </span>;
-      return (
-        <div key={path}>
-          <span className="left">{/*side === 'left' ? text : buttons*/buttons}</span>
-          <span className="right">{/*side === 'left' ? buttons : text*/text}</span>
-        </div>
-      );
+  }
+
+  fileToCell(file: FileInfo|undefined, index: number, side: 'left'|'right'): ReactNode {
+    const key = `${index}-${side}`;
+    if (!file) {
+      return <div key={key} className="datagrid-cell empty">
+        TODO delet this text
+      </div>;
     }
-    /*const rowElements: Array<Array<ReactNode>> = rows.map((row, index) => {
-      return [fileToCell(row.left, `left-${index}`, 'left'), fileToCell(row.right, `right-${index}`, 'right')];
-    });
-    const headerElements: Array<Array<ReactNode>> = [[
-      <p>{leftTreeWithName.treename}</p>,
-      <p>{rightTreeWithName.treename}</p>
-    ]];
-    this.datagrid = <DataGrid rows={headerElements.concat(rowElements)} />;*/
-    const asdf: Array<Array<ReactNode>> = rows.map(row => {
-      return [row.left ? row.left.path : 'empty', row.right ? row.right.path : 'empty'];
-    });
-    this.datagrid = <DataGrid rows={asdf} />;
+    const {path, mtimeS, mtimeNs, size, hash} = file;
+
+    const textContent = path;
+    // TODO find a better way to display this than with a tooltip?
+    const tooltip = `mtime: ${mtimeS}.${mtimeNs}, size: ${size}, hash: ${hash}`;
+
+    return <div className="datagrid-cell" title={tooltip}>
+      <button title="copy to other side">copy</button>
+      <button title="delete from this side">delete</button>
+      {textContent}
+    </div>;
   }
 
   render() {
-    return this.datagrid;
+    return <div className="datagrid">
+      {this.rows.map((row, index)=> {
+        return <div className="datagrid-row">
+          {this.fileToCell(row.left, index, 'left')}
+          {this.fileToCell(row.right, index, 'right')}
+        </div>;
+      })}
+    </div>;
   }
 }
 
