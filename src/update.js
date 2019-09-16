@@ -131,6 +131,10 @@ async function scanPath(
         throw err;
       }
 
+      // TODO use ffmpeg:
+      // resolution: ffprobe -show_entries stream=width,height,bit_rate -of json
+      // no just do ffprobe -v error {filename}
+
       /** @type {!pismoutil.FileInfo} */
       const newFileInfo = {
         path: unixRelativeEntPath,

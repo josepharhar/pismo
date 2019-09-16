@@ -18,7 +18,7 @@ const readdirPromise = util.promisify(fs.readdir);
 const readFilePromise = util.promisify(fs.readFile);
 const writeFilePromise = util.promisify(fs.writeFile);
 
-/** @typedef {{path: string, mtimeS: number, mtimeNs: number, size: number, hash: string}} FileInfo */
+/** @typedef {{path: string, mtimeS: number, mtimeNs: number, size: number, hash: string, customAttributes: ?Object}} FileInfo */
 /** @type {!JsonSchema} */
 exports.FileInfoSchema = {
   path: 'string',
@@ -28,7 +28,7 @@ exports.FileInfoSchema = {
   hash: 'string'
 };
 // lastUpdated can be -1 to signal that an update never happened
-/** @typedef {{path: string, lastUpdated: number, files: Array<FileInfo>}} TreeFile */
+/** @typedef {{path: string, lastUpdated: number, customAttributes: ?[{name: string, command: string}], files: Array<FileInfo>}} TreeFile */
 /** @type {!JsonSchema} */
 exports.TreeFileSchema = {
   path: 'string',
