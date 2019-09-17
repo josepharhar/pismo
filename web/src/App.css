@@ -29,6 +29,7 @@
 
 .monospace {
   font-family: monospace;
+  white-space: pre-wrap;
 }
 
 .empty {
@@ -55,4 +56,11 @@ table.table-borders>tbody>tr,
 table.table-borders>tbody>tr>td{
   border: 1px solid black;
   border-collapse: collapse;
+}
+
+.sticky {
+  position: sticky;
+  top: 0px;
+  background-color: white;
+  border-bottom: 1px solid black;
 }

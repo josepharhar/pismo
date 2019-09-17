@@ -14,6 +14,19 @@ export interface TreeFile {
   customAttributeNameToCommand: object;
 }
 
+export interface Operation {
+  operator: 'rm'|'cp'|'touch';
+  operands: Array<{
+    tree: 'base'|'other';
+    relativePath: string;
+  }>;
+}
+export interface MergeFile {
+  baseBranch: string;
+  otherBranch: string;
+  operation: Array<Operation>;
+}
+
 export interface GetTreesRequest {
   includeRemotes: boolean;
 }
