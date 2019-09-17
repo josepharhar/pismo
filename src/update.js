@@ -142,7 +142,7 @@ async function scanPath(
         mtimeNs: Number(stat.mtimeNs),
         size: Number(stat.size),
         hash: null,
-        customAttributeNameToValue: cachedFileinfo.customAttributeNameToValue
+        customAttributeNameToValue: cachedFileinfo && cachedFileinfo.customAttributeNameToValue
           ? cachedFileinfo.customAttributeNameToValue
           : {}
       };
@@ -275,6 +275,7 @@ exports.updateInternal = async function(name, nocache) {
         newTreefile.customAttributeNameToCommand);
       } catch (error) {
         logError('got error while updating:' + error);
+        logError(error.stack);
         logError('writing the stuff we got to file.');
         gotSigint = true;
       }
