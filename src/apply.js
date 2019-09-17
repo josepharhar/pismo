@@ -23,7 +23,7 @@ const Branch = branches.Branch;
  * @return {!pismoutil.FileTime}
  */
 function getFileTime(absolutePath) {
-  return nanostat.statSync(absolutePath);
+  return /** @type {!pismoutil.FileTime} */ (nanostat.statSync(absolutePath));
 }
 
 /**
