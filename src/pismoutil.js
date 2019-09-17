@@ -18,21 +18,23 @@ const readdirPromise = util.promisify(fs.readdir);
 const readFilePromise = util.promisify(fs.readFile);
 const writeFilePromise = util.promisify(fs.writeFile);
 
-/** @typedef {{path: string, mtimeS: number, mtimeNs: number, size: number, hash: string, customAttributes: ?Object}} FileInfo */
+/** @typedef {{path: string, mtimeS: number, mtimeNs: number, size: number, hash: string, customAttributeNameToValue: !Object<string, string>}} FileInfo */
 /** @type {!JsonSchema} */
 exports.FileInfoSchema = {
   path: 'string',
   mtimeS: 'number',
   mtimeNs: 'number',
   size: 'number',
-  hash: 'string'
+  hash: 'string',
+  customAttributeNameToValue: 'object'
 };
 // lastUpdated can be -1 to signal that an update never happened
-/** @typedef {{path: string, lastUpdated: number, customAttributes: ?[{name: string, command: string}], files: Array<FileInfo>}} TreeFile */
+/** @typedef {{path: string, lastUpdated: number, customAttributeNameToCommand: !Object<string, string>, files: !Array<FileInfo>}} TreeFile */
 /** @type {!JsonSchema} */
 exports.TreeFileSchema = {
   path: 'string',
   lastUpdated: 'number',
+  customAttributeNameToCommand: 'object',
   files: [exports.FileInfoSchema]
 };
 /** @typedef {{operator: 'rm'|'cp'|'touch', operands: !Array<{tree: 'base'|'other', relativePath: string}>}} Operation */
@@ -387,7 +389,7 @@ exports.setLocalFileTime = function(absolutePath, filetime) {
 }
 
 ///** @typedef {'string'|'number'|'boolean'|!Array<!JsonSchema>|!Object<string, !JsonSchema>} JsonSchema */
-/** @typedef {'string'|'number'|'boolean'|!Array<*>|!Object<string, *>} JsonSchema */
+/** @typedef {'string'|'number'|'boolean'|!Array<*>|!Object<string, *>|'object'} JsonSchema */
 ///** @typedef {*} JsonSchema */
 /**
  * ex obj: {
@@ -438,7 +440,7 @@ exports.parseJson = function(rootObj, rootSchema) {
         + '\n  schema: ' + JSON.stringify(schema));
     }
 
-    if (schema === 'string' || schema === 'boolean' || schema === 'number') {
+    if (schema === 'string' || schema === 'boolean' || schema === 'number' || schema === 'object') {
       if (typeof(obj) !== schema)
         throw error('invalid json. expected: ' + schema + ', found: ' + typeof(obj));
 

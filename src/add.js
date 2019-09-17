@@ -45,7 +45,8 @@ exports.add = async function(argv) {
   const newTree = {
     path: absolutePath,
     lastUpdated: -1,
-    files: []
+    files: [],
+    customAttributeNameToCommand: {}
   };
   const writeFileError = await new Promise(resolve => {
     fs.writeFile(filepath, JSON.stringify(newTree, null, 2), resolve);

@@ -5,6 +5,7 @@ const util = require('util');
 const crypto = require('crypto');
 const events = require('events');
 const stream = require('stream');
+const spawn = require('child_process').spawn;
 
 // @ts-ignore
 const nanostat = require('nanostat');
@@ -89,9 +90,10 @@ async function genHash(absoluteFilepath, cancelEmitter) {
  * @param {!string} basepath
  * @param {!Object<string, FileInfo>} fileinfoCache
  * @param {!events.EventEmitter} cancelEmitter
+ * @param {!Object<string, string>} customAttributeNameToCommand
  */
 async function scanPath(
-    relativePathToScan, addPathToScan, addFileInfo, basepath, fileinfoCache, cancelEmitter) {
+    relativePathToScan, addPathToScan, addFileInfo, basepath, fileinfoCache, cancelEmitter, customAttributeNameToCommand) {
   const absolutePathToScan = path.join(basepath, relativePathToScan);
 
   let dirents;
@@ -131,9 +133,7 @@ async function scanPath(
         throw err;
       }
 
-      // TODO use ffmpeg:
-      // resolution: ffprobe -show_entries stream=width,height,bit_rate -of json
-      // no just do ffprobe -v error {filename}
+      const cachedFileinfo = fileinfoCache[unixRelativeEntPath];
 
       /** @type {!pismoutil.FileInfo} */
       const newFileInfo = {
@@ -141,15 +141,19 @@ async function scanPath(
         mtimeS: Number(stat.mtimeMs / 1000n),
         mtimeNs: Number(stat.mtimeNs),
         size: Number(stat.size),
-        hash: null
+        hash: null,
+        customAttributeNameToValue: cachedFileinfo.customAttributeNameToValue
+          ? cachedFileinfo.customAttributeNameToValue
+          : {}
       };
 
       // compute hash, using cache if available
-      const cachedFileinfo = fileinfoCache[unixRelativeEntPath];
-      if (cachedFileinfo
-          && cachedFileinfo.mtimeS === newFileInfo.mtimeS
-          && cachedFileinfo.mtimeNs === newFileInfo.mtimeNs
-          && cachedFileinfo.size === newFileInfo.size) {
+      const reuseHash = cachedFileinfo
+        && cachedFileinfo.mtimeS === newFileInfo.mtimeS
+        && cachedFileinfo.mtimeNs === newFileInfo.mtimeNs
+        && cachedFileinfo.size === newFileInfo.size;
+
+      if (reuseHash) {
         newFileInfo.hash = cachedFileinfo.hash;
         logVerbose(`Reusing cached hash for ${newFileInfo.path}`);
 
@@ -163,6 +167,36 @@ async function scanPath(
           else
             throw error;
         }
+      }
+
+      for (const [name, command] of Object.entries(customAttributeNameToCommand)) {
+        if (newFileInfo.customAttributeNameToValue[name] && reuseHash)
+          continue;
+
+        let output;
+        try {
+          const splitCommand = command.split(' ');
+
+          const executablefilename = splitCommand[0];
+          const args = splitCommand.slice(1).concat(absoluteEntPath);
+          logVerbose(`Running command: ${executablefilename} ${JSON.stringify(args)}`);
+          const proc = spawn(executablefilename, args);
+
+          proc.stdout.setEncoding('utf8');
+          const stdout = await pismoutil.streamToString(proc.stdout);
+          output = stdout;
+
+          proc.stderr.setEncoding('utf8');
+          const stderr = await pismoutil.streamToString(proc.stderr);
+          if (stderr) {
+            if (stdout)
+              output += '\n';
+            output += stderr;
+          }
+        } catch (error) {
+          output = `error when running command "${command}":\n${error}`;
+        }
+        newFileInfo.customAttributeNameToValue[name] = output;
       }
 
       addFileInfo(newFileInfo);
@@ -193,7 +227,10 @@ exports.updateInternal = async function(name, nocache) {
   let newTreefile = {
     path: oldTreefile.path,
     lastUpdated: Math.floor(new Date().getTime() / 1000),
-    files: []
+    files: [],
+    customAttributeNameToCommand: oldTreefile.customAttributeNameToCommand
+      ? oldTreefile.customAttributeNameToCommand
+      : {}
   };
 
   /** @type {!Object<string, FileInfo>} */
@@ -234,7 +271,8 @@ exports.updateInternal = async function(name, nocache) {
         newFileInfo => newTreefile.files.push(newFileInfo),
         basepath,
         fileinfoCache,
-        cancelEmitter);
+        cancelEmitter,
+        newTreefile.customAttributeNameToCommand);
       } catch (error) {
         logError('got error while updating:' + error);
         logError('writing the stuff we got to file.');

@@ -4,12 +4,14 @@ export interface FileInfo {
   mtimeNs: number;
   size: number;
   hash: string;
+  customAttributeNameToValue: object;
 }
 
 export interface TreeFile {
   path: string;
   lastUpdated: number;
   files: Array<FileInfo>;
+  customAttributeNameToCommand: object;
 }
 
 export interface GetTreesRequest {
