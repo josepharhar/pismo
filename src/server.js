@@ -1,21 +1,21 @@
-const path = require('path');
-const fs = require('fs');
-const stream = require('stream');
-const crypto = require('crypto');
+import * as path from 'path';
+import * as fs from 'fs';
+import * as stream from 'stream';
+import * as crypto from 'crypto';
 
-const express = require('express');
-const bodyParser = require('body-parser');
-const progress = require('progress-stream');
-const mkdirp = require('mkdirp');
-const cors = require('cors');
+import * as express from 'express';
+import * as bodyParser from 'body-parser';
+import * as progress from 'progress-stream';
+import * as mkdirp from 'mkdirp';
+import * as cors from 'cors';
 // @ts-ignore
-const nanostat = require('nanostat');
+import * as nanostat from 'nanostat';
 // @ts-ignore
-const nanoutimes = require('nanoutimes');
+import * as nanoutimes from 'nanoutimes';
 
-const api = require('./api.js');
-const remote = require('./remote.js');
-const pismoutil = require('./pismoutil.js');
+import * as api from './api.js';
+import * as remote from './remote.js';
+import * as pismoutil from './pismoutil.js';
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /**
@@ -218,7 +218,7 @@ async function handleUpload(req, res) {
 /**
  * @param {import('./pismo.js').ServerArgs} argv
  */
-exports.server = async function(argv) {
+export async function server(argv) {
   const port = argv.port;
   logInfo(`Running server on port ${port}`);
 

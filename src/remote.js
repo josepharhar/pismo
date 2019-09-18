@@ -1,15 +1,15 @@
-const http = require('http');
-const fs = require('fs');
-const util = require('util');
-const path = require('path');
-const {URL} = require('url');
-const stream = require('stream');
+import * as http from 'http';
+import * as fs from 'fs';
+import * as util from 'util';
+import * as path from 'path';
+import {URL} from 'url';
+import * as stream from 'stream';
 
-const progress = require('progress-stream');
-const mkdirp = require('mkdirp');
+import * as progress from 'progress-stream';
+import * as mkdirp from 'mkdirp';
 
-const pismoutil = require('./pismoutil.js');
-const api = require('./api.js');
+import * as pismoutil from './pismoutil.js';
+import * as api from './api.js';
 
 const readdirPromise = util.promisify(fs.readdir);
 const unlinkPromise = util.promisify(fs.unlink);
@@ -35,7 +35,7 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
 /**
  * Tracks metadata about a remote
  */
-class Remote {
+export class Remote {
   /**
    * TODO make this only callable from getOrCreateRemote()
    * @param {string} name
@@ -362,7 +362,6 @@ class Remote {
     await api.DeleteFile.fetchResponse(this, request);
   }
 };
-exports.Remote = Remote;
 
 /** @type {!Map<string, !Remote>} */
 const _remoteCache = new Map();
@@ -373,7 +372,7 @@ const _remoteCache = new Map();
  * @param {string} name
  * @return {!Promise<!Remote>}
  */
-exports.getOrCreateRemote = async function(name) {
+export async function getOrCreateRemote(name) {
   let remote = _remoteCache.get(name);
   if (!remote) {
     remote = new Remote(name);
@@ -386,7 +385,7 @@ exports.getOrCreateRemote = async function(name) {
 /**
  * @param {import('./pismo.js').RemoteAddArgs} argv
  */
-exports.remoteAdd = async function(argv) {
+export async function remoteAdd(argv) {
   const remote = new Remote(argv.name);
   remote.setUrl(argv.url);
   await remote.writeToFile();
@@ -395,7 +394,7 @@ exports.remoteAdd = async function(argv) {
 /**
  * @param {import('./pismo.js').RemoteRemoveArgs} argv
  */
-exports.remoteRemove = async function(argv) {
+export async function remoteRemove(argv) {
   const remote = new Remote(argv.name);
   await remote.readFromFile();
 
@@ -412,7 +411,7 @@ exports.remoteRemove = async function(argv) {
  *
  * @param {import('./pismo.js').RemoteListArgs} argv
  */
-exports.remoteList = async function(argv) {
+export async function remoteList(argv) {
   if (argv._.length > 1) {
     // TODO this only exists because yargs.strict() doesn't do anything!!!
     //   yargs should take care of this logic but i dont know if it even can.
@@ -442,7 +441,7 @@ exports.remoteList = async function(argv) {
  *
  * @param {import('./pismo.js').RemoteUpdateArgs} argv
  */
-exports.remoteUpdate = async function(argv) {
+export async function remoteUpdate(argv) {
 
 //  const requestOptions = {
 //    hostname: 'localhost',

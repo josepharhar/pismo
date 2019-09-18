@@ -1,7 +1,7 @@
 /**
  * @param {import('./pismo.js').StatusArgs} argv
  */
-exports.status = function(argv) {
+export function status(argv) {
   // TODO
   throw new Error('NOTIMPLEMENTED');
 }

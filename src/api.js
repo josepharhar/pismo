@@ -1,15 +1,17 @@
-const http = require('http');
-const stream = require('stream');
-const {URL} = require('url');
+import * as http from 'http';
+import * as stream from 'stream';
+import {URL} from 'url';
 
-const {Remote} = require('./remote');
-const pismoutil = require('./pismoutil.js');
+import {Remote} from './remote.js';
+import * as pismoutil from './pismoutil.js';
 const {logInfo, logError} = pismoutil.getLogger(__filename);
+
+import * as types from '../web/src/PismoTypes';
 
 /**
  * @template RequestType,ResponseType
  */
-exports.Method = class {
+export class Method {
   /**
    * @param {string} id 
    * @param {pismoutil.JsonSchema=} requestSchema
@@ -99,13 +101,12 @@ exports.Method = class {
     return /** @type {!ResponseType} */ (obj);
   }
 }
-const Method = exports.Method;
 
 /**
  * @template RequestType,ResponseType
  * @extends {Method<RequestType, ResponseType>}
  */
-class StreamingMethod extends Method {
+export class StreamingMethod extends Method {
   /**
    * @param {string} id 
    * @param {pismoutil.JsonSchema=} requestSchema 
@@ -135,13 +136,12 @@ class StreamingMethod extends Method {
     return await this._getResponse(remote, params);
   }
 };
-exports.StreamingMethod = StreamingMethod;
 
-exports.PUT_ID_HEADER_NAME = 'x-pismo-put-id';
+export const PUT_ID_HEADER_NAME = 'x-pismo-put-id';
 /**
  * @template ResponseType
  */
-class UploadMethod {
+export class UploadMethod {
   /**
    * @param {!Remote} remote 
    * @param {string} putId
@@ -155,7 +155,7 @@ class UploadMethod {
     const headers = {};
     headers['content-length'] = contentLength;
     headers['content-type'] = 'application/octet-stream';
-    headers[exports.PUT_ID_HEADER_NAME] = putId;
+    headers[PUT_ID_HEADER_NAME] = putId;
     const requestOptions = {
       hostname: url.hostname,
       port: url.port,
@@ -190,14 +190,13 @@ class UploadMethod {
   }
 
 };
-exports.UploadMethod = UploadMethod;
 
 // Method instances
 
 /** @typedef {!{includeRemotes: boolean}} GetTreesRequest */
 /** @typedef {!{trees: !Array<!{treename: string, treefile: !pismoutil.TreeFile}>}} GetTreesResponse */
 /** @type {!Method<GetTreesRequest, GetTreesResponse>} */
-exports.GetTrees = new Method(
+export const GetTrees = new Method(
   'get-trees',
   {
     includeRemotes: 'boolean'
@@ -212,7 +211,7 @@ exports.GetTrees = new Method(
 
 ///** @typedef {!{treenames: !Array<string>}} ListTreesResponse */
 ///** @type {!Method<void, ListTreesResponse>} */
-//exports.ListTrees = new Method(
+//export const ListTrees = new Method(
 //  'list-trees',
 //  null,
 //  {
@@ -222,7 +221,7 @@ exports.GetTrees = new Method(
 ///** @typedef {!{treeName: string}} GetTreeParams */
 ///** @typedef {!pismoutil.TreeFile} GetTreeResponse */
 ///** @type {!Method<GetTreeParams, GetTreeResponse>} */
-//exports.GetTree = new Method(
+//export const GetTree = new Method(
 //  'get-tree',
 //  {
 //    treeName: 'string'
@@ -232,7 +231,7 @@ exports.GetTrees = new Method(
 /** @typedef {!{treename: string, relativePath: string}} GetFileTimeParams */
 /** @typedef {!{mtimeS: number, mtimeNs: number}} GetFileTimeResponse */
 /** @type {!Method<GetFileTimeParams, GetFileTimeResponse>} */
-exports.GetFileTime = new Method(
+export const GetFileTime = new Method(
   'get-file-time',
   {
     treename: 'string',
@@ -253,7 +252,7 @@ exports.GetFileTime = new Method(
  */
 /** @typedef {void} SetFileTimeResponse */
 /** @type {!Method<SetFileTimeParams, SetFileTimeResponse>} */
-exports.SetFileTime = new Method(
+export const SetFileTime = new Method(
   'set-file-time',
   {
     treename: 'string',
@@ -265,7 +264,7 @@ exports.SetFileTime = new Method(
 
 /** @typedef {!{treename: string, relativePath: string}} GetFileParams */
 /** @type {!StreamingMethod<GetFileParams, void>} */
-exports.GetFile = new StreamingMethod(
+export const GetFile = new StreamingMethod(
   'get-file',
   {
     treename: 'string',
@@ -275,7 +274,7 @@ exports.GetFile = new StreamingMethod(
 /** @typedef {!{treename: string, relativePath: string, filesize: number}} PreparePutFileParams */
 /** @typedef {!{putId: string}} PreparePutFileResponse */
 /** @type {!Method<PreparePutFileParams, PreparePutFileResponse>} */
-exports.PreparePutFile = new Method(
+export const PreparePutFile = new Method(
   'prepare-put-file',
   {
     treename: 'string',
@@ -286,7 +285,7 @@ exports.PreparePutFile = new Method(
     putId: 'string'
   });
 
-exports.PutFile = new UploadMethod();
+export const PutFile = new UploadMethod();
 
 /**
  * @typedef {!{
@@ -297,7 +296,7 @@ exports.PutFile = new UploadMethod();
  * }} CopyWithinParams
  */
 /** @type {!Method<CopyWithinParams, void>} */
-exports.CopyWithin = new Method(
+export const CopyWithin = new Method(
   'copy-within',
   {
     srcTreename: 'string',
@@ -308,7 +307,7 @@ exports.CopyWithin = new Method(
 
 /** @typedef {!{treename: string, relativePath: string}} DeleteFileParams */
 /** @type {!Method<DeleteFileParams, void>} */
-exports.DeleteFile = new Method(
+export const DeleteFile = new Method(
   'delete-file',
   {
     treename: 'string',

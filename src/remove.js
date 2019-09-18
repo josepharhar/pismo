@@ -1,14 +1,14 @@
-const path = require('path');
-const fs = require('fs');
+import * as path from 'path';
+import * as fs from 'fs';
 
-const pismoutil = require('./pismoutil.js');
+import * as pismoutil from './pismoutil.js';
 
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /**
  * @param {import('./pismo.js').RemoveArgs} argv
  */
-exports.remove = async function(argv) {
+export async function remove(argv) {
   const treesPath = pismoutil.getAbsoluteTreesPath();
 
   const filepath = path.join(treesPath, `/${argv.name}.json`);

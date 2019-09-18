@@ -1,12 +1,12 @@
-const fs = require('fs');
-const path = require('path');
-const util = require('util');
-const os = require('os');
+import * as fs from 'fs';
+import * as path from 'path';
+import * as util from 'util';
+import * as os from 'os';
 
-const filesize = require('filesize');
+import * as filesize from 'filesize';
 
-const pismoutil = require('./pismoutil.js');
-const remote = require('./remote.js');
+import * as pismoutil from './pismoutil.js';
+import * as remote from './remote.js';
 
 const readFilePromise = util.promisify(fs.readFile);
 const readdirPromise = util.promisify(fs.readdir);
@@ -49,7 +49,7 @@ function printTree(name, tree, verbose) {
 /**
  * @param {import('./pismo.js').ListArgs} argv
  */
-exports.list = async function(argv) {
+export async function list(argv) {
   const treeNamesToPaths = await pismoutil.getTreeNamesToPaths();
 
   let first = true;

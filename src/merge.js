@@ -1,9 +1,9 @@
-const fs = require('fs');
+import * as fs from 'fs';
 
-const diff = require('./diff.js');
-const remotes = require('./remote.js');
-const pismoutil = require('./pismoutil.js');
-const branches = require('./branch.js');
+import * as diff from './diff.js';
+import * as remotes from './remote.js';
+import * as pismoutil from './pismoutil.js';
+import * as branches from './branch.js';
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 const Branch = branches.Branch;
@@ -21,7 +21,7 @@ const Branch = branches.Branch;
  * @param {!TreeFile} otherTree 
  * @return {!Array<!FileInfo>}
  */
-exports.oneWayUpdate = function(baseTree, otherTree) {
+export function oneWayUpdate(baseTree, otherTree) {
   /** @type {!Array<!FileInfo>} */
   const files = [];
 
@@ -168,7 +168,7 @@ function oneWayAdd(baseTree, otherTree) {
 /**
  * @param {import('./pismo.js').MergeGenArgs} argv
  */
-exports.merge = async function(argv) {
+export async function merge(argv) {
   const outputFilepath = argv['output-filepath'];
   const mode = argv['mode'];
 

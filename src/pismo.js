@@ -7,21 +7,21 @@ BigInt.prototype.toJSON = function() {
   return Number(this.toString());
 }
 
-const yargs = require('yargs');
+import * as yargs from 'yargs';
 
-const {list} = require('./list.js');
-const {add} = require('./add.js');
-const {update, updateAll} = require('./update.js');
-const {remove} = require('./remove.js');
-const {merge} = require('./merge.js');
-const {diff, dupes} = require('./diff.js');
-const {apply} = require('./apply.js');
-const {config} = require('./config.js');
-const {commit} = require('./commit.js');
-const {status} = require('./status.js');
-const {server} = require('./server.js');
-const {remoteAdd, remoteRemove, remoteList, remoteUpdate} = require('./remote.js');
-const {mergePrint} = require('./mergeprint.js');
+import {list} from './list.js';
+import {add} from './add.js';
+import {update, updateAll} from './update.js';
+import {remove} from './remove.js';
+import {merge} from './merge.js';
+import {diff, dupes} from './diff.js';
+import {apply} from './apply.js';
+import {config} from './config.js';
+import {commit} from './commit.js';
+import {status} from './status.js';
+import {server} from './server.js';
+import {remoteAdd, remoteRemove, remoteList, remoteUpdate} from './remote.js';
+import {mergePrint} from './mergeprint.js';
 
 function run(fn) {
   return function(argv) {

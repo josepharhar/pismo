@@ -1,15 +1,15 @@
-const path = require('path');
-const fs = require('fs');
+import * as path from 'path';
+import * as fs from 'fs';
 
-const mkdirp = require('mkdirp');
+import * as mkdirp from 'mkdirp';
 
-const pismoutil = require('./pismoutil.js');
+import * as pismoutil from './pismoutil.js';
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /**
  * @param {import('./pismo.js').AddArgs} argv
  */
-exports.add = async function(argv) {
+export async function add(argv) {
   const absolutePath = path.resolve(process.cwd(), argv.path);
 
   if (argv.name.includes('/') || argv.name.includes('\\')) {

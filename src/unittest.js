@@ -1,4 +1,4 @@
-const pismoutil = require('./pismoutil.js');
+import * as pismoutil from './pismoutil.js';
 
 function it(name, fn) {
   try {

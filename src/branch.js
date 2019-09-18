@@ -1,9 +1,9 @@
-const path = require('path');
+import * as path from 'path';
 
-const remotes = require('./remote.js');
-const pismoutil = require('./pismoutil.js');
+import * as remotes from './remote.js';
+import * as pismoutil from './pismoutil.js';
 
-exports.Branch = class {
+export class Branch {
   /**
    * @param {string} string
    */

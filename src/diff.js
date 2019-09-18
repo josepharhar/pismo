@@ -1,10 +1,10 @@
-const path = require('path');
-const fs = require('fs');
+import * as path from 'path';
+import * as fs from 'fs';
 
-const filesize = require('filesize');
+import * as filesize from 'filesize';
 
-const {Branch} = require('./branch.js');
-const pismoutil = require('./pismoutil.js');
+import {Branch} from './branch.js';
+import * as pismoutil from './pismoutil.js';
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /** @typedef {pismoutil.TreeFile} TreeFile */
@@ -14,7 +14,7 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
 /**
  * @param {import('./pismo.js').DiffArgs} argv
  */
-exports.diff = async function(argv) {
+export async function diff(argv) {
   const baseBranch = new Branch(argv.base);
   const otherBranch = argv.other ? new Branch(argv.other) : null;
 
@@ -42,7 +42,7 @@ exports.diff = async function(argv) {
 /**
  * @param {import('./pismo.js').DupesArgs} argv
  */
-exports.dupes = async function(argv) {
+export async function dupes(argv) {
   const baseBranch = new Branch(argv.base);
   const otherBranch = argv.other ? new Branch(argv.other) : null;
 
@@ -62,7 +62,7 @@ exports.dupes = async function(argv) {
  * @param {!TreeFile} baseTree
  * @param {!TreeFile} otherTree
  */
-exports.diffTrees = async function(baseTree, otherTree) {
+export async function diffTrees(baseTree, otherTree) {
   const differator = exports.differator(baseTree, otherTree);
   while (differator.hasNext()) {
     const [{treeFile, fileInfo}, second] = differator.next();
@@ -255,6 +255,6 @@ class Differator {
  * @param {!TreeFile} otherTree
  * @return {!Differator}
  */
-exports.differator = function(baseTree, otherTree) {
+export function differator(baseTree, otherTree) {
   return new Differator(baseTree, otherTree);
 }

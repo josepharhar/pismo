@@ -3,7 +3,7 @@
 /**
  * @param {import('./pismo.js').CommitArgs} argv
  */
-exports.commit = function(argv) {
+export function commit(argv) {
   // TODO
   throw new Error("NOTIMPLEMENTED");
 }

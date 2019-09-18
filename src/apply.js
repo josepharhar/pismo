@@ -1,15 +1,15 @@
-const path = require('path');
-const fs = require('fs');
+import * as path from 'path';
+import * as fs from 'fs';
 
 // @ts-ignore
-const nanoutimes = require('nanoutimes');
+import * as nanoutimes from 'nanoutimes';
 // @ts-ignore
-const nanostat = require('nanostat');
+import * as nanostat from 'nanostat';
 
-const diff = require('./diff.js');
-const branches = require('./branch.js');
-const pismoutil = require('./pismoutil.js');
-const remotes = require('./remote.js');
+import * as diff from './diff.js';
+import * as branches from './branch.js';
+import * as pismoutil from './pismoutil.js';
+import * as remotes from './remote.js';
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 // TODO delet this?
@@ -42,7 +42,7 @@ function setFileTime(absolutePath, filetime) {
 /**
  * @param {import('./pismo.js').MergeApplyArgs} argv
  */
-exports.apply = async function(argv) {
+export async function apply(argv) {
   /** @type {pismoutil.MergeFile} */
   const mergefile = await pismoutil.readFileToJson(argv.mergefile);
 

@@ -1,13 +1,13 @@
-const fs = require('fs');
-const path = require('path');
+import * as fs from 'fs';
+import * as path from 'path';
 
-const pismoutil = require('./pismoutil.js');
+import * as pismoutil from './pismoutil.js';
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /**
  * @param {import('./pismo.js').ConfigArgs} argv
  */
-exports.config = async function(argv) {
+export async function config(argv) {
   let config = await pismoutil.readDotFileFromJson('config.json');
   if (!config) {
     config = {};
@@ -31,7 +31,7 @@ exports.config = async function(argv) {
  * @param {!string} setting
  * @return {!Promise<?string>}
  */
-exports.getSetting = async function(setting) {
+export async function getSetting(setting) {
   const config = await pismoutil.readDotFileFromJson('config.json');
   if (!config)
     return null;

@@ -1,11 +1,11 @@
 
 
-const pismoutil = require('./pismoutil.js');
+import * as pismoutil from './pismoutil.js';
 
 /**
  * @param {import('./pismo.js').MergePrintArgs} argv
  */
-exports.mergePrint = async function(argv) {
+export async function mergePrint(argv) {
   /** @type {pismoutil.MergeFile} */
   const mergefile = await pismoutil.readFileToJson(argv.mergefile);
 

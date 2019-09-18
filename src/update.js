@@ -1,20 +1,20 @@
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-const util = require('util');
-const crypto = require('crypto');
-const events = require('events');
-const stream = require('stream');
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+import * as util from 'util';
+import * as crypto from 'crypto';
+import * as events from 'events';
+import * as stream from 'stream';
 const spawn = require('child_process').spawn;
 
 // @ts-ignore
-const nanostat = require('nanostat');
-const progressStream = require('progress-stream');
+import * as nanostat from 'nanostat';
+import * as progressStream from 'progress-stream';
 
-const pismoutil = require('./pismoutil.js');
-const diff = require('./diff.js');
-//const {TreeFile} = require('./treefile.js');
-const merge = require('./merge.js');
+import * as pismoutil from './pismoutil.js';
+import * as diff from './diff.js';
+//import * as {TreeFile} from './treefile.js';
+import * as merge from './merge.js';
 
 const readFilePromise = util.promisify(fs.readFile);
 const readdirPromise = util.promisify(fs.readdir);
@@ -138,8 +138,11 @@ async function scanPath(
       /** @type {!pismoutil.FileInfo} */
       const newFileInfo = {
         path: unixRelativeEntPath,
+        // @ts-ignore
         mtimeS: Number(stat.mtimeMs / 1000n),
+        // @ts-ignore
         mtimeNs: Number(stat.mtimeNs),
+        // @ts-ignore
         size: Number(stat.size),
         hash: null,
         customAttributeNameToValue: cachedFileinfo && cachedFileinfo.customAttributeNameToValue
@@ -211,7 +214,7 @@ async function scanPath(
  * @param {!string} name
  * @param {boolean} nocache
  */
-exports.updateInternal = async function(name, nocache) {
+export async function updateInternal(name, nocache) {
   const treefilepath = (await pismoutil.getTreeNamesToPaths())[name];
   if (!treefilepath)
     throw new Error('Failed to find tree with name: ' + name);
@@ -310,14 +313,14 @@ exports.updateInternal = async function(name, nocache) {
 /**
  * @param {import('./pismo.js').UpdateArgs} argv
  */
-exports.update = async function(argv) {
+export async function update(argv) {
   await exports.updateInternal(argv.name, argv.nocache);
 }
 
 /**
  * @param {import('./pismo.js').UpdateAllArgs} argv
  */
-exports.updateAll = async function(argv) {
+export async function updateAll(argv) {
   const treeNamesToPaths = await pismoutil.getTreeNamesToPaths();
   for (const treename of Object.keys(treeNamesToPaths)) {
     exports.updateInternal(treename, argv.nocache);

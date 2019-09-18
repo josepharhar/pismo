@@ -1,18 +1,18 @@
-const os = require('os');
-const path = require('path');
-const fs = require('fs');
-const util = require('util');
-const stream = require('stream');
-const events = require('events');
+import * as os from 'os';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as util from 'util';
+import * as stream from 'stream';
+import * as events from 'events';
 
 // @ts-ignore
-const nanostat = require('nanostat');
+import * as nanostat from 'nanostat';
 // @ts-ignore
-const nanoutimes = require('nanoutimes');
+import * as nanoutimes from 'nanoutimes';
 
-const filesize = require('filesize');
-const mkdirp = require('mkdirp');
-const rimraf = require('rimraf');
+import * as filesize from 'filesize';
+import * as mkdirp from 'mkdirp';
+import * as rimraf from 'rimraf';
 
 const readdirPromise = util.promisify(fs.readdir);
 const readFilePromise = util.promisify(fs.readFile);
@@ -20,7 +20,7 @@ const writeFilePromise = util.promisify(fs.writeFile);
 
 /** @typedef {{path: string, mtimeS: number, mtimeNs: number, size: number, hash: string, customAttributeNameToValue: !Object<string, string>}} FileInfo */
 /** @type {!JsonSchema} */
-exports.FileInfoSchema = {
+export const FileInfoSchema = {
   path: 'string',
   mtimeS: 'number',
   mtimeNs: 'number',
@@ -31,11 +31,11 @@ exports.FileInfoSchema = {
 // lastUpdated can be -1 to signal that an update never happened
 /** @typedef {{path: string, lastUpdated: number, customAttributeNameToCommand: !Object<string, string>, files: !Array<FileInfo>}} TreeFile */
 /** @type {!JsonSchema} */
-exports.TreeFileSchema = {
+export const TreeFileSchema = {
   path: 'string',
   lastUpdated: 'number',
   customAttributeNameToCommand: 'object',
-  files: [exports.FileInfoSchema]
+  files: [FileInfoSchema]
 };
 /** @typedef {{operator: 'rm'|'cp'|'touch', operands: !Array<{tree: 'base'|'other', relativePath: string}>}} Operation */
 /** @typedef {{baseBranch: string, otherBranch: string, operations: !Array<!Operation>}} MergeFile */
@@ -45,7 +45,7 @@ exports.TreeFileSchema = {
  * @param {string=} filepath
  * @return {{logInfo: function(string), logError: function(string), logVerbose: function(string)}}
  */
-exports.getLogger = function(filepath) {
+export function getLogger(filepath) {
   if (filepath)
     filepath = path.basename(filepath);
 
@@ -67,28 +67,28 @@ exports.getLogger = function(filepath) {
   };
 }
 
-const {logInfo, logError} = exports.getLogger(__filename);
+const {logInfo, logError} = getLogger(__filename);
 
 /**
  * TODO transition off usage of this in other files
  * @return {!string}
  */
-exports.getDotPath = function() {
+export function getDotPath() {
   return path.join(os.homedir(), '/.pismo');
 }
 
 /**
  * @return {!string}
  */
-exports.getAbsoluteTreesPath = function() {
-  return path.join(exports.getDotPath(), '/trees');
+export function getAbsoluteTreesPath() {
+  return path.join(getDotPath(), '/trees');
 }
 
 /**
  * @return {string}
  */
-exports.getAbsoluteRemotesPath = function() {
-  return path.join(exports.getDotPath(), '/remotes');
+export function getAbsoluteRemotesPath() {
+  return path.join(getDotPath(), '/remotes');
 }
 
 /**
@@ -103,10 +103,10 @@ exports.getAbsoluteRemotesPath = function() {
  *
  * @return {!Promise<Object<string, string>>}
  */
-exports.getTreeNamesToPaths = async function() {
+export async function getTreeNamesToPaths() {
   /** @type {Object<string, string>} */
   const output = {};
-  const treespath = exports.getAbsoluteTreesPath();
+  const treespath = getAbsoluteTreesPath();
 
   let filenames;
   try {
@@ -135,8 +135,8 @@ exports.getTreeNamesToPaths = async function() {
  * @param {!string} relativePath
  * @return {!Promise<string>}
  */
-exports.readDotFile = async function(relativePath) {
-  const filepath = path.join(exports.getDotPath(), relativePath);
+export async function readDotFile(relativePath) {
+  const filepath = path.join(getDotPath(), relativePath);
   try {
     return await readFilePromise(filepath, 'utf8');
   } catch (err) {
@@ -148,7 +148,7 @@ exports.readDotFile = async function(relativePath) {
 /**
  * @param {string} path
  */
-exports.mkdirpPromise = async function(path) {
+export async function mkdirpPromise(path) {
   return new Promise((resolve, reject) => {
     mkdirp(path, error => {
       if (error)
@@ -165,8 +165,8 @@ exports.mkdirpPromise = async function(path) {
  * @param {!string} relativePath
  * @return {!Promise<?Object>}
  */
-exports.readDotFileFromJson = async function(relativePath) {
-  const contents = await exports.readDotFile(relativePath);
+export async function readDotFileFromJson(relativePath) {
+  const contents = await readDotFile(relativePath);
 
   try {
     return JSON.parse(contents);
@@ -184,8 +184,8 @@ exports.readDotFileFromJson = async function(relativePath) {
  * @param {!string} relativePath
  * @param {string|number|Object} data
  */
-exports.writeDotFile = async function(relativePath, data) {
-  const filepath = path.join(exports.getDotPath(), relativePath);
+export async function writeDotFile(relativePath, data) {
+  const filepath = path.join(getDotPath(), relativePath);
 
   const dirpath = path.dirname(filepath);
   try {
@@ -213,7 +213,7 @@ exports.writeDotFile = async function(relativePath, data) {
  * @param {!string} filepath
  * @return {!Promise<?Object>}
  */
-exports.readFileToJson = async function(filepath) {
+export async function readFileToJson(filepath) {
   let filecontents;
   try {
     filecontents = await readFilePromise(filepath, 'utf8');
@@ -235,7 +235,7 @@ exports.readFileToJson = async function(filepath) {
 /**
  * @param {string} filepath
  */
-exports.deletePath = async function(filepath) {
+export async function deletePath(filepath) {
   return new Promise((resolve, reject) => {
     rimraf(filepath, {disableGlob: true}, error => {
       if (error) {
@@ -251,21 +251,21 @@ exports.deletePath = async function(filepath) {
 /**
  * @param {string} relativePath
  */
-exports.deleteDotPath = async function(relativePath) {
-  return exports.deletePath(path.join(exports.getDotPath(), relativePath));
+export async function deleteDotPath(relativePath) {
+  return deletePath(path.join(getDotPath(), relativePath));
 }
 
 /**
  * @param {!string} treename
  * @return {!Promise<!TreeFile>}
  */
-exports.readTreeByName = async function(treename) {
-  const treeNamesToPaths = await exports.getTreeNamesToPaths();
+export async function readTreeByName(treename) {
+  const treeNamesToPaths = await getTreeNamesToPaths();
   const filepath = treeNamesToPaths[treename];
   if (!filepath)
     throw new Error(`Couldn't find a tree file named ${treename}`);
   try {
-    return await exports.readFileToJson(filepath);
+    return await readFileToJson(filepath);
   } catch (err) {
     logError(`Failed to read tree file named ${treename} at filepath ${filepath}`);
     throw err;
@@ -273,7 +273,7 @@ exports.readTreeByName = async function(treename) {
 }
 
 /** @type {!Object<string, string>} */
-exports.Colors = {
+export const Colors = {
   reset: '\x1b[0m',
   bright: '\x1b[1m',
   dim: '\x1b[2m',
@@ -305,15 +305,15 @@ exports.Colors = {
  * @param {!string} color
  * @param {!string} message
  */
-exports.logColor = function(color, message) {
-  console.log(`${color}%s${exports.Colors.reset}`, message);
+export function logColor(color, message) {
+  console.log(`${color}%s${Colors.reset}`, message);
 }
 
 /**
  * @param {!FileInfo} fileInfo
  * @return {!Object}
  */
-exports.humanReadableFileInfo = function(fileInfo) {
+export function humanReadableFileInfo(fileInfo) {
   const copy = JSON.parse(JSON.stringify(fileInfo));
 
   /*const mtime = new Date(0);
@@ -324,7 +324,7 @@ exports.humanReadableFileInfo = function(fileInfo) {
   /*const mtime = new Date(0);
   mtime.setUTCSeconds(copy.mtimeMs);
   copy.mtimeMs = mtime.toISOString();*/
-  copy.mtimeMs = exports.dateToString(new Date(copy.mtimeMs));
+  copy.mtimeMs = dateToString(new Date(copy.mtimeMs));
 
   copy.size = filesize(copy.size);
 
@@ -336,7 +336,7 @@ exports.humanReadableFileInfo = function(fileInfo) {
  * @param {!Date} date
  * @return {!string}
  */
-exports.dateToString = function(date) {
+export function dateToString(date) {
   const tzo = -date.getTimezoneOffset(),
     dif = tzo >= 0 ? '+' : '-',
     pad = function(num) {
@@ -357,7 +357,7 @@ exports.dateToString = function(date) {
  * @param {!stream.Readable} stream
  * @return {!Promise<string>}
  */
-exports.streamToString = async function(stream) {
+export async function streamToString(stream) {
   return new Promise((resolve, reject) => {
     let chunks = '';
     stream.on('data', chunk => {
@@ -372,10 +372,12 @@ exports.streamToString = async function(stream) {
  * @param {string} absolutePath
  * @return {!FileTime}
  */
-exports.getLocalFileTime = function(absolutePath) {
+export function getLocalFileTime(absolutePath) {
   const stats = nanostat.statSync(absolutePath);
   return {
+    // @ts-ignore
     mtimeS: Number(stats.mtimeMs / 1000n),
+    // @ts-ignore
     mtimeNs: Number(stats.mtimeNs)
   };
 }
@@ -384,7 +386,7 @@ exports.getLocalFileTime = function(absolutePath) {
  * @param {string} absolutePath
  * @param {!FileTime} filetime
  */
-exports.setLocalFileTime = function(absolutePath, filetime) {
+export function setLocalFileTime(absolutePath, filetime) {
   nanoutimes.utimesSync(absolutePath, null, null, filetime.mtimeS, filetime.mtimeNs);
 }
 
@@ -418,7 +420,7 @@ exports.setLocalFileTime = function(absolutePath, filetime) {
  * @param {JsonSchema} rootSchema
  * @return {!T}
  */
-exports.parseJson = function(rootObj, rootSchema) {
+export function parseJson(rootObj, rootSchema) {
   /** @type {!Array<!{obj: *, schema: JsonSchema}>} */
   const stackqueue = [];
   stackqueue.push({
@@ -462,7 +464,7 @@ exports.parseJson = function(rootObj, rootSchema) {
 
       const expectedKeys = Object.keys(schema).sort();
       const actualKeys = Object.keys(obj).sort();
-      if (!exports.areArraysEqual(expectedKeys, actualKeys)) {
+      if (!areArraysEqual(expectedKeys, actualKeys)) {
         throw error('invalid json, object field mismatch'
           + ', expected: ' + JSON.stringify(expectedKeys)
           + ', actual: ' + JSON.stringify(actualKeys));
@@ -487,7 +489,7 @@ exports.parseJson = function(rootObj, rootSchema) {
  * @param {!Array<T>} two
  * @return {boolean}
  */
-exports.areArraysEqual = function(one, two) {
+export function areArraysEqual(one, two) {
   if (!Array.isArray(one) || !Array.isArray(two))
     return false;
 
@@ -512,15 +514,16 @@ exports.areArraysEqual = function(one, two) {
  * @param {string} path
  * @return {!Stats}
  */
-exports.stat = function(path) {
+export function stat(path) {
   try {
+    // @ts-ignore
     return nanostat.statSync(path);
   } catch (error) {
-    throw new exports.ErrorWrapper(error, `Failed to nanostat.statSync path: ${path}`);
+    throw new ErrorWrapper(error, `Failed to nanostat.statSync path: ${path}`);
   }
 }
 
-exports.ErrorWrapper = class extends Error {
+export class ErrorWrapper extends Error {
   /**
    * @param {!Error} error 
    * @param {string} message 
@@ -538,7 +541,7 @@ exports.ErrorWrapper = class extends Error {
  * @param {number} epoch
  * @return {!Date}
  */
-exports.epochToDate = function(epoch) {
+export function epochToDate(epoch) {
   // Date constructor takes ms instead of seconds, so convert
   return new Date(epoch * 1000);
 }
@@ -547,7 +550,7 @@ exports.epochToDate = function(epoch) {
  * @param {!Date} date
  * @return {string}
  */
-exports.timeElapsedToString = function(date) {
+export function timeElapsedToString(date) {
   const diffMs = new Date().getTime() - date.getTime();
   const seconds = Math.floor(diffMs / 1000);
   const minutes = Math.floor(seconds / 60);
@@ -581,7 +584,7 @@ exports.timeElapsedToString = function(date) {
 // * @param {string} path
 // * @return {!Promise<!Array<fs.Dirent>>}
 // */
-//exports.readdirSafe = function(path) {
+//export function readdirSafe(path) {
 //  return new Promise((resolve, reject) => {
 //    fs.access(path, (error) => {
 //      if (error) {
@@ -604,7 +607,7 @@ exports.timeElapsedToString = function(date) {
  * @param {!FileInfo} b 
  * @return {number}
  */
-exports.fileInfoComparator = function(a, b) {
+export function fileInfoComparator(a, b) {
   if (a.path < b.path)
     return -1;
   if (a.path > b.path)
@@ -612,7 +615,7 @@ exports.fileInfoComparator = function(a, b) {
   return 0;
 }
 
-//exports.ProgressStream = class extends stream.Transform {
+//export class ProgressStream extends stream.Transform {
 //  /**
 //   * @param {number} totalLength
 //   * @param {number} updateIntervalMs

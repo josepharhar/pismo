@@ -14,5 +14,5 @@ const _localBranchCache = new Map();
 /**
  * @param {string} name
  */
-exports.getLocalBranch = async function(name) {
+export async function getLocalBranch(name) {
 }
