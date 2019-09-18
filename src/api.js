@@ -6,8 +6,6 @@ import {Remote} from './remote.js';
 import * as pismoutil from './pismoutil.js';
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
-import * as types from '../web/src/PismoTypes';
-
 /**
  * @template RequestType,ResponseType
  */
