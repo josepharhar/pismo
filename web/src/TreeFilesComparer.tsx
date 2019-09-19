@@ -240,53 +240,133 @@ class TreeFilesComparer extends React.Component<Props> {
     });
   }
 
+  renderViewPicker() {
+    return (
+      <span style={{border: '1px solid black'}}>
+        view:
+        <label>
+          <input
+            type="radio"
+            name="view-all"
+            checked={this.state.viewStyle === 'all'}
+            onChange={event => {
+              if (!event.target.checked)
+                return;
+              this.setState({
+                viewStyle: 'all'
+              });
+            }} />
+            all
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="view-all"
+            checked={this.state.viewStyle === 'onlyDiff'}
+            onChange={event => {
+              if (!event.target.checked)
+                return;
+              this.setState({
+                viewStyle: 'onlyDiff'
+              });
+            }} />
+            only diff
+        </label>
+      </span>
+    );
+  }
+
   renderBanner() {
     return (
       <div className="sticky">
-        <button>save</button>
-        <span style={{border: '1px solid black'}}>
-          view:
-          <label>
-            <input
-              type="radio"
-              name="view-all"
-              checked={this.state.viewStyle === 'all'}
-              onChange={event => {
-                if (!event.target.checked)
-                  return;
-                this.setState({
-                  viewStyle: 'all'
-                });
-              }} />
-              all
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="view-all"
-              checked={this.state.viewStyle === 'onlyDiff'}
-              onChange={event => {
-                if (!event.target.checked)
-                  return;
-                this.setState({
-                  viewStyle: 'onlyDiff'
-                });
-              }} />
-              only diff
-          </label>
-        </span>
+        <div>
+          <button className="comparer-left-button">save</button>
+          {this.renderViewPicker()}
+        </div>
+        <div className="split-container">
+          <div className="split-child comparer-branch-title">
+            TODO left name
+          </div>
+          <div className="split-child comparer-branch-title">
+            TODO right name
+          </div>
+        </div>
       </div>
     );
   }
 
+  renderRow(row: {left?: FileInfo, right?: FileInfo}) {
+    if (row.left && row.right && this.state.viewStyle === 'onlyDiff')
+      return [];
+    
+    let path: string = '';
+    if (row.left)
+      path = row.left.path;
+    else if (row.right)
+      path = row.right.path;
+    if (!path) {
+      console.error('this should never happen. row: ', row);
+      return [];
+    }
+
+    const expanded = this.state.expandedPaths.has(path);
+
+    let diffState: 'same'|'diffmtime'|'diffhash'|'onlyone' = 'onlyone';
+    if (row.left && row.right) {
+      if (row.left.hash === row.right.hash) {
+        if (row.left.mtimeS === row.right.mtimeS && row.left.mtimeNs === row.right.mtimeNs) {
+          diffState = 'same';
+        } else {
+          diffState = 'diffmtime';
+        }
+      } else {
+        diffState = 'diffhash';
+      }
+    }
+
+
+    const renderDetail = () => {
+      return [
+        <div className="datagrid-cell">
+          one
+        </div>,
+        <div className="datagrid-cell">
+          two
+        </div>
+      ];
+    };
+
+    return [
+      <div className="datagrid-row comparer-border-bottom-soft" key={path}>
+        <button
+            className="datagrid-cell datagrid-cell-no-grow comparer-left-button"
+            onClick={() => { console.log('TODO delet this'); }} >
+          delete
+        </button>
+        <button className="comparer-pick-button">
+          pick
+        </button>
+        <div className="datagrid-cell monospace">
+          {path}
+        </div>
+        <button className="comparer-pick-button comparer-pick-right">
+          pick
+        </button>
+      </div>,
+      <div className="datagrid-row comparer-bottom-row">
+        {renderDetail()}
+      </div>
+    ];
+  }
+
   render() {
     return (
-      <div>
+      <div className="comparer">
         {this.renderBanner()}
 
         <div className="datagrid">
           {this.rows.flatMap((row, index)=> {
-            if (row.left && row.right && this.state.viewStyle === 'onlyDiff')
+            /*if (row.left && row.right && this.state.viewStyle === 'onlyDiff')
               return [];
 
             let path: string = '';
@@ -308,7 +388,8 @@ class TreeFilesComparer extends React.Component<Props> {
                 {this.fileToCell(row.left, index, 'left', expanded)}
                 {this.fileToCell(row.right, index, 'right', expanded)}
               </div>
-            );
+            );*/
+            return this.renderRow(row);
           })}
         </div>
       </div>
@@ -317,3 +398,5 @@ class TreeFilesComparer extends React.Component<Props> {
 }
 
 export default TreeFilesComparer;
+
+// TODO make singular delete button turn into an undo button when you do something with the row

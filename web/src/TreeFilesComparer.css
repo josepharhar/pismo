@@ -1,0 +1,48 @@
+/*.comparer button {
+  cursor: pointer;
+}*/
+
+.comparer .datagrid-cell {
+  border: none;
+}
+
+.comparer .comparer-left-button {
+  width: 60px;
+  min-width: 60px;
+}
+
+.comparer button.comparer-left-button {
+  border: default;
+  border-width: 2px;
+  border-style: outset;
+  border-color: buttonface;
+  border-image: initial;
+}
+
+.comparer .comparer-branch-title {
+  text-align: center;
+  border-left: solid 1px black;
+  border-top: solid 1px black;
+}
+
+.comparer .comparer-pick-button {
+  width: 60px;
+}
+
+.comparer .comparer-pick-right {
+  position: absolute;
+  right: 0px;
+}
+
+.comparer .comparer-row-container {
+  display: flex;
+}
+
+.comparer .comparer-bottom-row {
+  border-bottom: solid 1px black;
+  cursor: pointer;
+}
+
+.comparer .comparer-border-bottom-soft {
+  border-bottom: dashed 1px rgba(0, 0, 0, 0.15);
+}

@@ -323,5 +323,10 @@ export async function server(argv) {
     }
   });
 
+  app.get('/version', async (req, res) => {
+    res.writeHead(200, {'content-type': 'text/plain'});
+    res.end('TODO add versioning here');
+  });
+
   app.listen(port);
 }
