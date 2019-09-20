@@ -7,8 +7,8 @@
 }
 
 .comparer .comparer-left-button {
-  width: 60px;
-  min-width: 60px;
+  width: 90px;
+  min-width: 90px;
 }
 
 .comparer button.comparer-left-button {
@@ -26,7 +26,7 @@
 }
 
 .comparer .comparer-pick-button {
-  width: 60px;
+  width: 90px;
 }
 
 .comparer .comparer-pick-right {
@@ -39,7 +39,7 @@
 }
 
 .comparer .comparer-bottom-row {
-  border-bottom: solid 1px black;
+  border-bottom: solid 2px black;
   cursor: pointer;
 }
 

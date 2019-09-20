@@ -64,3 +64,19 @@ table.table-borders>tbody>tr>td{
   background-color: white;
   border-bottom: 1px solid black;
 }
+
+.disabled-bg-color {
+  background-color: lightgray;
+}
+
+.warning-bg-color {
+  background-color: orange;
+}
+
+.error-bg-color {
+  background-color: red;
+}
+
+.center-text {
+  text-align: center;
+}
