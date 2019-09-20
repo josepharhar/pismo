@@ -1,9 +1,10 @@
 import React, { ReactNode } from 'react';
-import { GetTreesResponse, FileInfo, Operation } from './PismoTypes';
+import { GetTreesResponse, FileInfo, Operation, MergeFile } from './PismoTypes';
 import './TreeFilesComparer.css';
 import './DataGrid.css';
 //import { FixedSizeList } from 'react-window';
 import filesize from 'filesize';
+import { file } from '@babel/types';
 
 interface Props {
   getTreesResponse: GetTreesResponse;
@@ -68,165 +69,26 @@ class TreeFilesComparer extends React.Component<Props> {
     }
   }
 
-//  fileToCell(file: FileInfo|undefined, index: number, side: 'left'|'right', expanded: boolean): ReactNode {
-//    const key = `${index}-${side}`;
-//    if (!file) {
-//      return <div key={key} className="datagrid-cell empty"><div>file not present</div></div>;
-//    }
-//    const {path, mtimeS, mtimeNs, size, hash} = file;
-//
-//
-//    // things that can happen:
-//    // 1. one or both get deleted
-//    // 2. one (or both???) is touched
-//    // 3. one is copied to the other side
-//    type MergeState = 'Copying from other side'/*|'touchingFromOtherSide'*/|'DELETING'|null;
-//    let leftMergeState: MergeState = null;
-//    let rightMergeState: MergeState = null;
-//    const mergeOperations = this.state.pathToMergeOperations.get(file.path);
-//    if (mergeOperations && mergeOperations.length > 0) {
-//      const firstOperation = mergeOperations[0];
-//      if (firstOperation.operator === 'cp') {
-//        // binary operation
-//        if (mergeOperations.length > 1) {
-//          console.error('multiple merge operations on binary operation! ignoring: ' + JSON.stringify(mergeOperations.slice(1), null, 2));
-//        }
-//
-//        if (firstOperation.operands[0].tree === 'base') {
-//          // copying left to right
-//          rightMergeState = 'Copying from other side';
-//        } else {
-//          // copying right to left
-//          leftMergeState = 'Copying from other side';
-//        }
-//
-//      } else {
-//        // unary operation(s)
-//        for (const operation of mergeOperations) {
-//          if (operation.operator === 'rm') {
-//            if (operation.operands[0].tree === 'base')
-//              leftMergeState = 'DELETING';
-//            else
-//              rightMergeState = 'DELETING';
-//          } else if (operation.operator === 'touch') {
-//            // TODO wait how does touch actually work???
-//            //   i should actually change the structure to imply unary vs binary operators better.
-//          }
-//        }
-//      }
-//    }
-//    const thisMergeState = side === 'left' ? leftMergeState : rightMergeState;
-//    const convertedSide: 'base'|'other' = side === 'left' ? 'base' : 'other';
-//    const undo = () => {
-//      if (!mergeOperations)
-//        return;
-//      const undoneMergeOperations = mergeOperations.flatMap(operation => {
-//        if (operation.operator === 'cp')
-//          return [];
-//        if (operation.operands[0].tree === convertedSide)
-//          return [];
-//        return [operation];
-//      });
-//      const pathToMergeOperations = this.state.pathToMergeOperations;
-//      pathToMergeOperations.set(file.path, undoneMergeOperations);
-//      this.setState({
-//        pathToMergeOperations
-//      });
-//    };
-//
-//    const copy = () => {
-//      const newMergeOperations: Array<Operation> = [];
-//      newMergeOperations.push({
-//        operator: 'cp',
-//        operands: [{
-//          tree: convertedSide,
-//          relativePath: path
-//        }, {
-//          tree: convertedSide === 'base' ? 'other' : 'base',
-//          relativePath: path
-//        }]
-//      });
-//      const pathToMergeOperations = this.state.pathToMergeOperations;
-//      pathToMergeOperations.set(file.path, newMergeOperations);
-//      this.setState({
-//        pathToMergeOperations
-//      });
-//    };
-//
-//    const delet = () => {
-//      let newMergeOperations: Array<Operation> = [];
-//      if (mergeOperations)
-//        newMergeOperations = mergeOperations;
-//      newMergeOperations.push({
-//        operator: 'rm',
-//        operands: [{
-//          tree: convertedSide,
-//          relativePath: path
-//        }]
-//      })
-//      const pathToMergeOperations = this.state.pathToMergeOperations;
-//      pathToMergeOperations.set(file.path, newMergeOperations);
-//      this.setState({
-//        pathToMergeOperations
-//      });
-//    };
-//
-//    // TODO find a better way to display this than with a tooltip?
-//    const tooltip = `mtime: ${mtimeS}.${mtimeNs}, size: ${size}, hash: ${hash}`;
-//
-//    if (!expanded) {
-//      if (thisMergeState) {
-//        return (
-//          <div className="datagrid-cell clip-overflow monospace" title={tooltip}>
-//            <button onClick={() => undo()}>undo</button>
-//            <span style={{fontWeight: 'bold'}}>
-//              {thisMergeState}
-//            </span>
-//            {path}
-//          </div>
-//        );
-//      }
-//
-//      return (
-//        <div className="datagrid-cell clip-overflow monospace" title={tooltip}>
-//          <button onClick={() => copy()} title="copy to other side">copy</button>
-//          <button onClick={() => delet()} title="delete from this side">delete</button>
-//          {path}
-//        </div>
-//      );
-//    }
-//
-//    // TODO show milliseconds in a way that makes sense
-//    const detailFields: Map<string, string> = new Map();
-//    detailFields.set('path', path);
-//    detailFields.set('modified time', new Date(mtimeS * 1000).toISOString());
-//    detailFields.set('size', filesize(size));
-//    detailFields.set('hash', hash);
-//    if (file.customAttributeNameToValue) {
-//      for (const [name, value] of Object.entries(file.customAttributeNameToValue)) {
-//        detailFields.set(name, value);
-//      }
-//    }
-//
-//    return (
-//      <div className="datagrid-cell monospace">
-//        <button title="copy to other side">copy</button>
-//        <button title="delete from this side">delete</button>
-//        <table className="table-borders">
-//          <tbody>
-//            {Array.from(detailFields).map(([key, value]) => {
-//              return (
-//                <tr>
-//                  <td>{key}</td>
-//                  <td>{value}</td>
-//                </tr>
-//              );
-//            })}
-//          </tbody>
-//        </table>
-//      </div>
-//    );
-//  }
+  save() {
+    const output: MergeFile = {
+      baseBranch: this.props.leftBranchName,
+      otherBranch: this.props.rightBranchName,
+      operations: []
+    };
+
+    this.state.pathToMergeOperations.forEach((mergeOperations) => {
+      for (const operation of mergeOperations) {
+        output.operations.push(operation);
+      }
+    });
+
+    const outputString = JSON.stringify(output, null, 2);
+    const blob = new Blob([outputString], {type: 'text/plain'});
+    const anchor = document.createElement('a');
+    anchor.download = 'merge.json';
+    anchor.href = window.URL.createObjectURL(blob);
+    anchor.click();
+  }
 
   toggleExpanded(path: string) {
     const expandedPaths = this.state.expandedPaths;
@@ -280,7 +142,11 @@ class TreeFilesComparer extends React.Component<Props> {
     return (
       <div className="sticky">
         <div>
-          <button className="comparer-left-button">save</button>
+          <button
+            className="comparer-left-button"
+            onClick={() => this.save()}>
+            save
+          </button>
           {this.renderViewPicker()}
         </div>
         <div className="split-container">
@@ -394,30 +260,58 @@ class TreeFilesComparer extends React.Component<Props> {
       }]);
     };
 
-    // renders the first row with the buttons and stuff
-    const renderButtonRow = () => {
+    const undo = () => {
+      this.setMergeOperationsForPath(path, []);
+    }
 
-      const deleteButtonText = () => {
-        switch (diffState) {
-          case 'same':
-          case 'diffhash':
-          case 'diffmtime':
-            return 'delete both';
-          case 'onlyone':
-            return 'delete';
-        }
+    let mergeState: 'none'|'copy'|'delete' = 'none';
+    if (mergeOperations.length) {
+      switch (mergeOperations[0].operator) {
+        case 'rm':
+          mergeState = 'delete';
+          break;
+        case 'cp':
+        case 'touch':
+          mergeState = 'copy';
+          break;
       }
+    }
+
+    const pathText = (
+      <div className="datagrid-cell monospace">
+        {path};
+      </div>
+    );
+
+    const renderButtonRowWithOperations = () => {
+      const undoButton = (
+        <button
+          className="datagrid-cell datagrid-cell-no-grow comparer-left-button"
+          onClick={() => undo()}>
+          undo
+        </button>
+      );
+
+      return [
+        undoButton,
+        pathText
+      ];
+    };
+
+    const renderButtonRow = () => {
+      if (mergeState === 'none')
+        return renderButtonRowWithoutOperations();
+      return renderButtonRowWithOperations();
+    }
+
+    // renders the first row with the buttons and stuff
+    const renderButtonRowWithoutOperations = () => {
       const deleteButton = (
         <button
             className="datagrid-cell datagrid-cell-no-grow comparer-left-button"
             onClick={() => delet()}>
-          {deleteButtonText()} 
+          {diffState === 'onlyone' ? 'delete' : 'delete both'}
         </button>
-      );
-      const pathText = (
-        <div className="datagrid-cell monospace">
-          {path};
-        </div>
       );
       const pickLeftButton = (
         <button
@@ -467,8 +361,46 @@ class TreeFilesComparer extends React.Component<Props> {
       }
     };
 
-    // renders the row below the row with the filename and buttons
+    const renderSummaryRowWithOperations = () => {
+      const operation = mergeOperations[0];
+      switch (operation.operator) {
+        case 'rm':
+          return (
+            <div className="datagrid-cell center-text">
+              deleting
+            </div>
+          );
+        case 'touch':
+        case 'cp':
+          const text = operation.operator === 'cp'
+            ? 'copying'
+            : 'touching';
+          if (operation.operands[0].tree === 'base') {
+            return (
+              <div className="datagrid-cell center-text">
+                {text} from left to right
+              </div>
+            );
+          } else {
+            return (
+              <div className="datagrid-cell center-text">
+                {text} from right to left
+              </div>
+            );
+          }
+        default:
+          throw new Error('this should never happen.');
+      }
+    };
+
     const renderSummaryRow = () => {
+      if (mergeState === 'none')
+        return renderSummaryRowWithoutOperations();
+      return renderSummaryRowWithOperations();
+    };
+
+    // renders the row below the row with the filename and buttons
+    const renderSummaryRowWithoutOperations = () => {
       switch (diffState) {
         case 'same':
           return (
@@ -504,15 +436,85 @@ class TreeFilesComparer extends React.Component<Props> {
       }
     };
 
+    const renderDetailedRowCell = (fileInfo?: FileInfo, otherFileInfo?: FileInfo) => {
+      if (!fileInfo) {
+        return (
+          <div className="datagrid-cell disabled-bg-color center-text">
+            not present
+          </div>
+        );
+      }
+
+      const fileInfoToDetailFields = (fileInfo?: FileInfo): Map<string, string> => {
+        const detailFields: Map<string, string> = new Map();
+        if (!fileInfo)
+          return detailFields;
+
+        detailFields.set('path', fileInfo.path);
+        detailFields.set('modified time', fileInfoToDateString(fileInfo));
+        detailFields.set('size', filesize(fileInfo.size));
+        detailFields.set('hash', fileInfo.hash);
+        if (fileInfo.customAttributeNameToValue) {
+          for (const [name, value] of Object.entries(fileInfo.customAttributeNameToValue)) {
+            detailFields.set(name, value);
+          }
+        }
+        return detailFields;
+      }
+
+      const detailFields = fileInfoToDetailFields(fileInfo);
+      const otherDetailFields = fileInfoToDetailFields(otherFileInfo);
+
+      return (
+        <div className="datagrid-cell monospace">
+          <table className="table-borders">
+            <tbody>
+              {Array.from(detailFields).map(([key, value]) => {
+                let className = "";
+                if (otherDetailFields.get(key) !== value) {
+                  className = "warning-bg-color";
+                }
+                return (
+                  <tr className={className}>
+                    <td>{key}</td>
+                    <td>{value}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
     const renderDetailedRow = () => {
-      return <div className="datagrid-cell">TODO</div>
+      return (
+        <div className="datagrid-cell datagrid-row">
+          {renderDetailedRowCell(left)}
+          {renderDetailedRowCell(right)}
+        </div>
+      );
+    }
+
+    const toggleExpanded = () => {
+      const expandedPaths = this.state.expandedPaths;
+      if (expandedPaths.has(path)) {
+        expandedPaths.delete(path);
+      } else {
+        expandedPaths.add(path);
+      }
+      this.setState({
+        expandedPaths
+      });
     }
 
     return [
       <div className="datagrid-row comparer-border-bottom-soft" key={path}>
         {renderButtonRow()}
       </div>,
-      <div className="datagrid-row comparer-bottom-row">
+      <div
+        className="datagrid-row comparer-bottom-row"
+        onClick={() => toggleExpanded()}>
         {expanded ? renderDetailedRow() : renderSummaryRow()}
       </div>
     ];

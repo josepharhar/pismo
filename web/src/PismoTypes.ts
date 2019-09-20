@@ -24,7 +24,7 @@ export interface Operation {
 export interface MergeFile {
   baseBranch: string;
   otherBranch: string;
-  operation: Array<Operation>;
+  operations: Array<Operation>;
 }
 
 export interface GetTreesRequest {

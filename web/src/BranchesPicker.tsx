@@ -69,7 +69,7 @@ class BranchesPicker extends React.Component<Props> {
                 rightBranchName: this.state.right
               });
             }}>
-            go
+            ikuzo
           </button>
         </div>
       </div>
