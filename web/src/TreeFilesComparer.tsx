@@ -4,7 +4,6 @@ import './TreeFilesComparer.css';
 import './DataGrid.css';
 //import { FixedSizeList } from 'react-window';
 import filesize from 'filesize';
-import { file } from '@babel/types';
 
 interface Props {
   getTreesResponse: GetTreesResponse;
@@ -151,10 +150,10 @@ class TreeFilesComparer extends React.Component<Props> {
         </div>
         <div className="split-container">
           <div className="split-child comparer-branch-title">
-            TODO left name
+            {this.props.leftBranchName}
           </div>
           <div className="split-child comparer-branch-title">
-            TODO right name
+            {this.props.rightBranchName}
           </div>
         </div>
       </div>
@@ -279,7 +278,7 @@ class TreeFilesComparer extends React.Component<Props> {
 
     const pathText = (
       <div className="datagrid-cell monospace">
-        {path};
+        {path}
       </div>
     );
 
@@ -527,29 +526,6 @@ class TreeFilesComparer extends React.Component<Props> {
 
         <div className="datagrid">
           {this.rows.flatMap((row, index)=> {
-            /*if (row.left && row.right && this.state.viewStyle === 'onlyDiff')
-              return [];
-
-            let path: string = '';
-            if (row.left)
-              path = row.left.path;
-            else if (row.right)
-              path = row.right.path;
-            if (!path) // TODO signal error? or type check this check away?
-              return [];
-
-
-            const expanded = this.state.expandedPaths.has(path);
-
-            return (
-              <div className="datagrid-row" key={path}>
-                <div className="datagrid-cell datagrid-cell-no-grow">
-                  <button onClick={() => this.toggleExpanded(path)}>expand</button>
-                </div>
-                {this.fileToCell(row.left, index, 'left', expanded)}
-                {this.fileToCell(row.right, index, 'right', expanded)}
-              </div>
-            );*/
             return this.renderRow(row);
           })}
         </div>
