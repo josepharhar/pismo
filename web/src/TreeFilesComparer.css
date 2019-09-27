@@ -2,10 +2,10 @@
   border: none;
 }
 
-.comparer .comparer-left-button {
+/*.comparer .comparer-left-button {
   width: 90px;
   min-width: 90px;
-}
+}*/
 
 .comparer button.comparer-left-button {
   border: default;
@@ -24,14 +24,15 @@
   border-top: solid 1px black;
 }
 
-.comparer .comparer-pick-button {
+/* TODO delet this */
+/*.comparer .comparer-pick-button {
   width: 90px;
-}
+}*/
 
-.comparer .comparer-pick-right {
-  position: absolute;
-  right: 0px;
-}
+/* TODO delet this */
+/*.comparer .comparer-wide-button {
+  width: 180px;
+}*/
 
 .comparer .comparer-row-container {
   display: flex;
@@ -44,4 +45,17 @@
 
 .comparer .comparer-border-bottom-soft {
   border-bottom: dashed 1px rgba(0, 0, 0, 0.15);
+}
+
+.comparer .comparer-button-row-container {
+  display: flex;
+  width: 180px;
+}
+
+.comparer .comparer-button-row-child {
+  flex: 1 1 0;
+}
+
+.comparer .comparer-button-row-child-big {
+  flex: 2;
 }

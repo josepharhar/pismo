@@ -277,51 +277,39 @@ class TreeFilesComparer extends React.Component<Props> {
     }
 
     const pathText = (
-      <div className="datagrid-cell monospace">
+      <div className="monospace">
         {path}
       </div>
     );
 
-    const renderButtonRowWithOperations = () => {
-      const undoButton = (
-        <button
-          className="datagrid-cell datagrid-cell-no-grow comparer-left-button"
-          onClick={() => undo()}>
-          undo
-        </button>
-      );
+    const renderButtonRowItems = () => {
+      if (mergeState !== 'none') {
+        return [
+          <button
+            className="comparer-button-row-child"
+            onClick={() => undo()}>
+              undo
+          </button>
+        ];
+      }
 
-      return [
-        undoButton,
-        pathText
-      ];
-    };
-
-    const renderButtonRow = () => {
-      if (mergeState === 'none')
-        return renderButtonRowWithoutOperations();
-      return renderButtonRowWithOperations();
-    }
-
-    // renders the first row with the buttons and stuff
-    const renderButtonRowWithoutOperations = () => {
       const deleteButton = (
         <button
-            className="datagrid-cell datagrid-cell-no-grow comparer-left-button"
+            className="comparer-button-row-child comparer-left-button"
             onClick={() => delet()}>
           {diffState === 'onlyone' ? 'delete' : 'delete both'}
         </button>
       );
       const pickLeftButton = (
         <button
-          className="comparer-pick-button"
+          className="comparer-button-row-child comparer-pick-button"
           onClick={() => copyLeft()}>
           pick left
         </button>
       );
       const pickRightButton = (
         <button
-          className="comparer-pick-button comparer-pick-right"
+          className="comparer-button-row-child comparer-pick-button"
           onClick={() => copyRight()}>
           pick right
         </button>
@@ -330,21 +318,18 @@ class TreeFilesComparer extends React.Component<Props> {
       switch (diffState) {
         case 'same':
           return [
-            deleteButton,
-            pathText
+            deleteButton
           ];
 
         case 'onlyone':
           if (left) {
             return [
               deleteButton,
-              pickLeftButton,
-              pathText
+              pickLeftButton
             ];
           } else {
             return [
               deleteButton,
-              pathText,
               pickRightButton
             ];
           }
@@ -354,11 +339,19 @@ class TreeFilesComparer extends React.Component<Props> {
           return [
             deleteButton,
             pickLeftButton,
-            pathText,
             pickRightButton
           ];
       }
     };
+
+    const renderButtonRow = () => {
+      return [
+        <div className="comparer-button-row-container">
+          {renderButtonRowItems()}
+        </div>,
+        pathText
+      ];
+    }
 
     const renderSummaryRowWithOperations = () => {
       const operation = mergeOperations[0];
