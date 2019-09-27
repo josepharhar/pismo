@@ -53,7 +53,7 @@ function mirrorBaseToOther(baseTree, otherTree) {
   /** @type {!Array<!Operation>} */
   const output = [];
 
-  const differator = diff.differator(baseTree, otherTree);
+  const differator = new diff.Differator(baseTree, otherTree);
   while (differator.hasNext()) {
     const [{treeFile, fileInfo}, second] = differator.next();
 
@@ -94,7 +94,7 @@ function twoWayMerge(baseTree, otherTree) {
   /** @type {!Array<!Operation>} */
   const output = [];
 
-  const differator = diff.differator(baseTree, otherTree);
+  const differator = new diff.Differator(baseTree, otherTree);
   while (differator.hasNext()) {
     const [{treeFile, fileInfo}, second] = differator.next();
 
@@ -138,7 +138,7 @@ function oneWayAdd(baseTree, otherTree) {
   /** @type {!Array<!Operation>} */
   const output = [];
 
-  const differator = diff.differator(baseTree, otherTree);
+  const differator = new diff.Differator(baseTree, otherTree);
   while (differator.hasNext()) {
     const [{treeFile, fileInfo}, second] = differator.next();
 

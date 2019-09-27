@@ -1,4 +1,4 @@
-class LocalBranch {
+export class LocalBranch {
   /**
    * TODO make this only callable from static factory method
    * @param {string} name
@@ -7,7 +7,6 @@ class LocalBranch {
     this._name = name;
   }
 }
-exports.LocalBranch = LocalBranch;
 
 /** @type {!Map<string, !LocalBranch>} */
 const _localBranchCache = new Map();

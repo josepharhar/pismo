@@ -522,7 +522,7 @@ export async function remoteUpdate(argv) {
 //    throw error;
 //  }
 
-  const remote = await exports.getOrCreateRemote(argv.name);
+  const remote = await getOrCreateRemote(argv.name);
   if (!remote) {
     throw new Error(`unable to find remote with name: ${argv.name}`);
   }

@@ -32,7 +32,7 @@ export async function diff(argv) {
       `pismo diff ${baseBranch.rawString()} ${otherBranch.rawString()}`
         + `\n + ${baseTree.path}`
         + `\n - ${otherTree.path}`);
-    exports.diffTrees(baseTree, otherTree);
+    diffTrees(baseTree, otherTree);
   }
 
   if (argv.printdupes)
@@ -63,7 +63,7 @@ export async function dupes(argv) {
  * @param {!TreeFile} otherTree
  */
 export async function diffTrees(baseTree, otherTree) {
-  const differator = exports.differator(baseTree, otherTree);
+  const differator = new Differator(baseTree, otherTree);
   while (differator.hasNext()) {
     const [{treeFile, fileInfo}, second] = differator.next();
     const readableFileInfo = pismoutil.humanReadableFileInfo(fileInfo);
@@ -167,7 +167,7 @@ function findDuplicates(baseTree, otherTree, order, printAll) {
   }
 }
 
-class Differator {
+export class Differator {
   /**
    * @param {!TreeFile} baseTree
    * @param {!TreeFile} otherTree
@@ -249,12 +249,3 @@ class Differator {
     }
   }
 };
-
-/**
- * @param {!TreeFile} baseTree
- * @param {!TreeFile} otherTree
- * @return {!Differator}
- */
-export function differator(baseTree, otherTree) {
-  return new Differator(baseTree, otherTree);
-}
