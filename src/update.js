@@ -145,9 +145,7 @@ async function scanPath(
         // @ts-ignore
         size: Number(stat.size),
         hash: null,
-        customAttributeNameToValue: cachedFileinfo && cachedFileinfo.customAttributeNameToValue
-          ? cachedFileinfo.customAttributeNameToValue
-          : {}
+        customAttributeNameToValue: {}
       };
 
       // compute hash, using cache if available
@@ -173,8 +171,13 @@ async function scanPath(
       }
 
       for (const [name, command] of Object.entries(customAttributeNameToCommand)) {
-        if (newFileInfo.customAttributeNameToValue[name] && reuseHash)
-          continue;
+        if (cachedFileinfo && reuseHash) {
+          const cachedValue = cachedFileinfo.customAttributeNameToValue[name];
+          if (cachedValue) {
+            newFileInfo.customAttributeNameToValue[name] = cachedValue;
+            continue;
+          }
+        }
 
         let output;
         try {
