@@ -1,7 +1,5 @@
 import { TreeFile, FileInfo } from "./PismoTypes";
 
-// TODO replace Differator class in diff.js with this
-
 export default class Differator {
   baseTree: TreeFile;
   otherTree: TreeFile;

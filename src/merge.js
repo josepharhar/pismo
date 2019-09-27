@@ -1,5 +1,7 @@
 import * as fs from 'fs';
 
+import {mirrorBaseToOther, twoWayMerge} from '../web/src/AutoMerger';
+
 import * as diff from './diff.js';
 import * as remotes from './remote.js';
 import * as pismoutil from './pismoutil.js';
@@ -44,90 +46,6 @@ export function oneWayUpdate(baseTree, otherTree) {
   return files;
 }
 
-/**
- * @param {!TreeFile} baseTree
- * @param {!TreeFile} otherTree
- * @return {!Array<!Operation>}
- */
-function mirrorBaseToOther(baseTree, otherTree) {
-  /** @type {!Array<!Operation>} */
-  const output = [];
-
-  const differator = new diff.Differator(baseTree, otherTree);
-  while (differator.hasNext()) {
-    const [{treeFile, fileInfo}, second] = differator.next();
-
-    if (second) {
-      output.push({
-        operator: second.fileInfo.hash === fileInfo.hash ? 'touch' : 'cp',
-        operands: [{tree: 'base', relativePath: fileInfo.path},
-                   {tree: 'other', relativePath: second.fileInfo.path}]
-      });
-
-    } else if (treeFile === baseTree) {
-      output.push({
-        operator: 'cp',
-        operands: [{tree: 'base', relativePath: fileInfo.path},
-                   {tree: 'other', relativePath: fileInfo.path}]
-      });
-
-    } else if (treeFile === otherTree) {
-      output.push({
-        operator: 'rm',
-        operands: [{tree: 'other', relativePath: fileInfo.path}]
-      });
-
-    } else {
-      throw new Error('this should never happen');
-    }
-  }
-
-  return output;
-}
-
-/**
- * @param {!TreeFile} baseTree
- * @param {!TreeFile} otherTree
- * @return {!Array<!Operation>}
- */
-function twoWayMerge(baseTree, otherTree) {
-  /** @type {!Array<!Operation>} */
-  const output = [];
-
-  const differator = new diff.Differator(baseTree, otherTree);
-  while (differator.hasNext()) {
-    const [{treeFile, fileInfo}, second] = differator.next();
-
-    if (second) {
-      // TODO how can this be properly represented in a merge file?
-      output.push({
-        operator: second.fileInfo.hash === fileInfo.hash ? 'touch' : 'cp',
-        operands: [{tree: 'base', relativePath: fileInfo.path},
-                   {tree: 'other', relativePath: second.fileInfo.path}]
-      });
-
-    } else if (treeFile === baseTree) {
-      output.push({
-        operator: 'cp',
-        operands: [{tree: 'base', relativePath: fileInfo.path},
-                   {tree: 'other', relativePath: fileInfo.path}]
-      });
-
-    } else if (treeFile === otherTree) {
-      output.push({
-        operator: 'cp',
-        // TODO should this be this way? i should write a test for this or something
-        operands: [{tree: 'other', relativePath: fileInfo.path},
-                   {tree: 'base', relativePath: fileInfo.path}]
-      });
-
-    } else {
-      throw new Error('this should never happen');
-    }
-  }
-
-  return output;
-}
 
 /**
  * @param {!TreeFile} baseTree

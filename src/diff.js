@@ -3,6 +3,9 @@ import * as fs from 'fs';
 
 import * as filesize from 'filesize';
 
+// TODO delet "Ts"
+import DifferatorTs from '../web/src/Differator';
+
 import {Branch} from './branch.js';
 import * as pismoutil from './pismoutil.js';
 const {logInfo, logError} = pismoutil.getLogger(__filename);
@@ -167,85 +170,4 @@ function findDuplicates(baseTree, otherTree, order, printAll) {
   }
 }
 
-export class Differator {
-  /**
-   * @param {!TreeFile} baseTree
-   * @param {!TreeFile} otherTree
-   */
-  constructor(baseTree, otherTree) {
-    this._baseTree = baseTree;
-    this._otherTree = otherTree;
-    this._baseIndex = 0;
-    this._otherIndex = 0;
-  }
-
-  _getNextFile(treeFile, index) {
-    return index < treeFile.files.length
-        ? treeFile.files[index]
-        : null;
-  }
-
-  _getNextBaseFile() {
-    return this._getNextFile(this._baseTree, this._baseIndex);
-  }
-
-  _getNextOtherFile() {
-    return this._getNextFile(this._otherTree, this._otherIndex);
-  }
-
-  _areHeadsDifferent() {
-    const baseFile = this._getNextBaseFile();
-    const otherFile = this._getNextOtherFile();
-    if (!baseFile || !otherFile)
-      return true; // TODO not always true if both are null?
-    return JSON.stringify(baseFile) !== JSON.stringify(otherFile);
-  }
-
-  _goToNextDiff() {
-    while (!this._areHeadsDifferent()) {
-      this._baseIndex++;
-      this._otherIndex++;
-    }
-  }
-
-  hasNext() {
-    this._goToNextDiff();
-    return this._baseIndex < this._baseTree.files.length
-      || this._otherIndex < this._otherTree.files.length;
-  }
-
-  /**
-   * @return {!Array<{treeFile: TreeFile, fileInfo: FileInfo}>}
-   */
-  next() {
-    if (!this.hasNext())
-      return null;
-    // calling hasNext() triggers _goToNextDiff(), so heads are ready
-    const baseFile = this._getNextBaseFile();
-    const otherFile = this._getNextOtherFile();
-
-    if (!otherFile || (baseFile && baseFile.path < otherFile.path)) {
-      this._baseIndex++;
-      return [{
-        treeFile: this._baseTree,
-        fileInfo: baseFile
-      }];
-    } else if (!baseFile || otherFile.path < baseFile.path) {
-      this._otherIndex++;
-      return [{
-        treeFile: this._otherTree,
-        fileInfo: otherFile
-      }];
-    } else {
-      this._baseIndex++;
-      this._otherIndex++;
-      return [{
-        treeFile: this._baseTree,
-        fileInfo: baseFile
-      }, {
-        treeFile: this._otherTree,
-        fileInfo: otherFile
-      }];
-    }
-  }
-};
+export const Differator = DifferatorTs;
