@@ -51,13 +51,13 @@
   user-select: none;
 }
 
-.comparer .comparer-changes-row {
+.comparer .comparer-duplicates-row {
   display: flex;
 }
-.comparer .comparer-changes-branch {
+.comparer .comparer-duplicates-branch {
   flex-basis: 100px;
   flex-shrink: 0;
 }
-.comparer .comparer-changes-path {
+.comparer .comparer-duplicates-path {
   flex-shrink: 2;
 }

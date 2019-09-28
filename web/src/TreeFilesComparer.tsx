@@ -666,15 +666,15 @@ class TreeFilesComparer extends React.Component<Props> {
     return output;
   }
 
-  renderChangesRow(hash: string, leftFiles: Array<FileInfo>, rightFiles: Array<FileInfo>) {
+  renderDuplicatesRow(hash: string, leftFiles: Array<FileInfo>, rightFiles: Array<FileInfo>) {
     const rows: Array<JSX.Element> = [];
     const addFile = (side: 'left'|'right', file: FileInfo) => {
       rows.push(
-        <div className="comparer-changes-row">
-          <div className="comparer-changes-branch">
+        <div className="comparer-duplicates-row">
+          <div className="comparer-duplicates-branch">
             {side === 'left' ? this.props.leftBranchName : this.props.rightBranchName}
           </div>
-          <div className="comparer-changes-path monospace">
+          <div className="comparer-duplicates-path monospace">
             {file.path}
           </div>
         </div>
@@ -690,11 +690,11 @@ class TreeFilesComparer extends React.Component<Props> {
     ].concat(rows);
   }
 
-  renderOnlyChanges() {
+  renderDuplicates() {
     return (
       <div className="datagrid">
         {Array.from(this.hashToDuplicateFiles.entries()).flatMap(([hash, files])=> {
-          return this.renderChangesRow(hash, files.left, files.right);
+          return this.renderDuplicatesRow(hash, files.left, files.right);
         })}
       </div>
     );
@@ -705,7 +705,7 @@ class TreeFilesComparer extends React.Component<Props> {
       <div className="comparer">
         {this.renderBanner()}
 
-        {this.state.viewStyle === 'onlyChanges' ? this.renderOnlyChanges() :
+        {this.state.viewStyle === 'onlyDuplicates' ? this.renderDuplicates() :
           <div className="datagrid">
             {this.rows.flatMap((row, index)=> {
               return this.renderRow(row);
