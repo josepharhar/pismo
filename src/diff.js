@@ -3,8 +3,7 @@ import * as fs from 'fs';
 
 import * as filesize from 'filesize';
 
-// TODO delet "Ts"
-import DifferatorTs from '../web/src/Differator';
+import Differator from '../web/src/Differator';
 
 import {Branch} from './branch.js';
 import * as pismoutil from './pismoutil.js';
@@ -169,5 +168,3 @@ function findDuplicates(baseTree, otherTree, order, printAll) {
       console.log(`No duplicates found within "${baseTree.path}"`);
   }
 }
-
-export const Differator = DifferatorTs;

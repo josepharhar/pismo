@@ -50,3 +50,14 @@
   flex-shrink: 0;
   user-select: none;
 }
+
+.comparer .comparer-changes-row {
+  display: flex;
+}
+.comparer .comparer-changes-branch {
+  flex-basis: 100px;
+  flex-shrink: 0;
+}
+.comparer .comparer-changes-path {
+  flex-shrink: 2;
+}

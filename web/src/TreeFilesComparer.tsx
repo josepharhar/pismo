@@ -5,6 +5,7 @@ import './DataGrid.css';
 //import { FixedSizeList } from 'react-window';
 import filesize from 'filesize';
 import { mirrorBaseToOther, twoWayMerge, oneWayAdd } from './AutoMerger';
+import { JSXElement } from '@babel/types';
 
 interface Props {
   getTreesResponse: GetTreesResponse;
@@ -20,20 +21,21 @@ class TreeFilesComparer extends React.Component<Props> {
 
   state: {
     expandedPaths: Set<string>;
-    viewStyle: 'all'|'onlyDiff'|'onlyChanges';
+    viewStyle: 'all'|'onlyDiff'|'onlyChanges'|'onlyDuplicates';
     pathToMergeOperations: Map<string, Array<Operation>>;
   };
 
   leftTreeFile: TreeFile;
   rightTreeFile: TreeFile;
   lastPathModified?: string;
+  hashToDuplicateFiles: Map<string, {left: Array<FileInfo>, right: Array<FileInfo>}>;
 
   constructor(props: Props) {
     super(props);
 
     this.state = {
       expandedPaths: new Set(),
-      viewStyle: 'onlyDiff',
+      viewStyle: 'all',
       pathToMergeOperations: new Map()
     };
 
@@ -73,6 +75,25 @@ class TreeFilesComparer extends React.Component<Props> {
         });
       }
     }
+
+    // populate hashToDuplicateFiles
+    const hashToFiles: Map<string, {left: Array<FileInfo>, right: Array<FileInfo>}> = new Map();
+    const addFile = (file: FileInfo) => {
+      if (!hashToFiles.has(file.hash)) {
+        hashToFiles.set(file.hash, {left: [], right: []});
+      }
+    }
+    this.leftTreeFile.files.forEach(addFile);
+    this.rightTreeFile.files.forEach(addFile);
+    this.hashToDuplicateFiles = new Map();
+    hashToFiles.forEach((files, hash) => {
+      const multipleFilesInOneSide = files.left.length > 1 || files.right.length > 1;
+      const singularFilesHaveDifferentPath =
+        files.left.length && files.right.length && files.left[0].path !== files.right[0].path;
+      if (multipleFilesInOneSide || singularFilesHaveDifferentPath) {
+        this.hashToDuplicateFiles.set(hash, files);
+      }
+    });
   }
 
   save() {
@@ -153,6 +174,20 @@ class TreeFilesComparer extends React.Component<Props> {
               });
             }} />
             only changes
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="view-only-duplicates"
+            checked={this.state.viewStyle === 'onlyDuplicates'}
+            onChange={event => {
+              if (!event.target.checked)
+                return;
+              this.setState({
+                viewStyle: 'onlyDuplicates'
+              });
+            }} />
+            duplicates
         </label>
       </span>
     );
@@ -631,16 +666,51 @@ class TreeFilesComparer extends React.Component<Props> {
     return output;
   }
 
+  renderChangesRow(hash: string, leftFiles: Array<FileInfo>, rightFiles: Array<FileInfo>) {
+    const rows: Array<JSX.Element> = [];
+    const addFile = (side: 'left'|'right', file: FileInfo) => {
+      rows.push(
+        <div className="comparer-changes-row">
+          <div className="comparer-changes-branch">
+            {side === 'left' ? this.props.leftBranchName : this.props.rightBranchName}
+          </div>
+          <div className="comparer-changes-path monospace">
+            {file.path}
+          </div>
+        </div>
+      );
+    };
+    leftFiles.forEach(file => addFile('left', file));
+    rightFiles.forEach(file => addFile('right', file));
+
+    return [
+      <div className="datagrid-row">
+        hash: {hash}
+      </div>
+    ].concat(rows);
+  }
+
+  renderOnlyChanges() {
+    return (
+      <div className="datagrid">
+        {Array.from(this.hashToDuplicateFiles.entries()).flatMap(([hash, files])=> {
+          return this.renderChangesRow(hash, files.left, files.right);
+        })}
+      </div>
+    );
+  }
+
   render() {
     return (
       <div className="comparer">
         {this.renderBanner()}
 
-        <div className="datagrid">
-          {this.rows.flatMap((row, index)=> {
-            return this.renderRow(row);
-          })}
-        </div>
+        {this.state.viewStyle === 'onlyChanges' ? this.renderOnlyChanges() :
+          <div className="datagrid">
+            {this.rows.flatMap((row, index)=> {
+              return this.renderRow(row);
+            })}
+          </div>}
       </div>
     );
   }
@@ -651,5 +721,3 @@ function fileInfoToDateString(fileInfo: FileInfo): string {
 }
 
 export default TreeFilesComparer;
-
-// TODO make singular delete button turn into an undo button when you do something with the row
