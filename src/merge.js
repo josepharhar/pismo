@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 
-import {mirrorBaseToOther, twoWayMerge} from '../web/src/AutoMerger';
+import {mirrorBaseToOther, twoWayMerge, oneWayAdd} from '../web/src/AutoMerger';
 
 import * as diff from './diff.js';
 import * as remotes from './remote.js';
@@ -44,43 +44,6 @@ export function oneWayUpdate(baseTree, otherTree) {
 
   files.sort(pismoutil.fileInfoComparator);
   return files;
-}
-
-
-/**
- * @param {!TreeFile} baseTree
- * @param {!TreeFile} otherTree
- * @return {!Array<!Operation>}
- */
-function oneWayAdd(baseTree, otherTree) {
-  /** @type {!Array<!Operation>} */
-  const output = [];
-
-  const differator = new diff.Differator(baseTree, otherTree);
-  while (differator.hasNext()) {
-    const [{treeFile, fileInfo}, second] = differator.next();
-
-    if (second) {
-      console.log('warning: file found on both sides: "' + fileInfo.path + '", using base');
-      output.push({
-        operator: second.fileInfo.hash === fileInfo.hash ? 'touch' : 'cp',
-        operands: [{tree: 'base', relativePath: fileInfo.path},
-                   {tree: 'other', relativePath: second.fileInfo.path}]
-      });
-    } else if (treeFile === baseTree) {
-      output.push({
-        operator: 'cp',
-        operands: [{tree: 'base', relativePath: fileInfo.path},
-                   {tree: 'other', relativePath: fileInfo.path}]
-      });
-    } else if (treeFile === otherTree) {
-      // do nothing, thats the point of this style of merge.
-    } else {
-      throw new Error('this should never happen');
-    }
-  }
-
-  return output;
 }
 
 /**

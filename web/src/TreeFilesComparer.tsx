@@ -4,6 +4,7 @@ import './TreeFilesComparer.css';
 import './DataGrid.css';
 //import { FixedSizeList } from 'react-window';
 import filesize from 'filesize';
+import { mirrorBaseToOther, twoWayMerge, oneWayAdd } from './AutoMerger';
 
 interface Props {
   getTreesResponse: GetTreesResponse;
@@ -19,9 +20,13 @@ class TreeFilesComparer extends React.Component<Props> {
 
   state: {
     expandedPaths: Set<string>;
-    viewStyle: 'all'|'onlyDiff';
+    viewStyle: 'all'|'onlyDiff'|'onlyChanges';
     pathToMergeOperations: Map<string, Array<Operation>>;
   };
+
+  leftTreeFile: TreeFile;
+  rightTreeFile: TreeFile;
+  lastPathModified?: string;
 
   constructor(props: Props) {
     super(props);
@@ -42,6 +47,8 @@ class TreeFilesComparer extends React.Component<Props> {
       throw new Error('cant find tree with name: ' + rightBranchName);
     const treeFileOne = leftTreeWithName.treefile;
     const treeFileTwo = rightTreeWithName.treefile;
+    this.leftTreeFile = treeFileOne;
+    this.rightTreeFile = treeFileTwo;
 
     this.rows = [];
     const leftFiles = treeFileOne.files;
@@ -122,7 +129,7 @@ class TreeFilesComparer extends React.Component<Props> {
         <label>
           <input
             type="radio"
-            name="view-all"
+            name="view-only-diff"
             checked={this.state.viewStyle === 'onlyDiff'}
             onChange={event => {
               if (!event.target.checked)
@@ -133,25 +140,100 @@ class TreeFilesComparer extends React.Component<Props> {
             }} />
             only diff
         </label>
+        <label>
+          <input
+            type="radio"
+            name="view-only-operations"
+            checked={this.state.viewStyle === 'onlyChanges'}
+            onChange={event => {
+              if (!event.target.checked)
+                return;
+              this.setState({
+                viewStyle: 'onlyChanges'
+              });
+            }} />
+            only changes
+        </label>
       </span>
     );
   }
 
-  applyPreset(presetFn: (baseTree: TreeFile, otherTree: TreeFile) => Array<Operation>) {
+  overwriteOperations(newOperations: Array<Operation>) {
+    const pathToMergeOperations = new Map();
+    for (const operation of newOperations) {
+      const path = operation.operands[0].relativePath;
+      let operations = [];
+      if (pathToMergeOperations.has(path))
+        operations = pathToMergeOperations.get(path);
+      operations.push(operation);
+      pathToMergeOperations.set(path, operations);
+    }
+    this.setState({
+      pathToMergeOperations
+    });
   }
 
   renderPresetPicker() {
     return (
       <span style={{border: '1px solid black'}}>
         apply preset:
-        <button onClick={() => this.applyPreset(mirrorBaseToOther())}>
+        <button
+          onClick={() => this.overwriteOperations(mirrorBaseToOther(this.leftTreeFile, this.rightTreeFile))}>
           mirror "{this.props.leftBranchName}" => "{this.props.rightBranchName}"
         </button>
-        <button>
-          mirror "${this.props.rightBranchName}" => "{this.props.leftBranchName}"
+        <button
+          onClick={() => this.overwriteOperations(mirrorBaseToOther(this.rightTreeFile, this.leftTreeFile))}>
+          mirror "{this.props.rightBranchName}" => "{this.props.leftBranchName}"
+        </button>
+        <button
+          onClick={() => this.overwriteOperations(oneWayAdd(this.leftTreeFile, this.rightTreeFile))}>
+          one way update "{this.props.leftBranchName}" => "{this.props.rightBranchName}"
+        </button>
+        <button
+          onClick={() => this.overwriteOperations(oneWayAdd(this.rightTreeFile, this.leftTreeFile))}>
+          one way update "{this.props.rightBranchName}" => "{this.props.leftBranchName}"
+        </button>
+        <button
+          onClick={() => this.overwriteOperations(twoWayMerge(this.leftTreeFile, this.rightTreeFile))}>
+          two-way merge
         </button>
       </span>
     );
+  }
+
+  revertChangesBelowLastChange() {
+    if (!this.lastPathModified)
+      return;
+
+    const modifiedPaths: Set<string> = new Set();
+    this.state.pathToMergeOperations.forEach((value, key) => {
+      modifiedPaths.add(key);
+    });
+
+    if (!modifiedPaths.has(this.lastPathModified))
+      return;
+
+    const alphabeticalModifiedPaths: Array<String> = [];
+    modifiedPaths.forEach(path => {
+      alphabeticalModifiedPaths.push(path);
+    });
+    alphabeticalModifiedPaths.sort();
+
+    const pathsToKeep: Set<String> = new Set();
+    const lastIndex = alphabeticalModifiedPaths.indexOf(this.lastPathModified);
+    for (let i = 0; i <= lastIndex; i++) {
+      pathsToKeep.add(alphabeticalModifiedPaths[i]);
+    }
+
+    const pathToMergeOperations = new Map();
+    this.state.pathToMergeOperations.forEach((value, key) => {
+      if (pathsToKeep.has(key)) {
+        pathToMergeOperations.set(key, value);
+      }
+    });
+    this.setState({
+      pathToMergeOperations
+    });
   }
 
   renderBanner() {
@@ -165,6 +247,9 @@ class TreeFilesComparer extends React.Component<Props> {
           </button>
           {this.renderViewPicker()}
           {this.renderPresetPicker()}
+          <button onClick={() => this.revertChangesBelowLastChange()}>
+            revert all changes below last change
+          </button>
         </div>
         <div className="split-container">
           <div className="split-child comparer-branch-title">
@@ -186,6 +271,7 @@ class TreeFilesComparer extends React.Component<Props> {
   }
 
   setMergeOperationsForPath(path: string, operations: Array<Operation>) {
+    this.lastPathModified = path;
     const pathToMergeOperations = this.state.pathToMergeOperations;
     pathToMergeOperations.set(path, operations);
     this.setState({
@@ -293,6 +379,9 @@ class TreeFilesComparer extends React.Component<Props> {
           break;
       }
     }
+
+    if (mergeState === 'none' && this.state.viewStyle === 'onlyChanges')
+      return [];
 
     const renderButtonRowItems = () => {
       if (mergeState !== 'none') {

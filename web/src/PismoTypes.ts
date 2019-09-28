@@ -7,6 +7,14 @@ export interface FileInfo {
   customAttributeNameToValue: {[x: string]: string};
 }
 
+export function areFilesEqual(one: FileInfo, two: FileInfo): boolean {
+  return one.path === two.path
+    && one.mtimeS === two.mtimeS
+    && one.mtimeNs === two.mtimeNs
+    && one.size === two.size
+    && one.hash === two.hash;
+}
+
 export interface TreeFile {
   path: string;
   lastUpdated: number;

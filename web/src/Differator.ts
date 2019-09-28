@@ -1,4 +1,4 @@
-import { TreeFile, FileInfo } from "./PismoTypes";
+import { TreeFile, FileInfo, areFilesEqual } from "./PismoTypes";
 
 export default class Differator {
   baseTree: TreeFile;
@@ -32,7 +32,8 @@ export default class Differator {
     const otherFile = this.getNextOtherFile();
     if (!baseFile || !otherFile)
       return true; // TODO not always true if both are null?
-    return JSON.stringify(baseFile) !== JSON.stringify(otherFile);
+
+    return !areFilesEqual(baseFile, otherFile);
   }
 
   goToNextDiff() {
