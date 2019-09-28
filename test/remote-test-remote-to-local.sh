@@ -75,4 +75,7 @@ diff out1-expected.txt out1-actual.txt
 jcmp out2 > out2-expected.txt
 diff out2-expected.txt out2-actual.txt
 
+# clean up
+pismo remote-remove test_remote || true
+
 echo "test passed successfully"
