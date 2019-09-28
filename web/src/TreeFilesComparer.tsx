@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { GetTreesResponse, FileInfo, Operation, MergeFile } from './PismoTypes';
+import { GetTreesResponse, FileInfo, Operation, MergeFile, TreeFile } from './PismoTypes';
 import './TreeFilesComparer.css';
 import './DataGrid.css';
 //import { FixedSizeList } from 'react-window';
@@ -137,6 +137,23 @@ class TreeFilesComparer extends React.Component<Props> {
     );
   }
 
+  applyPreset(presetFn: (baseTree: TreeFile, otherTree: TreeFile) => Array<Operation>) {
+  }
+
+  renderPresetPicker() {
+    return (
+      <span style={{border: '1px solid black'}}>
+        apply preset:
+        <button onClick={() => this.applyPreset(mirrorBaseToOther())}>
+          mirror "{this.props.leftBranchName}" => "{this.props.rightBranchName}"
+        </button>
+        <button>
+          mirror "${this.props.rightBranchName}" => "{this.props.leftBranchName}"
+        </button>
+      </span>
+    );
+  }
+
   renderBanner() {
     return (
       <div className="sticky">
@@ -147,6 +164,7 @@ class TreeFilesComparer extends React.Component<Props> {
             save
           </button>
           {this.renderViewPicker()}
+          {this.renderPresetPicker()}
         </div>
         <div className="split-container">
           <div className="split-child comparer-branch-title">
