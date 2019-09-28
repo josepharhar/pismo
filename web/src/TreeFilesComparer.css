@@ -2,11 +2,6 @@
   border: none;
 }
 
-/*.comparer .comparer-left-button {
-  width: 90px;
-  min-width: 90px;
-}*/
-
 .comparer button.comparer-left-button {
   border: default;
   border-width: 2px;
@@ -24,23 +19,13 @@
   border-top: solid 1px black;
 }
 
-/* TODO delet this */
-/*.comparer .comparer-pick-button {
-  width: 90px;
-}*/
-
-/* TODO delet this */
-/*.comparer .comparer-wide-button {
-  width: 180px;
-}*/
-
 .comparer .comparer-row-container {
   display: flex;
 }
 
 .comparer .comparer-bottom-row {
   border-bottom: solid 2px black;
-  cursor: pointer;
+  /*cursor: pointer;*/
 }
 
 .comparer .comparer-border-bottom-soft {
@@ -50,6 +35,7 @@
 .comparer .comparer-button-row-container {
   display: flex;
   width: 180px;
+  flex-shrink: 0;
 }
 
 .comparer .comparer-button-row-child {
@@ -58,4 +44,9 @@
 
 .comparer .comparer-button-row-child-big {
   flex: 2;
+}
+
+.comparer .comparer-status-icon {
+  flex-shrink: 0;
+  user-select: none;
 }

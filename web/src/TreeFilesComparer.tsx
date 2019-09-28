@@ -276,12 +276,6 @@ class TreeFilesComparer extends React.Component<Props> {
       }
     }
 
-    const pathText = (
-      <div className="monospace">
-        {path}
-      </div>
-    );
-
     const renderButtonRowItems = () => {
       if (mergeState !== 'none') {
         return [
@@ -344,89 +338,101 @@ class TreeFilesComparer extends React.Component<Props> {
       }
     };
 
+    const renderStatusIcon = () => {
+      const filledSquare = '\u2b1b';
+      const emptySquare = '\u2b1c';
+      const leftArrow = '\u2190';
+      const rightArrow = '\u2192';
+
+      const leftIcon = left ? filledSquare : emptySquare;
+      const rightIcon = right ? filledSquare : emptySquare;
+      let color: 'white'|'yellow'|'green'|'blue'|'red' = 'white';
+      let text = `${leftIcon}   ${rightIcon}`;
+      let className = '';
+      let tooltipText = '';
+
+      switch (mergeState) {
+        case 'none':
+          switch (diffState) {
+            case 'same':
+              color = 'green';
+              text = `${leftIcon} = ${rightIcon}`;
+              tooltipText = `"${this.props.leftBranchName}" and "${this.props.rightBranchName}" are identical`;
+              break;
+            case 'onlyone':
+              color = 'red';
+              text = `${leftIcon}   ${rightIcon}`;
+              tooltipText = left
+                ? `"${this.props.leftBranchName}" has this file, "${this.props.rightBranchName}" does not`
+                : `"${this.props.leftBranchName}" doesn't have this file, "${this.props.rightBranchName}" has it`;
+              break;
+            case 'diffhash':
+              color = 'red';
+              text = `${leftIcon} ~ ${rightIcon}`;
+              tooltipText = `files have different contents`;
+              break;
+            case 'diffmtime':
+              color = 'yellow';
+              text = `${leftIcon} ~ ${rightIcon}`;
+              tooltipText = `files have different modified time, but same content`;
+              break;
+          }
+          break;
+
+        case 'copy':
+          color = 'blue';
+          const arrowIcon = mergeOperations[0].operands[0].tree === 'base' ? rightArrow : leftArrow;
+          text = `${leftIcon} ${arrowIcon} ${rightIcon}`;
+          tooltipText = `copying "${this.props.leftBranchName}" ${arrowIcon} "${this.props.rightBranchName}"`;
+          break;
+
+        case 'delete':
+          color = 'blue';
+          className = 'strikethrough';
+          text = `${leftIcon}   ${rightIcon}`;
+          if (left && right) {
+            tooltipText = `deleting both "${this.props.leftBranchName}"s and "${this.props.rightBranchName}"s copies of this file`;
+          } else if (left) {
+            tooltipText = `deleting "${this.props.leftBranchName}"s copy of this file`;
+          } else {
+            tooltipText = `deleting "${this.props.rightBranchName}"s copy of this file`;
+          }
+          break;
+      }
+
+      switch (color) {
+        case 'white':
+          break;
+        case 'blue':
+          className += ' blue-bg-color';
+          break;
+        case 'green':
+          className += ' green-bg-color';
+          break;
+        case 'red':
+          className += ' error-bg-color';
+          break;
+        case 'yellow':
+          className += ' warning-bg-color';
+          break;
+      }
+
+      className += ' monospace comparer-status-icon';
+
+      return <span className={className} title={tooltipText}> {text} </span>;
+    }
+
     const renderButtonRow = () => {
       return [
         <div className="comparer-button-row-container">
           {renderButtonRowItems()}
         </div>,
-        pathText
+        renderStatusIcon(),
+        <span className="monospace clip-overflow cursor-pointer" onClick={() => toggleExpanded()}>
+          {path}
+        </span>
       ];
     }
-
-    const renderSummaryRowWithOperations = () => {
-      const operation = mergeOperations[0];
-      switch (operation.operator) {
-        case 'rm':
-          return (
-            <div className="datagrid-cell center-text">
-              deleting
-            </div>
-          );
-        case 'touch':
-        case 'cp':
-          const text = operation.operator === 'cp'
-            ? 'copying'
-            : 'touching';
-          if (operation.operands[0].tree === 'base') {
-            return (
-              <div className="datagrid-cell center-text">
-                {text} from left to right
-              </div>
-            );
-          } else {
-            return (
-              <div className="datagrid-cell center-text">
-                {text} from right to left
-              </div>
-            );
-          }
-        default:
-          throw new Error('this should never happen.');
-      }
-    };
-
-    const renderSummaryRow = () => {
-      if (mergeState === 'none')
-        return renderSummaryRowWithoutOperations();
-      return renderSummaryRowWithOperations();
-    };
-
-    // renders the row below the row with the filename and buttons
-    const renderSummaryRowWithoutOperations = () => {
-      switch (diffState) {
-        case 'same':
-          return (
-            <div className="datagrid-cell">
-              files are identical
-            </div>
-          );
-
-        case 'onlyone':
-          const presentDiv = <div className="datagrid-cell center-text">present</div>
-          const absentDiv = <div className="datagrid-cell center-text disabled-bg-color">absent</div>
-          if (left)
-            return [presentDiv, absentDiv];
-          else
-            return [absentDiv, presentDiv];
-        
-        case 'diffhash':
-          return (
-            <div className="datagrid-cell error-bg-color">
-              files have a different hash
-            </div>
-          );
-
-        case 'diffmtime':
-          return [
-            <div className="datagrid-cell warning-bg-color">
-              mtime: {fileInfoToDateString(left)}
-            </div>,
-            <div className="datagrid-cell warning-bg-color">
-              mtime: {fileInfoToDateString(right)}
-            </div>
-          ];
-      }
-    };
 
     const renderDetailedRowCell = (fileInfo?: FileInfo, otherFileInfo?: FileInfo) => {
       if (!fileInfo) {
@@ -500,16 +506,22 @@ class TreeFilesComparer extends React.Component<Props> {
       });
     }
 
-    return [
-      <div className="datagrid-row comparer-border-bottom-soft" key={path}>
+    const output = [
+      <div className="datagrid-row comparer-border-bottom-soft clip-overflow" key={path}>
         {renderButtonRow()}
-      </div>,
-      <div
-        className="datagrid-row comparer-bottom-row"
-        onClick={() => toggleExpanded()}>
-        {expanded ? renderDetailedRow() : renderSummaryRow()}
       </div>
     ];
+
+    if (expanded) {
+      output.push(
+      <div
+        className="datagrid-row comparer-bottom-row">
+        {renderDetailedRow()}
+      </div>
+      );
+    }
+
+    return output;
   }
 
   render() {

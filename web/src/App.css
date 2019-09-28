@@ -69,14 +69,40 @@ table.table-borders>tbody>tr>td{
   background-color: lightgray;
 }
 
+/* TODO delete bg class? */
 .warning-bg-color {
   background-color: orange;
 }
+.warning-color {
+  color: rgb(92, 60, 0);
+  background-color: rgb(255, 251, 229);
+}
 
+/* TODO delete bg class? */
 .error-bg-color {
   background-color: red;
+}
+.error-color {
+  color: rgb(255, 0, 0);
+  background-color: rgb(255, 240, 240);
+}
+
+.blue-bg-color {
+  background-color: rgb(98, 176, 255);
+}
+
+.green-bg-color {
+  background-color: lightgreen;
 }
 
 .center-text {
   text-align: center;
+}
+
+.strikethrough {
+  text-decoration: line-through;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
