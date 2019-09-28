@@ -51,13 +51,20 @@
   user-select: none;
 }
 
-.comparer .comparer-duplicates-row {
+.comparer .comparer-duplicates-row-entry {
   display: flex;
+  border-top: dashed 1px rgba(0, 0, 0, 0.15);
 }
 .comparer .comparer-duplicates-branch {
   flex-basis: 100px;
   flex-shrink: 0;
+  font-family: monospace;
 }
 .comparer .comparer-duplicates-path {
   flex-shrink: 2;
+}
+.comparer .comparer-duplicates-title {
+  border-top: solid 1px black;
+  font-family: monospace;
+  white-space: pre-wrap;
 }

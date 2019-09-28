@@ -78,13 +78,16 @@ class TreeFilesComparer extends React.Component<Props> {
 
     // populate hashToDuplicateFiles
     const hashToFiles: Map<string, {left: Array<FileInfo>, right: Array<FileInfo>}> = new Map();
-    const addFile = (file: FileInfo) => {
-      if (!hashToFiles.has(file.hash)) {
-        hashToFiles.set(file.hash, {left: [], right: []});
+    const addFile = (file: FileInfo, side: 'left'|'right') => {
+      let filesWithHash = hashToFiles.get(file.hash);
+      if (!filesWithHash) {
+        filesWithHash = {left: [], right: []};
+        hashToFiles.set(file.hash, filesWithHash);
       }
+      filesWithHash[side].push(file);
     }
-    this.leftTreeFile.files.forEach(addFile);
-    this.rightTreeFile.files.forEach(addFile);
+    this.leftTreeFile.files.forEach(file => addFile(file, 'left'));
+    this.rightTreeFile.files.forEach(file => addFile(file, 'right'));
     this.hashToDuplicateFiles = new Map();
     hashToFiles.forEach((files, hash) => {
       const multipleFilesInOneSide = files.left.length > 1 || files.right.length > 1;
@@ -667,10 +670,29 @@ class TreeFilesComparer extends React.Component<Props> {
   }
 
   renderDuplicatesRow(hash: string, leftFiles: Array<FileInfo>, rightFiles: Array<FileInfo>) {
+    const choosePath = (path: string) => {
+
+      // this is kind of breaking the idea of pathToMergeOperations
+      // because moving one file within a side to another path
+      // is one operation that operates on multiple paths,
+      // so which path does it belong to? how do i render this information?
+      // do i need a completely separate mode for deduplicating?
+
+      this.state.pathToMergeOperations.get(path);
+    };
+
     const rows: Array<JSX.Element> = [];
     const addFile = (side: 'left'|'right', file: FileInfo) => {
+
+      // TODO this.state.pathToMergeOperations.get(file.path);
+
       rows.push(
-        <div className="comparer-duplicates-row">
+        <div className="comparer-duplicates-row-entry">
+          <button
+            title="choose this path for all duplicate files"
+            onClick={() => choosePath(file.path)}>
+            choose this path
+          </button>
           <div className="comparer-duplicates-branch">
             {side === 'left' ? this.props.leftBranchName : this.props.rightBranchName}
           </div>
@@ -684,20 +706,36 @@ class TreeFilesComparer extends React.Component<Props> {
     rightFiles.forEach(file => addFile('right', file));
 
     return [
-      <div className="datagrid-row">
+      <div className="datagrid-row comparer-duplicates-title">
         hash: {hash}
       </div>
     ].concat(rows);
   }
 
+  chooseLeftDuplicates() {
+    console.error("TODO");
+  }
+
+  chooseRightDuplicates() {
+    console.error("TODO");
+  }
+
   renderDuplicates() {
-    return (
+    return [
+      <button
+        onClick={() => this.chooseLeftDuplicates()}>
+        choose left paths
+      </button>,
+      <button
+        onClick={() => this.chooseRightDuplicates()}>
+        choose right paths
+      </button>,
       <div className="datagrid">
         {Array.from(this.hashToDuplicateFiles.entries()).flatMap(([hash, files])=> {
           return this.renderDuplicatesRow(hash, files.left, files.right);
         })}
       </div>
-    );
+    ];
   }
 
   render() {

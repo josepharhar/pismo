@@ -1,12 +1,12 @@
 .datagrid {
-  /*display: table;*/
   border-collapse: collapse;
 }
 
 .datagrid-row {
   display: flex;
   flex-direction: row;
-  /*display: table-row;*/
+  /* TODO make this work, it centers text but removes a bunch of padding i want */
+  /* align-items: center; */
 }
 
 .datagrid-cell {
