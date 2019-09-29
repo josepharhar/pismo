@@ -23,6 +23,7 @@ class TreeFilesComparer extends React.Component<Props> {
     expandedPaths: Set<string>;
     viewStyle: 'all'|'onlyDiff'|'onlyChanges'|'onlyDuplicates';
     pathToMergeOperations: Map<string, Array<Operation>>;
+    hashToMergeOperations: Map<string, Array<Operation>>;
   };
 
   leftTreeFile: TreeFile;
@@ -36,7 +37,8 @@ class TreeFilesComparer extends React.Component<Props> {
     this.state = {
       expandedPaths: new Set(),
       viewStyle: 'all',
-      pathToMergeOperations: new Map()
+      pathToMergeOperations: new Map(),
+      hashToMergeOperations: new Map()
     };
 
     const {getTreesResponse, leftBranchName, rightBranchName} = props;
@@ -106,11 +108,30 @@ class TreeFilesComparer extends React.Component<Props> {
       operations: []
     };
 
-    this.state.pathToMergeOperations.forEach((mergeOperations) => {
+    const addMergeOperations = (mergeOperations: Array<Operation>) => {
+      const cpOperations = [];
+      const rmOperations = [];
+      const touchOperations = [];
+
       for (const operation of mergeOperations) {
-        output.operations.push(operation);
+        switch (operation.operator) {
+          case 'cp':
+            cpOperations.push(operation);
+            break;
+          case 'rm':
+            rmOperations.push(operation);
+            break;
+          case 'touch':
+            touchOperations.push(operation);
+            break;
+        }
       }
-    });
+
+      output.operations = output.operations.concat(cpOperations.concat(rmOperations).concat(touchOperations));
+    };
+
+    this.state.pathToMergeOperations.forEach(addMergeOperations);
+    this.state.hashToMergeOperations.forEach(addMergeOperations);
 
     const outputString = JSON.stringify(output, null, 2);
     const blob = new Blob([outputString], {type: 'text/plain'});
@@ -670,27 +691,38 @@ class TreeFilesComparer extends React.Component<Props> {
   }
 
   renderDuplicatesRow(hash: string, leftFiles: Array<FileInfo>, rightFiles: Array<FileInfo>) {
-    const choosePath = (path: string) => {
-
-      // this is kind of breaking the idea of pathToMergeOperations
-      // because moving one file within a side to another path
-      // is one operation that operates on multiple paths,
-      // so which path does it belong to? how do i render this information?
-      // do i need a completely separate mode for deduplicating?
-
-      this.state.pathToMergeOperations.get(path);
-    };
-
     const rows: Array<JSX.Element> = [];
     const addFile = (side: 'left'|'right', file: FileInfo) => {
 
-      // TODO this.state.pathToMergeOperations.get(file.path);
+      const choosePath = () => {
+        const hashToMergeOperations = this.state.hashToMergeOperations;
+        const files = this.hashToDuplicateFiles.get(file.hash);
+        if (!files) return;
+        const operations: Array<Operation> = [];
+        // files.left must have one copy at the right path,
+        // and files.right must also have only one copy at the right path.
+        // if one side doesn't have any copy of the file, then just do nothing with that side.
+        if (files.left.length) {
+          // do we already have a file in the right spot? if so just delete the others.
+          if (files.left.find(leftFile => leftFile.path === file.path)) {
+            // TODO delete all but the one we found
+            files.left.
+          } else {
+            // copy the first occurence to the desired path,
+            // then delete _all_ because thats how moves work...?
+          }
+        }
+
+        this.setState({
+          hashToMergeOperations
+        });
+      };
 
       rows.push(
         <div className="comparer-duplicates-row-entry">
           <button
             title="choose this path for all duplicate files"
-            onClick={() => choosePath(file.path)}>
+            onClick={() => choosePath()}>
             choose this path
           </button>
           <div className="comparer-duplicates-branch">
