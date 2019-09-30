@@ -705,11 +705,40 @@ class TreeFilesComparer extends React.Component<Props> {
         if (files.left.length) {
           // do we already have a file in the right spot? if so just delete the others.
           if (files.left.find(leftFile => leftFile.path === file.path)) {
-            // TODO delete all but the one we found
-            files.left.
+            // delete all but the one we found
+            for (const leftFile of files.left) {
+              if (leftFile.path === file.path)
+                continue;
+              operations.push({
+                operator: 'rm',
+                operands: [{
+                  tree: 'base',
+                  relativePath: leftFile.path
+                }]
+              });
+            }
           } else {
             // copy the first occurence to the desired path,
             // then delete _all_ because thats how moves work...?
+            operations.push({
+              operator: 'cp',
+              operands: [{
+                tree: 'base',
+                relativePath: leftFiles[0].path
+              }, {
+                tree: 'base',
+                relativePath: file.path
+              }]
+            });
+            for (const leftFile of files.left) {
+              operations.push({
+                operator: 'rm',
+                operands: [{
+                  tree: 'base',
+                  relativePath: leftFile.path
+                }]
+              })
+            }
           }
         }
 
