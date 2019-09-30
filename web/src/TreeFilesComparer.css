@@ -55,13 +55,21 @@
   display: flex;
   border-top: dashed 1px rgba(0, 0, 0, 0.15);
 }
+.comparer .comparer-duplicates-row-entry>button{
+  flex-basis: 120px;
+  flex-shrink: 0;
+}
 .comparer .comparer-duplicates-branch {
   flex-basis: 100px;
   flex-shrink: 0;
   font-family: monospace;
+  text-align: center;
 }
 .comparer .comparer-duplicates-path {
   flex-shrink: 2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .comparer .comparer-duplicates-title {
   border-top: solid 1px black;

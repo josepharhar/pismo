@@ -5,7 +5,7 @@ import './DataGrid.css';
 //import { FixedSizeList } from 'react-window';
 import filesize from 'filesize';
 import { mirrorBaseToOther, twoWayMerge, oneWayAdd } from './AutoMerger';
-import { JSXElement } from '@babel/types';
+import { JSXElement, file } from '@babel/types';
 import fileSize from 'filesize';
 
 interface Props {
@@ -691,7 +691,12 @@ class TreeFilesComparer extends React.Component<Props> {
     return output;
   }
 
-  renderDuplicatesRow(hash: string, leftFiles: Array<FileInfo>, rightFiles: Array<FileInfo>) {
+  renderDuplicatesRow(
+      hash: string,
+      leftFiles: Array<FileInfo>,
+      rightFiles: Array<FileInfo>,
+      leftWastedSpace: number,
+      rightWastedSpace: number) {
     const rows: Array<JSX.Element> = [];
     const addFile = (side: 'left'|'right', file: FileInfo) => {
 
@@ -757,13 +762,30 @@ class TreeFilesComparer extends React.Component<Props> {
         });
       };
 
+      const undo = () => {
+        throw new Error('TODO');
+      };
+
+      const chooseButton = (
+        <button
+          title="choose this path for all duplicate files"
+          onClick={() => choosePath()}>
+          choose this path
+        </button>
+      );
+
+      const undoButton = (
+        <button
+          title="undo changes for this hash"
+          onClick={() => undo()}>
+          undo
+        </button>
+      )
+
       rows.push(
         <div className="comparer-duplicates-row-entry">
-          <button
-            title="choose this path for all duplicate files"
-            onClick={() => choosePath()}>
-            choose this path
-          </button>
+          {this.state.hashToMergeOperations.has(file.hash)
+            ? undoButton : chooseButton}
           <div className="comparer-duplicates-branch">
             {side === 'left' ? this.props.leftBranchName : this.props.rightBranchName}
           </div>
@@ -779,6 +801,8 @@ class TreeFilesComparer extends React.Component<Props> {
     return [
       <div className="datagrid-row comparer-duplicates-title">
         hash: {hash}
+        <br /> left wasted space: {filesize(leftWastedSpace)}<br />
+        right wasted space: {filesize(rightWastedSpace)}
       </div>
     ].concat(rows);
   }
@@ -792,6 +816,34 @@ class TreeFilesComparer extends React.Component<Props> {
   }
 
   renderDuplicates() {
+    const rows = Array.from(this.hashToDuplicateFiles.entries())
+      .map(([hash, files]) => {
+        const getWastedSpace = (files: Array<FileInfo>) => {
+          if (files.length < 2)
+            return 0;
+          return files[0].size * (files.length - 1);
+        };
+        return {
+          hash,
+          left: files.left,
+          right: files.right,
+          leftWastedSpace: getWastedSpace(files.left),
+          rightWastedSpace: getWastedSpace(files.right)
+        };
+      }).sort((a, b) => {
+        // larger files should have lower index
+        // if a is bigger then return less than zero
+        const aWastedSpace = a.leftWastedSpace + a.rightWastedSpace;
+        const bWastedSpace = b.leftWastedSpace + b.rightWastedSpace;
+        if (aWastedSpace > bWastedSpace) {
+          return -1;
+        } else if (aWastedSpace < bWastedSpace) {
+          return 1;
+        } else {
+          return 0;
+        }
+      });
+
     return [
       <button
         onClick={() => this.chooseLeftDuplicates()}>
@@ -802,8 +854,8 @@ class TreeFilesComparer extends React.Component<Props> {
         choose right paths
       </button>,
       <div className="datagrid">
-        {Array.from(this.hashToDuplicateFiles.entries()).flatMap(([hash, files])=> {
-          return this.renderDuplicatesRow(hash, files.left, files.right);
+        {rows.flatMap(row => {
+          return this.renderDuplicatesRow(row.hash, row.left, row.right, row.leftWastedSpace, row.rightWastedSpace);
         })}
       </div>
     ];
