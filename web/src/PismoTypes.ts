@@ -23,7 +23,7 @@ export interface TreeFile {
 }
 
 export interface Operation {
-  operator: 'rm'|'cp'|'touch';
+  operator: 'rm'|'cp'|'touch'|'mv';
   operands: Array<{
     tree: 'base'|'other';
     relativePath: string;

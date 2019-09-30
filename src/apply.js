@@ -65,6 +65,11 @@ export async function apply(argv) {
     const srcRelativePath = operands.length > 0 ? operands[0].relativePath : null;
     const destRelativePath = operands.length > 1 ? operands[1].relativePath : null;
 
+    if (srcBranch.remote() && destBranch.remote() && srcBranch.remote() !== destBranch.remote()) {
+      console.error('TODO: support operating on separate remotes');
+      continue;
+    }
+
     // TODO print something for each one of these operations!
     switch (operator) {
       case 'touch':
@@ -81,7 +86,7 @@ export async function apply(argv) {
       case 'cp':
         if (srcBranch.remote() && destBranch.remote()) {
           if (srcBranch.remote() !== destBranch.remote()) {
-            throw new Error(`TODO: support copying between separate remotes`);
+            console.error(`TODO: support copying between separate remotes`);
           }
           const remote = await remotes.getOrCreateRemote(srcBranch.remote());
           await remote.copyFileWithinRemote(srcBranch.name(), srcRelativePath, destBranch.name(), destRelativePath);
@@ -171,6 +176,32 @@ export async function apply(argv) {
               throw error;
             }
           }
+        }
+        break;
+
+      case 'mv':
+        if (srcBranch.remote() && destBranch.remote()) {
+          // TODO support separate remotes here
+          const remote = await remotes.getOrCreateRemote(srcBranch.remote());
+          await remote.moveFileWithinRemote(srcBranch.name(), srcRelativePath, destBranch.name(), destRelativePath);
+
+        } else if (!srcBranch.remote() && !destBranch.remote()) {
+          // TODO deduplicate code with 'cp' case
+          const srcTreeFile = await pismoutil.readTreeByName(srcBranch.name());
+          const absoluteSrcPath = path.join(srcTreeFile.path, srcRelativePath);
+
+          const destTreeFile = await pismoutil.readTreeByName(destBranch.name());
+          const absoluteDestPath = path.join(destTreeFile.path, destRelativePath);
+
+          const moveFileError = await new Promise(resolve => {
+            fs.rename(absoluteSrcPath, absoluteDestPath, resolve);
+          });
+          if (moveFileError) {
+            logError(`Failed to move file from ${absoluteSrcPath} to ${absoluteDestPath}`);
+            throw moveFileError; // TODO maybe continue anyways here instead?
+          }
+        } else {
+          throw new Error('TODO support moving between remotes');
         }
         break;
 

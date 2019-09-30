@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 
 import {mirrorBaseToOther, twoWayMerge, oneWayAdd} from '../web/src/AutoMerger';
+import {Operation} from '../web/src/PismoTypes';
 
 import * as diff from './diff.js';
 import * as remotes from './remote.js';
@@ -12,7 +13,6 @@ const Branch = branches.Branch;
 
 /** @typedef {pismoutil.TreeFile} TreeFile */
 /** @typedef {pismoutil.FileInfo} FileInfo */
-/** @typedef {pismoutil.Operation} Operation */
 /** @typedef {pismoutil.MergeFile} MergeFile */
 
 /**

@@ -350,6 +350,23 @@ export class Remote {
   }
 
   /**
+   * @param {string} srcTreeName
+   * @param {string} srcRelativePath
+   * @param {string} destTreeName
+   * @param {string} destRelativePath
+   */
+  async moveFileWithinRemote(srcTreeName, srcRelativePath, destTreeName, destRelativePath) {
+    /** @type {!api.CopyWithinParams} */
+    const request = {
+      srcTreename: srcTreeName,
+      srcRelativePath: srcRelativePath,
+      destTreename: destTreeName,
+      destRelativePath: destRelativePath
+    };
+    await api.MoveWithin.fetchResponse(this, request);
+  }
+
+  /**
    * @param {string} treename
    * @param {string} relativePath
    */

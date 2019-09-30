@@ -6,6 +6,7 @@ import './DataGrid.css';
 import filesize from 'filesize';
 import { mirrorBaseToOther, twoWayMerge, oneWayAdd } from './AutoMerger';
 import { JSXElement } from '@babel/types';
+import fileSize from 'filesize';
 
 interface Props {
   getTreesResponse: GetTreesResponse;
@@ -702,46 +703,55 @@ class TreeFilesComparer extends React.Component<Props> {
         // files.left must have one copy at the right path,
         // and files.right must also have only one copy at the right path.
         // if one side doesn't have any copy of the file, then just do nothing with that side.
-        if (files.left.length) {
-          // do we already have a file in the right spot? if so just delete the others.
-          if (files.left.find(leftFile => leftFile.path === file.path)) {
-            // delete all but the one we found
-            for (const leftFile of files.left) {
-              if (leftFile.path === file.path)
-                continue;
-              operations.push({
-                operator: 'rm',
-                operands: [{
-                  tree: 'base',
-                  relativePath: leftFile.path
-                }]
-              });
-            }
-          } else {
-            // copy the first occurence to the desired path,
-            // then delete _all_ because thats how moves work...?
+
+        const addOperationsForSide = (files: Array<FileInfo>, side: 'left'|'right') => {
+          if (!files.length)
+            return;
+
+          const path = file.path;
+          const sideToProtocol: 'base'|'other' = side === 'left' ? 'base' : 'other';
+
+          const deleteFile = (file: FileInfo) => {
             operations.push({
-              operator: 'cp',
+              operator: 'rm',
               operands: [{
-                tree: 'base',
-                relativePath: leftFiles[0].path
-              }, {
-                tree: 'base',
+                tree: sideToProtocol,
                 relativePath: file.path
               }]
             });
-            for (const leftFile of files.left) {
-              operations.push({
-                operator: 'rm',
-                operands: [{
-                  tree: 'base',
-                  relativePath: leftFile.path
-                }]
-              })
+          };
+
+          // do we already have a file in the right spot? if so just delete the others.
+          if (files.find(file => file.path === path)) {
+            // delete all but the one we found
+            for (const file of files) {
+              if (file.path === path)
+                continue;
+              deleteFile(file);
+            }
+
+          } else {
+            // move the first occurence to the desired path,
+            // then delete the rest.
+            operations.push({
+              operator: 'mv',
+              operands: [{
+                tree: sideToProtocol,
+                relativePath: files[0].path
+              }, {
+                tree: sideToProtocol,
+                relativePath: path
+              }]
+            });
+            for (let i = 1; i < files.length; i++) {
+              deleteFile(files[i]);
             }
           }
-        }
+        };
 
+        addOperationsForSide(leftFiles, 'left');
+        addOperationsForSide(rightFiles, 'right');
+        hashToMergeOperations.set(file.hash, operations);
         this.setState({
           hashToMergeOperations
         });

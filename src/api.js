@@ -303,6 +303,17 @@ export const CopyWithin = new Method(
     destRelativePath: 'string'
   });
 
+/** @type {!Method<CopyWithinParams, void>} */
+export const MoveWithin = new Method(
+  'move-within',
+  {
+    srcTreename: 'string',
+    srcRelativePath: 'string',
+    destTreename: 'string',
+    destRelativePath: 'string'
+  }
+);
+
 /** @typedef {!{treename: string, relativePath: string}} DeleteFileParams */
 /** @type {!Method<DeleteFileParams, void>} */
 export const DeleteFile = new Method(

@@ -160,6 +160,32 @@ async function handleDeleteFile(paramsObj) {
 }
 
 /**
+ * @param {!Object} paramsObj 
+ * @param {'cp'|'mv'} copyOrMove 
+ */
+async function handleCopyWithin(paramsObj, copyOrMove) {
+  const request = api.CopyWithin.parseRequest(paramsObj);
+
+  const srcTreeFile = await pismoutil.readTreeByName(request.srcTreename);
+  const srcAbsolutePath = path.join(srcTreeFile.path, request.srcRelativePath);
+  const destTreeFile = await pismoutil.readTreeByName(request.destTreename);
+  const destAbsolutePath = path.join(destTreeFile.path, request.destRelativePath);
+
+  await new Promise((resolve, reject) => {
+    const handler = error => {
+      if (error)
+        reject(error);
+      else
+        resolve();
+    };
+    if (copyOrMove === 'cp')
+      fs.copyFile(srcAbsolutePath, destAbsolutePath, handler);
+    else if (copyOrMove === 'mv')
+      fs.rename(srcAbsolutePath, destAbsolutePath, handler);
+  })
+}
+
+/**
  * TODO TODO TODO make this update the local file during this
  * i have the problem where id update a file with the same modified time
  * and then it doesnt propogate
@@ -274,6 +300,10 @@ export async function server(argv) {
           return await handlePreparePutFile(params);
         case api.DeleteFile.id():
           return await handleDeleteFile(params);
+        case api.CopyWithin.id():
+          return await handleCopyWithin(params, 'cp');
+        case api.MoveWithin.id():
+          return await handleCopyWithin(params, 'mv');
         default:
           throw new Error('unrecognized request method: ' + method);
       }
