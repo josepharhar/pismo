@@ -1,4 +1,4 @@
-import { MergeFile, TreeFile, Operation, FileInfo } from "./PismoTypes";
+import { TreeFile, Operation, FileInfo } from "./PismoTypes";
 import Differator from "./Differator";
 
 export function mirrorBaseToOther(baseTree: TreeFile, otherTree: TreeFile): Array<Operation> {
