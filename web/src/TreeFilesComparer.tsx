@@ -13,6 +13,10 @@ interface Props {
   leftBranchName: string;
   rightBranchName: string;
 }
+interface DupeData {
+  operations: Array<Operation>;
+  selectedPath: string;
+}
 
 class TreeFilesComparer extends React.Component<Props> {
   rows: Array<{
@@ -24,7 +28,7 @@ class TreeFilesComparer extends React.Component<Props> {
     expandedPaths: Set<string>;
     viewStyle: 'all'|'onlyDiff'|'onlyChanges'|'onlyDuplicates';
     pathToMergeOperations: Map<string, Array<Operation>>;
-    hashToMergeOperations: Map<string, Array<Operation>>;
+    hashToDupeData: Map<string, DupeData>;
   };
 
   leftTreeFile: TreeFile;
@@ -39,7 +43,7 @@ class TreeFilesComparer extends React.Component<Props> {
       expandedPaths: new Set(),
       viewStyle: 'all',
       pathToMergeOperations: new Map(),
-      hashToMergeOperations: new Map()
+      hashToDupeData: new Map()
     };
 
     const {getTreesResponse, leftBranchName, rightBranchName} = props;
@@ -132,7 +136,7 @@ class TreeFilesComparer extends React.Component<Props> {
     };
 
     this.state.pathToMergeOperations.forEach(addMergeOperations);
-    this.state.hashToMergeOperations.forEach(addMergeOperations);
+    this.state.hashToDupeData.forEach(dupeData => addMergeOperations(dupeData.operations));
 
     const outputString = JSON.stringify(output, null, 2);
     const blob = new Blob([outputString], {type: 'text/plain'});
@@ -701,7 +705,7 @@ class TreeFilesComparer extends React.Component<Props> {
     const addFile = (side: 'left'|'right', file: FileInfo) => {
 
       const choosePath = () => {
-        const hashToMergeOperations = this.state.hashToMergeOperations;
+        const hashToDupeData = this.state.hashToDupeData;
         const files = this.hashToDuplicateFiles.get(file.hash);
         if (!files) return;
         const operations: Array<Operation> = [];
@@ -756,14 +760,17 @@ class TreeFilesComparer extends React.Component<Props> {
 
         addOperationsForSide(leftFiles, 'left');
         addOperationsForSide(rightFiles, 'right');
-        hashToMergeOperations.set(file.hash, operations);
+        hashToDupeData.set(file.hash, {operations, selectedPath: file.path});
         this.setState({
-          hashToMergeOperations
+          hashToDupeData
         });
       };
 
       const undo = () => {
-        throw new Error('TODO');
+        this.state.hashToDupeData.delete(file.hash);
+        this.setState({
+          hashToDupeData: this.state.hashToDupeData
+        });
       };
 
       const chooseButton = (
@@ -782,14 +789,42 @@ class TreeFilesComparer extends React.Component<Props> {
         </button>
       )
 
+      // is this row's path being picked?
+      const dupeData = this.state.hashToDupeData.get(file.hash);
+      if (dupeData && dupeData.selectedPath === file.path) {
+      }
+
+      let mergeState: 'none'|'deleting'|'selecting' = 'none';
+      if (dupeData) {
+        if (dupeData.selectedPath === file.path) {
+          mergeState = 'selecting';
+        } else {
+          mergeState = 'deleting';
+        }
+      }
+
+      let button = null;
+      let className = 'comparer-duplicates-path monospace';
+      switch (mergeState) {
+        case 'none':
+          button = chooseButton;
+          break;
+        case 'deleting':
+          button = <button disabled>deleting</button>
+          className += ' strikethrough';
+          break;
+        case 'selecting':
+          button = undoButton;
+          break;
+      }
+
       rows.push(
         <div className="comparer-duplicates-row-entry">
-          {this.state.hashToMergeOperations.has(file.hash)
-            ? undoButton : chooseButton}
+          {button}
           <div className="comparer-duplicates-branch">
             {side === 'left' ? this.props.leftBranchName : this.props.rightBranchName}
           </div>
-          <div className="comparer-duplicates-path monospace">
+          <div className={className}>
             {file.path}
           </div>
         </div>
