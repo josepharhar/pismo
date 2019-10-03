@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { ComponentClass } from 'react';
 import { GetTreesResponse, FileInfo, Operation, MergeFile, TreeFile } from './PismoTypes';
 import './TreeFilesComparer.css';
 import './DataGrid.css';
 import filesize from 'filesize';
 import { mirrorBaseToOther, twoWayMerge, oneWayAdd } from './AutoMerger';
-import { FixedSizeList } from 'react-window';
+import { FixedSizeList, ListChildComponentProps } from 'react-window';
 
 interface Props {
   getTreesResponse: GetTreesResponse;
@@ -901,11 +901,21 @@ class TreeFilesComparer extends React.Component<Props> {
   }
 
   render() {
+
+    class Row extends React.Component<ListChildComponentProps> {
+      render() {
+        const {index, style} = this.props;
+        return <div></div>;
+      }
+    }
+
     return (
       <div className="comparer">
         {this.renderBanner()}
 
-        <FixedSizeList>
+        <FixedSizeList
+          >
+          {Row}
         </FixedSizeList>
 
         {this.state.viewStyle === 'onlyDuplicates' ? this.renderDuplicates() :
