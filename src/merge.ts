@@ -1,9 +1,7 @@
 import * as fs from 'fs';
 
 import {mirrorBaseToOther, twoWayMerge, oneWayAdd} from '../web/src/AutoMerger';
-import {Operation} from '../web/src/PismoTypes';
 
-import * as diff from './diff.js';
 import * as remotes from './remote.js';
 import * as pismoutil from './pismoutil.js';
 import * as branches from './branch.js';
@@ -11,24 +9,18 @@ const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 const Branch = branches.Branch;
 
-/** @typedef {pismoutil.TreeFile} TreeFile */
-/** @typedef {pismoutil.FileInfo} FileInfo */
-/** @typedef {pismoutil.MergeFile} MergeFile */
+type TreeFile = pismoutil.TreeFile;
+type FileInfo = pismoutil.FileInfo;
+type MergeFile = pismoutil.MergeFile;
 
 /**
  * "Updates" otherTree with new information from baseTree by adding/overwriting
  * all files present in baseTree to otherTree.
- * 
- * @param {!TreeFile} baseTree 
- * @param {!TreeFile} otherTree 
- * @return {!Array<!FileInfo>}
  */
-export function oneWayUpdate(baseTree, otherTree) {
-  /** @type {!Array<!FileInfo>} */
-  const files = [];
+export function oneWayUpdate(baseTree: TreeFile, otherTree: TreeFile): Array<FileInfo> {
+  const files: Array<FileInfo> = [];
 
-  /** @type {!Map<string, !FileInfo>} */
-  const oldTreeFilesMap = new Map();
+  const oldTreeFilesMap: Map<string, FileInfo> = new Map();
   for (const file of otherTree.files) {
     oldTreeFilesMap.set(file.path, file);
   }
@@ -46,17 +38,12 @@ export function oneWayUpdate(baseTree, otherTree) {
   return files;
 }
 
-/**
- * @param {import('./pismo.js').MergeGenArgs} argv
- */
-export async function merge(argv) {
+export async function merge(argv: import('./pismo.js').MergeGenArgs) {
   const outputFilepath = argv['output-filepath'];
   const mode = argv['mode'];
 
-  /** @type {?TreeFile} */
-  let baseTree = null;
-  /** @type {?TreeFile} */
-  let otherTree = null;
+  let baseTree: TreeFile|null = null;
+  let otherTree: TreeFile|null = null;
   const baseBranch = new Branch(argv.base);
   const otherBranch = new Branch(argv.other);
   if (baseBranch.remote()) {
@@ -99,8 +86,7 @@ export async function merge(argv) {
       throw new Error(`Unrecognized merge mode: ${argv['mode']}`);
   }
 
-  /** @type {!MergeFile} */
-  const output = {
+  const output: MergeFile = {
     baseBranch: baseBranch.rawString(),
     otherBranch: otherBranch.rawString(),
     operations: operations
