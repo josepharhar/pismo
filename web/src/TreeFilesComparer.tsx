@@ -458,8 +458,12 @@ class TreeFilesComparer extends React.Component<Props> {
         ];
       }
 
+      const key =
+        'left' + (left ? left.path : 'null')
+        + 'right' + (right ? right.path : 'null');
       const deleteButton = (
         <button
+            key={'deleteButton' + key}
             className="comparer-button-row-child comparer-left-button"
             onClick={() => delet()}>
           {diffState === 'onlyone' ? 'delete' : 'delete both'}
@@ -467,6 +471,7 @@ class TreeFilesComparer extends React.Component<Props> {
       );
       const pickLeftButton = (
         <button
+          key={'pickLeftButton' + key}
           className="comparer-button-row-child comparer-pick-button"
           onClick={() => copyLeft()}>
           pick left
@@ -474,6 +479,7 @@ class TreeFilesComparer extends React.Component<Props> {
       );
       const pickRightButton = (
         <button
+          key={'pickRightButton' + key}
           className="comparer-button-row-child comparer-pick-button"
           onClick={() => copyRight()}>
           pick right
@@ -843,11 +849,11 @@ class TreeFilesComparer extends React.Component<Props> {
   }
 
   chooseLeftDuplicates() {
-    console.error("TODO");
+    throw new Error('TODO');
   }
 
   chooseRightDuplicates() {
-    console.error("TODO");
+    throw new Error('TODO');
   }
 
   renderDuplicates() {
