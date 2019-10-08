@@ -2,9 +2,7 @@
 set -e
 set -x
 
-jcmp() {
-  find $1 -type f -exec sh -c 'md5sum --tag "{}" ; stat --printf="%y\n" "{}" ;' \; | paste -d " " - -
-}
+source test-shared-config.sh
 
 # This test does TODO
 
