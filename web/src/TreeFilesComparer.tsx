@@ -902,10 +902,12 @@ class TreeFilesComparer extends React.Component<Props> {
 
   render() {
 
+    const asdf = this.rows.flatMap(row => this.renderRow(row));
+
     class Row extends React.Component<ListChildComponentProps> {
       render() {
         const {index, style} = this.props;
-        return <div></div>;
+        return asdf[index];
       }
     }
 
@@ -913,17 +915,15 @@ class TreeFilesComparer extends React.Component<Props> {
       <div className="comparer">
         {this.renderBanner()}
 
-        <FixedSizeList
-          >
-          {Row}
-        </FixedSizeList>
-
-        {this.state.viewStyle === 'onlyDuplicates' ? this.renderDuplicates() :
-          <div className="datagrid">
-            {this.rows.flatMap((row, index)=> {
-              return this.renderRow(row);
-            })}
-          </div>}
+        {this.state.viewStyle === 'onlyDuplicates'
+          ? this.renderDuplicates()
+          : <FixedSizeList
+              height={550}
+              itemCount={asdf.length}
+              itemSize={50}
+              width={300}>
+              {Row}
+            </FixedSizeList>}
       </div>
     );
   }
