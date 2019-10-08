@@ -10,6 +10,7 @@ export function mirrorBaseToOther(baseTree: TreeFile, otherTree: TreeFile): Arra
   while (differator.hasNext()) {
     // TODO redesign this to not have to type cast
     const [{treeFile, fileInfo}, second] = differator.next() as Next;
+    console.log('poop you joseph');
 
     if (second) {
       output.push({
@@ -103,6 +104,72 @@ export function oneWayAdd(baseTree: TreeFile, otherTree: TreeFile): Array<Operat
       throw new Error('this should never happen');
     }
   }
+
+  return output;
+}
+
+export function deduplicate(baseTree: TreeFile, otherTree: TreeFile): Array<Operation> {
+  const output: Array<Operation> = [];
+
+  const hashToFiles: Map<string, {left: Array<FileInfo>, right: Array<FileInfo>}> = new Map();
+  const getFileForHash = (hash: string) => {
+    if (!hashToFiles.has(hash))
+      hashToFiles.set(hash, {left: [], right: []});
+    return hashToFiles.get(hash)
+  }
+  for (const file of baseTree.files)
+    getFileForHash(file.hash).left.push(file);
+  for (const file of otherTree.files)
+    getFileForHash(file.hash).right.push(file);
+
+  hashToFiles.forEach((files, hash) => {
+    const desiredPath = files.left.length
+      ? files.left[0].path
+      : files.right[0].path;
+
+    const doSide = (side: 'left'|'right') => {
+      const tree: 'base'|'other' = side === 'left' ? 'base' : 'other';
+      if (files[side].find(file => file.path === desiredPath)) {
+        // delete everything but the desired one
+        for (const file of files[side]) {
+          if (file.path === desiredPath)
+            continue;
+          output.push({
+            operator: 'rm',
+            operands: [{
+              tree,
+              relativePath: file.path
+            }]
+          })
+        }
+
+      } else {
+        // move the first left to the desired spot, delete the rest
+        output.push({
+          operator: 'mv',
+          operands: [{
+            tree,
+            relativePath: files[side][0].path
+          }, {
+            tree,
+            relativePath: desiredPath
+          }]
+        })
+        for (let i = 1; i < files[side].length; i++) {
+          output.push({
+            operator: 'rm',
+            operands: [{
+              tree,
+              relativePath: files[side][i].path
+            }]
+          });
+        }
+      }
+    };
+
+    doSide('left');
+    doSide('right');
+  });
 
   return output;
 }

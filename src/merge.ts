@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 
-import {mirrorBaseToOther, twoWayMerge, oneWayAdd} from '../web/src/AutoMerger';
+import {mirrorBaseToOther, twoWayMerge, oneWayAdd, deduplicate} from '../web/src/AutoMerger';
 
 import * as remotes from './remote.js';
 import * as pismoutil from './pismoutil.js';
@@ -40,7 +40,6 @@ export function oneWayUpdate(baseTree: TreeFile, otherTree: TreeFile): Array<Fil
 
 export async function merge(argv: import('./pismo.js').MergeGenArgs) {
   const outputFilepath = argv['output-filepath'];
-  const mode = argv['mode'];
 
   let baseTree: TreeFile|null = null;
   let otherTree: TreeFile|null = null;
@@ -82,6 +81,10 @@ export async function merge(argv: import('./pismo.js').MergeGenArgs) {
       operations = oneWayAdd(baseTree, otherTree);
       break;
 
+    case 'deduplicate':
+      operations = deduplicate(baseTree, otherTree);
+      break;
+
     default:
       throw new Error(`Unrecognized merge mode: ${argv['mode']}`);
   }
@@ -89,7 +92,7 @@ export async function merge(argv: import('./pismo.js').MergeGenArgs) {
   const output: MergeFile = {
     baseBranch: baseBranch.rawString(),
     otherBranch: otherBranch.rawString(),
-    operations: operations
+    operations
   };
 
   const writeFileError = await new Promise(resolve => {
