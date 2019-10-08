@@ -1,5 +1,7 @@
-import { MergeFile, TreeFile, Operation, FileInfo } from "./PismoTypes";
+import { TreeFile, Operation, FileInfo } from "./PismoTypes";
 import Differator from "./Differator";
+
+type Next = Array<{treeFile: TreeFile, fileInfo: FileInfo}>;
 
 export function mirrorBaseToOther(baseTree: TreeFile, otherTree: TreeFile): Array<Operation> {
   const output: Array<Operation> = [];
@@ -7,7 +9,7 @@ export function mirrorBaseToOther(baseTree: TreeFile, otherTree: TreeFile): Arra
   const differator = new Differator(baseTree, otherTree);
   while (differator.hasNext()) {
     // TODO redesign this to not have to type cast
-    const [{treeFile, fileInfo}, second] = <Array<{treeFile: TreeFile, fileInfo: FileInfo}>>differator.next();
+    const [{treeFile, fileInfo}, second] = differator.next() as Next;
 
     if (second) {
       output.push({
@@ -42,7 +44,7 @@ export function twoWayMerge(baseTree: TreeFile, otherTree: TreeFile): Array<Oper
 
   const differator = new Differator(baseTree, otherTree);
   while (differator.hasNext()) {
-    const [{treeFile, fileInfo}, second] = <Array<{treeFile: TreeFile, fileInfo: FileInfo}>>differator.next();
+    const [{treeFile, fileInfo}, second] = differator.next() as Next;
 
     if (second) {
       // TODO how can this be properly represented in a merge file?
@@ -80,7 +82,7 @@ export function oneWayAdd(baseTree: TreeFile, otherTree: TreeFile): Array<Operat
 
   const differator = new Differator(baseTree, otherTree);
   while (differator.hasNext()) {
-    const [{treeFile, fileInfo}, second] = <Array<{treeFile: TreeFile, fileInfo: FileInfo}>>differator.next();
+    const [{treeFile, fileInfo}, second] = differator.next() as Next;
 
     if (second) {
       console.log('warning: file found on both sides: "' + fileInfo.path + '", using base');

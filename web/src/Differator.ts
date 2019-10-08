@@ -1,5 +1,7 @@
 import { TreeFile, FileInfo, areFilesEqual } from "./PismoTypes";
 
+type Next = Array<{treeFile: TreeFile, fileInfo: FileInfo}>;
+
 export default class Differator {
   baseTree: TreeFile;
   otherTree: TreeFile;
@@ -49,7 +51,7 @@ export default class Differator {
       || this.otherIndex < this.otherTree.files.length;
   }
 
-  next(): Array<{treeFile: TreeFile, fileInfo: FileInfo}>|null {
+  next(): Next|null {
     if (!this.hasNext())
       return null;
     // calling hasNext() triggers goToNextDiff(), so heads are ready
@@ -60,7 +62,7 @@ export default class Differator {
       this.baseIndex++;
       return [{
         treeFile: this.baseTree,
-        fileInfo: <FileInfo>baseFile
+        fileInfo: baseFile as FileInfo // TODO why do i have to typecast this?
       }];
     } else if (!baseFile || otherFile.path < baseFile.path) {
       this.otherIndex++;

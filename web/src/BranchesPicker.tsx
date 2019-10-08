@@ -63,7 +63,6 @@ class BranchesPicker extends React.Component<Props> {
         </div>
         <div className="center">
           <button onClick={event => {
-              console.log('calling onBranchesPicked. left: ' + this.state.left + ', right: ' + this.state.right);
               this.props.onBranchesPicked({
                 leftBranchName: this.state.left,
                 rightBranchName: this.state.right

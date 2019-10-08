@@ -1,12 +1,9 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import { GetTreesResponse, FileInfo, Operation, MergeFile, TreeFile } from './PismoTypes';
 import './TreeFilesComparer.css';
 import './DataGrid.css';
-//import { FixedSizeList } from 'react-window';
 import filesize from 'filesize';
 import { mirrorBaseToOther, twoWayMerge, oneWayAdd } from './AutoMerger';
-import { JSXElement, file } from '@babel/types';
-import fileSize from 'filesize';
 
 interface Props {
   getTreesResponse: GetTreesResponse;
@@ -451,6 +448,7 @@ class TreeFilesComparer extends React.Component<Props> {
       if (mergeState !== 'none') {
         return [
           <button
+            key={path + ' comparer-button-row-child'}
             className="comparer-button-row-child"
             onClick={() => undo()}>
               undo
@@ -596,16 +594,18 @@ class TreeFilesComparer extends React.Component<Props> {
 
       className += ' monospace comparer-status-icon';
 
-      return <span className={className} title={tooltipText}> {text} </span>;
+      return <span key={path + ' status icon'} className={className} title={tooltipText}> {text} </span>;
     }
 
     const renderButtonRow = () => {
       return [
-        <div className="comparer-button-row-container">
+        <div className="comparer-button-row-container" key={path + ' comparer-button-row-container'}>
           {renderButtonRowItems()}
         </div>,
         renderStatusIcon(),
-        <span className="monospace clip-overflow cursor-pointer" onClick={() => toggleExpanded()}>
+        <span className="monospace clip-overflow cursor-pointer"
+            onClick={() => toggleExpanded()}
+            key={path + ' omaewa'}>
           {path}
         </span>
       ];
