@@ -192,13 +192,13 @@ yargs.command(
       .version(false),
   run(dupes));
 
-/** @typedef {yargs.Arguments<{base: string, other: string, 'output-filepath': string}>} MergeGenArgs */
+/** @typedef {yargs.Arguments<{base: string, other: string, 'output-filepath': string, mode: 'one-way-mirror'|'two-way-sync'|'one-way-add'|'deduplicate'}>} MergeGenArgs */
 yargs.command(
   'merge-gen <base> <other> <output-filepath>',
   'Compares the directory trees named <base> and <other> and writes a merge file to the path <output-filepath>, which can then be applied by using merge-apply.',
   yargs => yargs
       .option('mode', {
-        choices: ['one-way-mirror', 'two-way-sync', 'one-way-add'],
+        choices: ['one-way-mirror', 'two-way-sync', 'one-way-add', 'deduplicate'],
         default: 'one-way-mirror',
         description: 'Preset to generate merge file with'
       })

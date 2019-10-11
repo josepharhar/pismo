@@ -10,7 +10,6 @@ export function mirrorBaseToOther(baseTree: TreeFile, otherTree: TreeFile): Arra
   while (differator.hasNext()) {
     // TODO redesign this to not have to type cast
     const [{treeFile, fileInfo}, second] = differator.next() as Next;
-    console.log('poop you joseph');
 
     if (second) {
       output.push({

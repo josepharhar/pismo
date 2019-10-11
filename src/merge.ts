@@ -68,7 +68,7 @@ export async function merge(argv: import('./pismo.js').MergeGenArgs) {
   //      reimplement nicknames as an optional feature
 
   let operations = null;
-  switch (argv['mode']) {
+  switch (argv.mode) {
     case 'one-way-mirror':
       operations = mirrorBaseToOther(baseTree, otherTree);
       break;

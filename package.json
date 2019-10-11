@@ -22,7 +22,7 @@
     "url": "https://github.com/josepharhar/pismo/issues"
   },
   "homepage": "https://github.com/josepharhar/pismo",
-  "bin": "build/pismo.js",
+  "bin": "build/src/pismo.js",
   "devDependencies": {
     "@types/body-parser": "^1.17.0",
     "@types/cors": "^2.8.6",
