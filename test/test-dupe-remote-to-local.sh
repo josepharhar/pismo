@@ -55,6 +55,8 @@ diff dupeout1-expected.txt dupeout1-actual.txt
 diff dupeout2-expected.txt dupeout2-actual.txt
 
 # clean up
+pismo remove dupetest1
+pismo remove dupetest2
 pismo remote-remove local
 
 echo "test passed successfully"
