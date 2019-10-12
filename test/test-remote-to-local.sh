@@ -6,8 +6,6 @@ jcmp() {
   find $1 -type f -exec sh -c 'md5sum --tag "{}" ; stat --printf="%y\n" "{}" ;' \; | paste -d " " - -
 }
 
-# This test does TODO
-
 # clean up stuff from previous test runs
 pismo remove test1 || true
 pismo remove test2 || true

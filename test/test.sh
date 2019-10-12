@@ -6,12 +6,13 @@ jcmp() {
   find $1 -type f -exec sh -c 'md5sum --tag "{}" ; stat --printf="%y\n" "{}" ;' \; | paste -d " " - -
 }
 
-# This test does TODO
-
 # clean up stuff from previous test runs
-rm -rf out1 out2 || true
 pismo remove test1 || true
 pismo remove test2 || true
+rm -rf out1 out2 || true
+
+
+
 
 
 # set up out1
@@ -36,6 +37,9 @@ pismo add test2 out2
 pismo update test1
 pismo update test2
 
+
+
+
 # copy with pismo
 pismo merge-gen test1 test2 merge.json
 pismo merge-apply merge.json
@@ -47,5 +51,8 @@ jcmp out2 > out2-actual.txt
 # compare
 diff out1-expected.txt out1-actual.txt
 diff out2-expected.txt out2-actual.txt
+
+
+
 
 echo "test passed successfully"

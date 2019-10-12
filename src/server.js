@@ -172,6 +172,15 @@ async function handleCopyWithin(paramsObj, copyOrMove) {
   const destAbsolutePath = path.join(destTreeFile.path, request.destRelativePath);
 
   await new Promise((resolve, reject) => {
+    mkdirp(path.dirname(destAbsolutePath), error => {
+      if (error)
+        reject(error);
+      else
+        resolve();
+    });
+  });
+
+  await new Promise((resolve, reject) => {
     const handler = error => {
       if (error)
         reject(error);

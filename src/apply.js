@@ -66,7 +66,7 @@ export async function apply(argv) {
     const srcRelativePath = operands.length > 0 ? operands[0].relativePath : null;
     const destRelativePath = operands.length > 1 ? operands[1].relativePath : null;
 
-    if (srcBranch.remote() && destBranch.remote() && srcBranch.remote() !== destBranch.remote()) {
+    if (srcBranch.remote() && destBranch && destBranch.remote() && srcBranch.remote() !== destBranch.remote()) {
       console.error('TODO: support operating on separate remotes');
       continue;
     }

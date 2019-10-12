@@ -11,9 +11,9 @@ rm -rf dupeout1 dupeout2 || true
 pismo remove dupetest1 || true
 pismo remove dupetest2 || true
 
-
-
-
+# set up remotes
+pismo remote-remove local || true
+pismo remote-add local http://localhost:48880
 
 # set up dupeout1 for expected snapshot
 cp -r -p dupedata1 dupeout1
@@ -39,11 +39,11 @@ pismo add dupetest2 dupeout2
 pismo update dupetest1
 pismo update dupetest2
 
-
-
+# update remote
+pismo fetch local
 
 # dedupe with pismo
-pismo merge-gen dupetest1 dupetest2 --mode=deduplicate merge.json
+pismo merge-gen dupetest1 local/dupetest2 --mode=deduplicate merge.json
 pismo merge-apply merge.json
 
 # create actual output
@@ -54,7 +54,7 @@ dupecmp dupeout2 > dupeout2-actual.txt
 diff dupeout1-expected.txt dupeout1-actual.txt
 diff dupeout2-expected.txt dupeout2-actual.txt
 
-
-
+# clean up
+pismo remote-remove local
 
 echo "test passed successfully"
