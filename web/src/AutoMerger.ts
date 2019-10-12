@@ -110,11 +110,12 @@ export function oneWayAdd(baseTree: TreeFile, otherTree: TreeFile): Array<Operat
 export function deduplicate(baseTree: TreeFile, otherTree: TreeFile): Array<Operation> {
   const output: Array<Operation> = [];
 
-  const hashToFiles: Map<string, {left: Array<FileInfo>, right: Array<FileInfo>}> = new Map();
-  const getFileForHash = (hash: string) => {
+  type Files = {left: Array<FileInfo>, right: Array<FileInfo>};
+  const hashToFiles: Map<string, Files> = new Map();
+  const getFileForHash = (hash: string): Files => {
     if (!hashToFiles.has(hash))
       hashToFiles.set(hash, {left: [], right: []});
-    return hashToFiles.get(hash)
+    return hashToFiles.get(hash) as Files;
   }
   for (const file of baseTree.files)
     getFileForHash(file.hash).left.push(file);

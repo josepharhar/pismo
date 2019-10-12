@@ -78,6 +78,7 @@ jcmp out1 | sed 's/out1/out2/g' > out2-expected.txt
 diff out2-expected.txt out2-actual.txt
 
 # clean up
+pismo remove test1
 pismo remote-remove test_remote || true
 
 echo "test passed successfully"

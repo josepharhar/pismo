@@ -53,6 +53,8 @@ diff out1-expected.txt out1-actual.txt
 diff out2-expected.txt out2-actual.txt
 
 # clean up
+pismo remove test1
+pismo remove test2
 pismo remote-remove local
 
 echo "test passed successfully"
