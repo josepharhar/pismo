@@ -10,6 +10,7 @@ import * as diff from './diff.js';
 import * as branches from './branch.js';
 import * as pismoutil from './pismoutil.js';
 import * as remotes from './remote.js';
+import * as mkdirp from 'mkdirp';
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 // TODO delet this?
@@ -193,6 +194,14 @@ export async function apply(argv) {
           const destTreeFile = await pismoutil.readTreeByName(destBranch.name());
           const absoluteDestPath = path.join(destTreeFile.path, destRelativePath);
 
+          await new Promise((resolve, reject) => {
+            mkdirp(path.dirname(absoluteDestPath), error => {
+              if (error)
+                reject(error);
+              else
+                resolve();
+            });
+          });
           const moveFileError = await new Promise(resolve => {
             fs.rename(absoluteSrcPath, absoluteDestPath, resolve);
           });
