@@ -44,6 +44,10 @@ export async function mergePrint(argv) {
       case 'rm':
         pismoutil.logColor(pismoutil.Colors.red, `rm ${branchNames[0]}:${operands[0].relativePath}`);
         break;
+      
+      case 'mv':
+        pismoutil.logColor(pismoutil.Colors.yellow, `mv ${branchNames[0]}:${operands[0].relativePath} ${branchNames[1]}:${operands[1].relativePath}`);
+        break;
     }
   }
 }

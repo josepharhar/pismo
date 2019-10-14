@@ -114,6 +114,7 @@ class TreeFilesComparer extends React.Component<Props> {
       const cpOperations = [];
       const rmOperations = [];
       const touchOperations = [];
+      const mvOperations = [];
 
       for (const operation of mergeOperations) {
         switch (operation.operator) {
@@ -126,10 +127,16 @@ class TreeFilesComparer extends React.Component<Props> {
           case 'touch':
             touchOperations.push(operation);
             break;
+          case 'mv':
+            mvOperations.push(operation);
+            break;
         }
       }
 
-      output.operations = output.operations.concat(cpOperations.concat(rmOperations).concat(touchOperations));
+      output.operations = output.operations.concat(mvOperations);
+      output.operations = output.operations.concat(cpOperations);
+      output.operations = output.operations.concat(rmOperations);
+      output.operations = output.operations.concat(touchOperations);
     };
 
     this.state.pathToMergeOperations.forEach(addMergeOperations);
