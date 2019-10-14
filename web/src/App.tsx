@@ -62,6 +62,7 @@ class App extends React.Component {
     });
 
     const comparer = <TreeFilesComparer
+      hostname={serverAddress}
       getTreesResponse={trees}
       leftBranchName={leftBranchName}
       rightBranchName={rightBranchName} />;

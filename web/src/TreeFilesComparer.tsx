@@ -9,6 +9,7 @@ interface Props {
   getTreesResponse: GetTreesResponse;
   leftBranchName: string;
   rightBranchName: string;
+  hostname: string;
 }
 interface DupeData {
   operations: Array<Operation>;
@@ -103,7 +104,7 @@ class TreeFilesComparer extends React.Component<Props> {
     });
   }
 
-  save() {
+  generateMergeFile() {
     const output: MergeFile = {
       baseBranch: this.props.leftBranchName,
       otherBranch: this.props.rightBranchName,
@@ -142,6 +143,24 @@ class TreeFilesComparer extends React.Component<Props> {
     this.state.pathToMergeOperations.forEach(addMergeOperations);
     this.state.hashToDupeData.forEach(dupeData => addMergeOperations(dupeData.operations));
 
+    return output;
+  }
+
+  apply() {
+    const mergeFile = this.generateMergeFile();
+    fetch('http://' + this.props.hostname + '/apply', {
+      method: 'POST',
+      body: JSON.stringify(mergeFile),
+      headers: {
+        'content-type': 'application/json'
+      }
+    }).catch(error => {
+      console.log('fetch /apply error: ', error);
+    });
+  }
+
+  save() {
+    const output = this.generateMergeFile();
     const outputString = JSON.stringify(output, null, 2);
     const blob = new Blob([outputString], {type: 'text/plain'});
     const anchor = document.createElement('a');
@@ -313,6 +332,7 @@ class TreeFilesComparer extends React.Component<Props> {
             onClick={() => this.save()}>
             save
           </button>
+          <button onClick={() => this.apply()}>apply</button>
           {this.renderViewPicker()}
           {this.renderPresetPicker()}
           <button onClick={() => this.revertChangesBelowLastChange()}>

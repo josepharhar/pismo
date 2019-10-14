@@ -1,4 +1,4 @@
-
+import {MergeFile} from '../web/src/PismoTypes';
 
 import * as pismoutil from './pismoutil.js';
 
@@ -6,7 +6,7 @@ import * as pismoutil from './pismoutil.js';
  * @param {import('./pismo.js').MergePrintArgs} argv
  */
 export async function mergePrint(argv) {
-  /** @type {pismoutil.MergeFile} */
+  /** @type {MergeFile} */
   const mergefile = await pismoutil.readFileToJson(argv.mergefile);
 
   /**

@@ -16,6 +16,7 @@ import * as nanoutimes from 'nanoutimes';
 import * as api from './api.js';
 import * as remote from './remote.js';
 import * as pismoutil from './pismoutil.js';
+import * as apply from './apply.js';
 const {logInfo, logError} = pismoutil.getLogger(__filename);
 
 /**
@@ -365,6 +366,43 @@ export async function server(argv) {
   app.get('/version', async (req, res) => {
     res.writeHead(200, {'content-type': 'text/plain'});
     res.end('TODO add versioning here');
+  });
+
+  app.use('/apply', async (req, res) => {
+    const jsonString = await pismoutil.streamToString(req);
+    let json = null;
+    try {
+      json = JSON.parse(jsonString);
+    } catch (error) {
+      const errorString = 'failed to parse json for /apply: ' + error;
+      logError(errorString);
+      res.writeHead(400, {'content-type': 'text/plain'});
+      res.end(errorString);
+      return;
+    }
+
+    try {
+      pismoutil.parseJson(json, pismoutil.MergeFileSchema);
+    } catch (error) {
+      const errorString = 'failed to verify json for /apply: ' + error;
+      logError(errorString);
+      res.writeHead(400, {'content-type': 'text/plain'});
+      res.end(errorString);
+      return;
+    }
+
+    try {
+      await apply.applyInternal(json);
+    } catch (error) {
+      const errorString = 'failed to apply.applyInternal for /apply: ' + error;
+      logError(errorString);
+      res.writeHead(400, {'content-type': 'text/plain'});
+      res.end(errorString);
+      return;
+    }
+
+    res.writeHead(200, {'content-type': 'text/plain'});
+    res.end('hello from /apply');
   });
 
   app.listen(port);

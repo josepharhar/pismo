@@ -6,7 +6,7 @@ import * as nanoutimes from 'nanoutimes';
 // @ts-ignore
 import * as nanostat from 'nanostat';
 
-import * as diff from './diff.js';
+import {MergeFile} from '../web/src/PismoTypes';
 import * as branches from './branch.js';
 import * as pismoutil from './pismoutil.js';
 import * as remotes from './remote.js';
@@ -44,9 +44,15 @@ function setFileTime(absolutePath, filetime) {
  * @param {import('./pismo.js').MergeApplyArgs} argv
  */
 export async function apply(argv) {
-  /** @type {pismoutil.MergeFile} */
-  const mergefile = await pismoutil.readFileToJson(argv.mergefile);
+  const mergefile = JSON.parse(argv.mergefile);
+  pismoutil.parseJson(mergefile, pismoutil.MergeFileSchema);
+  applyInternal(/** @type {!MergeFile} */ (mergefile));
+}
 
+/**
+ * @param {!MergeFile} mergefile
+ */
+export async function applyInternal(mergefile) {
   for (const {operator, operands} of mergefile.operations) {
     //let srcFilepath = null, destFilepath = null;
 

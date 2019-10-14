@@ -13,7 +13,7 @@ import * as nanoutimes from 'nanoutimes';
 import * as filesize from 'filesize';
 import * as mkdirp from 'mkdirp';
 import * as rimraf from 'rimraf';
-import {Operation} from '../web/src/PismoTypes';
+import {Operation, MergeFile} from '../web/src/PismoTypes';
 
 const readdirPromise = util.promisify(fs.readdir);
 const readFilePromise = util.promisify(fs.readFile);
@@ -38,8 +38,20 @@ export const TreeFileSchema = {
   customAttributeNameToCommand: 'object',
   files: [FileInfoSchema]
 };
-/** @typedef {{baseBranch: string, otherBranch: string, operations: !Array<!Operation>}} MergeFile */
 /** @typedef {!{mtimeS: number, mtimeNs: number}} FileTime */
+
+// TODO move this to PismoTypes.ts to avoid only updating one of the two?
+/** @type {!JsonSchema} */
+export const OperationSchema = {
+  operator: 'string',
+  operands: [{tree: 'string', relativePath: 'string'}]
+};
+/** @type {!JsonSchema} */
+export const MergeFileSchema = {
+  baseBranch: 'string',
+  otherBranch: 'string',
+  operations: [OperationSchema]
+};
 
 /**
  * @param {string=} filepath

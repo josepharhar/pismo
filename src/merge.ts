@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 
 import {mirrorBaseToOther, twoWayMerge, oneWayAdd, deduplicate} from '../web/src/AutoMerger';
+import {MergeFile} from '../web/src/PismoTypes';
 
 import * as remotes from './remote.js';
 import * as pismoutil from './pismoutil.js';
@@ -11,7 +12,6 @@ const Branch = branches.Branch;
 
 type TreeFile = pismoutil.TreeFile;
 type FileInfo = pismoutil.FileInfo;
-type MergeFile = pismoutil.MergeFile;
 
 /**
  * "Updates" otherTree with new information from baseTree by adding/overwriting
