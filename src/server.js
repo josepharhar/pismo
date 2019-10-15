@@ -401,6 +401,7 @@ export async function server(argv) {
       return;
     }
 
+    logInfo('/apply finished');
     res.writeHead(200, {'content-type': 'text/plain'});
     res.end('hello from /apply');
   });
