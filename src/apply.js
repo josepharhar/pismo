@@ -27,6 +27,17 @@ function getFileTime(absolutePath) {
   return /** @type {!pismoutil.FileTime} */ (nanostat.statSync(absolutePath));
 }
 
+function mkdirpPromise(path) {
+  return new Promise((resolve, reject) => {
+    mkdirp(path, error => {
+      if (error)
+        reject(error)
+      else 
+        resolve();
+    });
+  });
+}
+
 /**
  * @param {string} absolutePath
  * @param {!pismoutil.FileTime} filetime
@@ -144,6 +155,7 @@ export async function applyInternal(mergefile) {
           const destTreeFile = await pismoutil.readTreeByName(destBranch.name());
           const absoluteDestPath = path.join(destTreeFile.path, destRelativePath);
 
+          await mkdirpPromise(path.dirname(absoluteDestPath));
           const copyFileError = await new Promise(resolve => {
             fs.copyFile(absoluteSrcPath, absoluteDestPath, resolve);
           });
