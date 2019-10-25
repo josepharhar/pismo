@@ -65,6 +65,7 @@ export async function apply(argv) {
  */
 export async function applyInternal(mergefile) {
   for (const {operator, operands} of mergefile.operations) {
+    console.log('applying operation. operator: ' + operator + ', operands: ' + JSON.stringify(operands));
     //let srcFilepath = null, destFilepath = null;
 
     /** @type {!Array<!Branch>} */
