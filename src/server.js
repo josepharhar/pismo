@@ -9,7 +9,11 @@ import * as progress from 'progress-stream';
 import * as mkdirp from 'mkdirp';
 import * as cors from 'cors';
 // @ts-ignore
+// @ts-ignore
+// @ts-ignore
 import * as nanostat from 'nanostat';
+// @ts-ignore
+// @ts-ignore
 // @ts-ignore
 import * as nanoutimes from 'nanoutimes';
 
@@ -216,6 +220,8 @@ async function handleUpload(req, res) {
   const treefile = await pismoutil.readTreeByName(treename);
   const absolutePath = path.join(treefile.path, relativePath);
   await new Promise(resolve => {
+    // @ts-ignore
+    // @ts-ignore
     mkdirp(path.dirname(absolutePath), error => {
       resolve();
     });
@@ -260,6 +266,8 @@ export async function server(argv) {
 
   const app = express();
 
+  // @ts-ignore
+  // @ts-ignore
   app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
     next();
@@ -363,12 +371,25 @@ export async function server(argv) {
     }
   });
 
+  // @ts-ignore
+  // @ts-ignore
   app.get('/version', async (req, res) => {
     res.writeHead(200, {'content-type': 'text/plain'});
     res.end('TODO add versioning here');
   });
 
   app.use('/apply', async (req, res) => {
+    // @ts-ignore
+    if (global.__apply_in_progress) {
+      const errorString = 'cannot apply while another apply is in progress!';
+      res.writeHead(400, {'content-type': 'text/plain'});
+      res.end(errorString);
+      logError(errorString);
+      return;
+    }
+    // @ts-ignore
+    global.__apply_in_progress = true;
+
     const jsonString = await pismoutil.streamToString(req);
     let json = null;
     try {
@@ -378,6 +399,8 @@ export async function server(argv) {
       logError(errorString);
       res.writeHead(400, {'content-type': 'text/plain'});
       res.end(errorString);
+      // @ts-ignore
+      global.__apply_in_progress = false;
       return;
     }
 
@@ -388,6 +411,8 @@ export async function server(argv) {
       logError(errorString);
       res.writeHead(400, {'content-type': 'text/plain'});
       res.end(errorString);
+      // @ts-ignore
+      global.__apply_in_progress = false;
       return;
     }
 
@@ -398,12 +423,16 @@ export async function server(argv) {
       logError(errorString);
       res.writeHead(400, {'content-type': 'text/plain'});
       res.end(errorString);
+      // @ts-ignore
+      global.__apply_in_progress = false;
       return;
     }
 
     logInfo('/apply finished');
     res.writeHead(200, {'content-type': 'text/plain'});
     res.end('hello from /apply');
+    // @ts-ignore
+    global.__apply_in_progress = false;
   });
 
   app.listen(port);
