@@ -55,7 +55,7 @@ function setFileTime(absolutePath, filetime) {
  * @param {import('./pismo.js').MergeApplyArgs} argv
  */
 export async function apply(argv) {
-  const mergefile = JSON.parse(argv.mergefile);
+  const mergefile = JSON.parse(fs.readFileSync(argv.mergefile, 'utf8'));
   pismoutil.parseJson(mergefile, pismoutil.MergeFileSchema);
   applyInternal(/** @type {!MergeFile} */ (mergefile));
 }
