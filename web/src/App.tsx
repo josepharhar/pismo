@@ -25,16 +25,6 @@ class App extends React.Component {
 
   async run() {
     const serverAddress: string = await new Promise(resolve => {
-      // TODO this is gonna be bad UX
-      // probe for local pismo server
-      fetch(`http://${window.location.hostname}:48880/version`)
-        .then(response => {
-          if (response.ok)
-            resolve(window.location.hostname + ':48880')
-        }).catch(error => {
-          console.log(`http://${window.location.hostname}:48880 version fetch failed: `, error)
-        });
-
       const serverPicker = <ServerPicker onServerPicked={resolve} />;
       this.state = {
         currentComponent: serverPicker

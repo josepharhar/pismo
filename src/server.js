@@ -372,7 +372,6 @@ export async function server(argv) {
   });
 
   // @ts-ignore
-  // @ts-ignore
   app.get('/version', async (req, res) => {
     res.writeHead(200, {'content-type': 'text/plain'});
     res.end('TODO add versioning here');
