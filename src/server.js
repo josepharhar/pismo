@@ -404,9 +404,17 @@ export async function server(argv) {
     res.end('TODO add versioning here');
   });
 
-  app.get('/get-file', async (req, res) => {
+  app.use('/get-file', async (req, res) => {
     console.log('get-file')
-    const [_, treenameEncoded, relativePathEncoded] = req.url.match(/\/.*\/(.*)\/(.*)/);
+    //const [_, treenameEncoded, relativePathEncoded] = req.url.match(/\/.*\/(.*)\/(.*)/);
+    const match = req.url.match(/\/(.*)\/(.*)/);
+    if (!match || match.length < 3) {
+      res.writeHead(400, {'content-type': 'text/plain'});
+      res.end('failed to parse req.url: ' + req.url);
+      return;
+    }
+    const treenameEncoded = match[1];
+    const relativePathEncoded = match[2];
     const treename = decodeURIComponent(treenameEncoded);
     const relativePath = decodeURIComponent(relativePathEncoded);
 
