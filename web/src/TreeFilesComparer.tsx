@@ -689,7 +689,7 @@ class TreeFilesComparer extends React.Component<Props> {
             const form = document.createElement('form');
             document.body.appendChild(form);
             form.method = 'GET';
-            form.action = `${actionSite}/get-file/${encodeURIComponent(branchName)}/${encodeURIComponent(fileInfo.path)}`;
+            form.action = `${actionSite}/get-file/${encodeURIComponent(branch.name())}/${encodeURIComponent(fileInfo.path)}`;
             form.target = '_blank'; // open in new tab
             form.submit();
             // TODO there should be a WPT for this without the setTimeout?
