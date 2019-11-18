@@ -404,7 +404,8 @@ export async function server(argv) {
     res.end('TODO add versioning here');
   });
 
-  app.get('/get-trees', async (req, res) => {
+  app.get('/get-file', async (req, res) => {
+    console.log('get-file')
     const [_, treenameEncoded, relativePathEncoded] = req.url.match(/\/.*\/(.*)\/(.*)/);
     const treename = decodeURIComponent(treenameEncoded);
     const relativePath = decodeURIComponent(relativePathEncoded);

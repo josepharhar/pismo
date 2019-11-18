@@ -7,6 +7,7 @@ import { mirrorBaseToOther, twoWayMerge, oneWayAdd } from './AutoMerger';
 import { PismoBranch } from './PismoBranch';
 
 interface Props {
+  serverAddress: string;
   getRemotesResponse: GetRemotesResponse;
   getTreesResponse: GetTreesResponse;
   leftBranchName: string;
@@ -674,7 +675,7 @@ class TreeFilesComparer extends React.Component<Props> {
           <button type="button" onClick={() => {
 
             // determine by parsing if branch is remote and should use remote address
-            let actionSite = '';
+            let actionSite = this.props.serverAddress;
             const branch = new PismoBranch(branchName);
             if (branch.remote()) {
               // this branch has a remote, so go to that url instead
@@ -688,7 +689,7 @@ class TreeFilesComparer extends React.Component<Props> {
             const form = document.createElement('form');
             document.body.appendChild(form);
             form.method = 'GET';
-            form.action = `${actionSite}/get-trees/${encodeURIComponent(branchName)}/${encodeURIComponent(fileInfo.path)}`;
+            form.action = `${actionSite}/get-file/${encodeURIComponent(branchName)}/${encodeURIComponent(fileInfo.path)}`;
             form.target = '_blank'; // open in new tab
             form.submit();
             // TODO there should be a WPT for this without the setTimeout?

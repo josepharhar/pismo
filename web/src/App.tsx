@@ -52,6 +52,7 @@ class App extends React.Component {
     });
 
     const comparer = <TreeFilesComparer
+      serverAddress={serverAddress}
       hostname={serverAddress}
       getTreesResponse={trees}
       getRemotesResponse={remotes}
