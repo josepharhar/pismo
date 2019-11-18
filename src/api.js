@@ -269,6 +269,14 @@ export const GetFile = new StreamingMethod(
     relativePath: 'string'
   });
 
+/** @type {!StreamingMethod<GetFileParams, void>} */
+export const GetFileWeb = new StreamingMethod(
+  'get-web',
+  {
+    treename: 'string',
+    relativePath: 'string'
+  });
+
 /** @typedef {!{treename: string, relativePath: string, filesize: number}} PreparePutFileParams */
 /** @typedef {!{putId: string}} PreparePutFileResponse */
 /** @type {!Method<PreparePutFileParams, PreparePutFileResponse>} */

@@ -638,7 +638,7 @@ class TreeFilesComparer extends React.Component<Props> {
       ];
     }
 
-    const renderDetailedRowCell = (fileInfo?: FileInfo, otherFileInfo?: FileInfo) => {
+    const renderDetailedRowCell = (branchName: string, fileInfo?: FileInfo, otherFileInfo?: FileInfo) => {
       if (!fileInfo) {
         return (
           <div className="datagrid-cell disabled-bg-color center-text">
@@ -669,6 +669,14 @@ class TreeFilesComparer extends React.Component<Props> {
 
       return (
         <div className="datagrid-cell monospace">
+          <button onClick={() => {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/get-trees/${branchName}/${encodeURI(fileInfo.path)}`;
+            form.submit();
+          }}>
+            open file
+          </button>
           <table className="table-borders">
             <tbody>
               {Array.from(detailFields).map(([key, value]) => {
@@ -692,8 +700,8 @@ class TreeFilesComparer extends React.Component<Props> {
     const renderDetailedRow = () => {
       return (
         <div className="datagrid-cell datagrid-row">
-          {renderDetailedRowCell(left)}
-          {renderDetailedRowCell(right)}
+          {renderDetailedRowCell(this.props.leftBranchName, left, right)}
+          {renderDetailedRowCell(this.props.rightBranchName, right, left)}
         </div>
       );
     }

@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as stream from 'stream';
 import * as crypto from 'crypto';
+import * as http from 'http';
 
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
@@ -16,6 +17,7 @@ import * as nanostat from 'nanostat';
 // @ts-ignore
 // @ts-ignore
 import * as nanoutimes from 'nanoutimes';
+import * as send from 'send';
 
 import * as api from './api.js';
 import * as remote from './remote.js';
@@ -117,6 +119,21 @@ async function handleGetFile(paramsObj) {
   const absolutePath = path.join(treeFile.path, request.relativePath);
 
   return fs.createReadStream(absolutePath);
+}
+
+/**
+ * @param {!Object} paramsObj 
+ * @param {!http.IncomingMessage} req
+ * @param {!http.ServerResponse} res
+ */
+async function handleGetFileWeb(paramsObj, req, res) {
+  const request = api.GetFileWeb.parseRequest(paramsObj);
+  const treeFile = await pismoutil.readTreeByName(request.treename);
+  const absolutePath = path.join(treeFile.path, request.relativePath);
+
+  return new Promise((resolve, reject) => {
+    send(req, absolutePath, res);
+  });
 }
 
 /** @type {!Map<string, !{treename: string, relativePath: string, filesize: number}>} */
@@ -298,6 +315,7 @@ export async function server(argv) {
       return;
     }
 
+    let customHandler = false;
     /** @type {?stream.Readable} */
     let readableStreamResponse = null;
     const method = req.body.method;
@@ -313,6 +331,10 @@ export async function server(argv) {
           return await handleSetFileTime(params);
         case api.GetFile.id():
           readableStreamResponse = await handleGetFile(params);
+          return null;
+        case api.GetFileWeb.id():
+          customHandler = true;
+          await handleGetFileWeb(params, req, res);
           return null;
         case api.PreparePutFile.id():
           return await handlePreparePutFile(params);
@@ -340,6 +362,10 @@ export async function server(argv) {
       output += error.stack;
       res.send(output); // .send() internally calls res.end()
       //res.send(error.stack); // .send() internally calls res.end()
+      return;
+    }
+
+    if (customHandler) {
       return;
     }
 
