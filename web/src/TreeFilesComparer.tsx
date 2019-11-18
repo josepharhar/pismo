@@ -671,8 +671,8 @@ class TreeFilesComparer extends React.Component<Props> {
         <div className="datagrid-cell monospace">
           <button onClick={() => {
             const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/get-trees/${branchName}/${encodeURI(fileInfo.path)}`;
+            form.method = 'GET';
+            form.action = `/get-trees/${branchName}/${encodeURIComponent(fileInfo.path)}`;
             form.submit();
           }}>
             open file

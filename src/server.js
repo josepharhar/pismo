@@ -121,21 +121,6 @@ async function handleGetFile(paramsObj) {
   return fs.createReadStream(absolutePath);
 }
 
-/**
- * @param {!Object} paramsObj 
- * @param {!http.IncomingMessage} req
- * @param {!http.ServerResponse} res
- */
-async function handleGetFileWeb(paramsObj, req, res) {
-  const request = api.GetFileWeb.parseRequest(paramsObj);
-  const treeFile = await pismoutil.readTreeByName(request.treename);
-  const absolutePath = path.join(treeFile.path, request.relativePath);
-
-  return new Promise((resolve, reject) => {
-    send(req, absolutePath, res);
-  });
-}
-
 /** @type {!Map<string, !{treename: string, relativePath: string, filesize: number}>} */
 const _putIdToTreeAndPath = new Map();
 /**
@@ -332,10 +317,6 @@ export async function server(argv) {
         case api.GetFile.id():
           readableStreamResponse = await handleGetFile(params);
           return null;
-        case api.GetFileWeb.id():
-          customHandler = true;
-          await handleGetFileWeb(params, req, res);
-          return null;
         case api.PreparePutFile.id():
           return await handlePreparePutFile(params);
         case api.DeleteFile.id():
@@ -401,6 +382,15 @@ export async function server(argv) {
   app.get('/version', async (req, res) => {
     res.writeHead(200, {'content-type': 'text/plain'});
     res.end('TODO add versioning here');
+  });
+
+  app.get('/get-trees', async (req, res) => {
+    const [_, treename, relativePathEncoded] = req.url.match(/\/.*\/(.*)\/(.*)/);
+    const relativePath = decodeURI(relativePathEncoded);
+
+    const treeFile = await pismoutil.readTreeByName(treename);
+    const absolutePath = path.join(treeFile.path, relativePath);
+    send(req, absolutePath, res);
   });
 
   app.use('/apply', async (req, res) => {
