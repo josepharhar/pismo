@@ -207,6 +207,19 @@ export const GetTrees = new Method(
   }
 );
 
+/** @typedef {!{remotes: !Array<!{name: string, url: string}>}} GetRemotesResponse */
+/** @type {!Method<void, GetRemotesResponse>} */
+export const GetRemotes = new Method(
+  'get-remotes',
+  {},
+  {
+    remotes: [{
+      name: 'string',
+      url: 'string'
+    }]
+  }
+)
+
 ///** @typedef {!{treenames: !Array<string>}} ListTreesResponse */
 ///** @type {!Method<void, ListTreesResponse>} */
 //export const ListTrees = new Method(

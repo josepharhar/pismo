@@ -1,11 +1,13 @@
 import React from 'react';
-import { GetTreesResponse, FileInfo, Operation, MergeFile, TreeFile } from './PismoTypes';
+import { GetTreesResponse, FileInfo, Operation, MergeFile, TreeFile, GetRemotesResponse } from './PismoTypes';
 import './TreeFilesComparer.css';
 import './DataGrid.css';
 import filesize from 'filesize';
 import { mirrorBaseToOther, twoWayMerge, oneWayAdd } from './AutoMerger';
+import { PismoBranch } from './PismoBranch';
 
 interface Props {
+  getRemotesResponse: GetRemotesResponse;
   getTreesResponse: GetTreesResponse;
   leftBranchName: string;
   rightBranchName: string;
@@ -669,11 +671,28 @@ class TreeFilesComparer extends React.Component<Props> {
 
       return (
         <div className="datagrid-cell monospace">
-          <button onClick={() => {
+          <button type="button" onClick={() => {
+
+            // determine by parsing if branch is remote and should use remote address
+            let actionSite = '';
+            const branch = new PismoBranch(branchName);
+            if (branch.remote()) {
+              // this branch has a remote, so go to that url instead
+              const remote = this.props.getRemotesResponse.remotes.find(remote => remote.name === branch.remote());
+              if (remote) {
+                actionSite = remote.url;
+              }
+            }
+
+            // TODO figure out which server to go to based on...
             const form = document.createElement('form');
+            document.body.appendChild(form);
             form.method = 'GET';
-            form.action = `/get-trees/${branchName}/${encodeURIComponent(fileInfo.path)}`;
+            form.action = `${actionSite}/get-trees/${encodeURIComponent(branchName)}/${encodeURIComponent(fileInfo.path)}`;
+            form.target = '_blank'; // open in new tab
             form.submit();
+            // TODO there should be a WPT for this without the setTimeout?
+            setTimeout(() => document.body.removeChild(form), 0);
           }}>
             open file
           </button>

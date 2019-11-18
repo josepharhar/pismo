@@ -44,3 +44,9 @@ export interface GetTreesResponse {
     treefile: TreeFile;
   }>;
 }
+export interface GetRemotesResponse {
+  remotes: Array<{
+    name: string;
+    url: string;
+  }>;
+}

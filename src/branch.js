@@ -2,51 +2,35 @@ import * as path from 'path';
 
 import * as remotes from './remote.js';
 import * as pismoutil from './pismoutil.js';
+import * as PismoBranch from '../web/src/PismoBranch';
 
 export class Branch {
   /**
    * @param {string} string
    */
   constructor(string) {
-    if ((string.match(/\//g) || []).length > 1)
-      throw new Error(`More than one '/' in branch string: ${string}`);
-
-    let remote = null, name = null;
-    if (string.includes('/')) {
-      [remote, name] = string.split('/');
-    } else {
-      name = string;
-    }
-    if (!name)
-      throw new Error(`Failed to parse branch string: ${string}`);
-
-    /** @type {string} */
-    this._rawString = string;
-    /** @type {string} */
-    this._remote = remote;
-    /** @type {string} */
-    this._name = name;
+    this._pismoBranch = new PismoBranch.PismoBranch(string);
   }
 
   /**
    * @return {string}
    */
   remote() {
-    return this._remote;
+    return this._pismoBranch.remote();
   }
 
   /**
    * @return {string}
    */
   name() {
-    return this._name;
+    return this._pismoBranch.name();
   }
 
   /**
    * @return {string}
    */
   rawString() {
-    return this._rawString;
+    return this._pismoBranch.rawString();
   }
 
   /**

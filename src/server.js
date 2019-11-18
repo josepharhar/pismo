@@ -96,6 +96,24 @@ async function handleGetFileTime(paramsObj) {
 
 /**
  * @param {!Object} paramsObj
+ * @return {!Promise<!api.GetRemotesResponse>}
+ */
+async function handleGetRemotes(paramsObj) {
+  /** @type {!api.GetRemotesResponse} */
+  const output = {remotes: []};
+  const remotes = await remote.Remote.getAllRemotes();
+  for (const remote of remotes) {
+    await remote.readFromFile();
+    output.remotes.push({
+      name: remote.name(),
+      url: remote.url()
+    });
+  }
+  return output;
+}
+
+/**
+ * @param {!Object} paramsObj
  * @return {!Promise<!api.SetFileTimeResponse>}
  */
 async function handleSetFileTime(paramsObj) {
@@ -325,6 +343,8 @@ export async function server(argv) {
           return await handleCopyWithin(params, 'cp');
         case api.MoveWithin.id():
           return await handleCopyWithin(params, 'mv');
+        case api.GetRemotes.id():
+          return await handleGetRemotes(params);
         default:
           throw new Error('unrecognized request method: ' + method);
       }
@@ -385,8 +405,9 @@ export async function server(argv) {
   });
 
   app.get('/get-trees', async (req, res) => {
-    const [_, treename, relativePathEncoded] = req.url.match(/\/.*\/(.*)\/(.*)/);
-    const relativePath = decodeURI(relativePathEncoded);
+    const [_, treenameEncoded, relativePathEncoded] = req.url.match(/\/.*\/(.*)\/(.*)/);
+    const treename = decodeURIComponent(treenameEncoded);
+    const relativePath = decodeURIComponent(relativePathEncoded);
 
     const treeFile = await pismoutil.readTreeByName(treename);
     const absolutePath = path.join(treeFile.path, relativePath);

@@ -15,6 +15,11 @@ class PismoClient {
     return await response.json();
   }
 
+  async getRemotes() {
+    const response = await this._makeFetch('get-remotes', {});
+    return await response.json();
+  }
+
   async _makeFetch(methodId: string, params: object) {
     return await fetch('http://' + this.hostname + '/api', {
       method: 'POST',

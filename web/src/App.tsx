@@ -32,11 +32,11 @@ class App extends React.Component {
     });
 
     const pismoClient = new PismoClient(serverAddress);
-    const getTreesPromise = pismoClient.getTrees();
+    const allRequests = Promise.all([pismoClient.getTrees(), pismoClient.getRemotes()])
     this.setState({
-      currentComponent: <LoadingScreen promise={getTreesPromise} />
+      currentComponent: <LoadingScreen promise={allRequests} />
     });
-    let trees: GetTreesResponse = await getTreesPromise;
+    let [trees, remotes] = await allRequests;
     if (!trees.trees.length) {
       this.setState({
         currentComponent: <p>server has no trees!</p>
@@ -54,6 +54,7 @@ class App extends React.Component {
     const comparer = <TreeFilesComparer
       hostname={serverAddress}
       getTreesResponse={trees}
+      getRemotesResponse={remotes}
       leftBranchName={leftBranchName}
       rightBranchName={rightBranchName} />;
     this.setState({
