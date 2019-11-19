@@ -5,6 +5,7 @@ import './DataGrid.css';
 import filesize from 'filesize';
 import { mirrorBaseToOther, twoWayMerge, oneWayAdd } from './AutoMerger';
 import { PismoBranch } from './PismoBranch';
+import {Renamer} from './Renamer';
 
 interface Props {
   serverAddress: string;
@@ -689,6 +690,21 @@ class TreeFilesComparer extends React.Component<Props> {
           }}>
             open file
           </button>
+          <Renamer initialValue={fileInfo.path} onRename={(newPath: string) => {
+            console.log('rename: ' + newPath);
+            this.state.pathToMergeOperations.set(fileInfo.path, [{
+              operator: 'mv',
+              operands: [{
+                TODO use correct tree here by plumbing side to this function or using it captured from somewhere
+                tree: 'base', // TODO TODO TODO TODO
+                relativePath: fileInfo.path
+              }, {
+                tree: 'base',
+                relativePath: newPath
+              }]
+            }])
+            this.setState(this.state);
+          }} />
           <table className="table-borders">
             <tbody>
               {Array.from(detailFields).map(([key, value]) => {
