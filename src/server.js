@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as stream from 'stream';
 import * as crypto from 'crypto';
 import * as http from 'http';
+import * as url from 'url';
 
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
@@ -405,9 +406,8 @@ export async function server(argv) {
   });
 
   app.use('/get-file', async (req, res) => {
-    console.log('get-file')
-    //const [_, treenameEncoded, relativePathEncoded] = req.url.match(/\/.*\/(.*)\/(.*)/);
-    const match = req.url.match(/\/(.*)\/(.*)/);
+    const parsedUrl = url.parse(req.url);
+    const match = parsedUrl.pathname.match(/\/(.*)\/(.*)/);
     if (!match || match.length < 3) {
       res.writeHead(400, {'content-type': 'text/plain'});
       res.end('failed to parse req.url: ' + req.url);
@@ -420,7 +420,7 @@ export async function server(argv) {
 
     const treeFile = await pismoutil.readTreeByName(treename);
     const absolutePath = path.join(treeFile.path, relativePath);
-    send(req, absolutePath, res);
+    send(req, absolutePath).pipe(res);
   });
 
   app.use('/apply', async (req, res) => {
