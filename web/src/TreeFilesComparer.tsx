@@ -685,15 +685,7 @@ class TreeFilesComparer extends React.Component<Props> {
               }
             }
 
-            // TODO figure out which server to go to based on...
-            const form = document.createElement('form');
-            document.body.appendChild(form);
-            form.method = 'GET';
-            form.action = `${actionSite}/get-file/${encodeURIComponent(branch.name())}/${encodeURIComponent(fileInfo.path)}`;
-            form.target = '_blank'; // open in new tab
-            form.submit();
-            // TODO there should be a WPT for this without the setTimeout?
-            setTimeout(() => document.body.removeChild(form), 0);
+            window.open(`http://${actionSite}/get-file/${encodeURIComponent(branch.name())}/${encodeURIComponent(fileInfo.path)}`);
           }}>
             open file
           </button>
