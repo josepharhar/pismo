@@ -7,7 +7,8 @@
     "tsc": "tsc -p .",
     "link": "npm link",
     "upload-file": "node upload-file.js",
-    "test": "node src/unittest.js"
+    "test": "node src/unittest.js",
+    "start": "npm run tsc && node build/src/pismo.js server"
   },
   "repository": {
     "type": "git",
