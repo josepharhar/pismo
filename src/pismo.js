@@ -22,6 +22,7 @@ import {status} from './status.js';
 import {server} from './server.js';
 import {remoteAdd, remoteRemove, remoteList, remoteUpdate} from './remote.js';
 import {mergePrint} from './mergeprint.js';
+import {deleteEmptydirs} from './deleteEmptydirs';
 
 function run(fn) {
   return function(argv) {

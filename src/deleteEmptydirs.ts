@@ -4,8 +4,8 @@ import * as path from 'path';
 
 import * as pismoutil from './pismoutil.js';
 
-const unlinkPromise = util.promisify(fs.unlink);
 const readdirPromise = util.promisify(fs.readdir);
+const rmdirPromise = util.promisify(fs.rmdir);
 
 export async function deleteEmptydirs(argv: import('./pismo.js').DeleteEmptydirsArgs) {
   const {name, dryrun} = argv;
@@ -22,9 +22,14 @@ export async function deleteEmptydirs(argv: import('./pismo.js').DeleteEmptydirs
   const emptyDirs = await getEmptyDirs(dirpath, '/');
   for (const emptyDir of emptyDirs) {
     try {
-      await unlinkPromise(emptyDir);
+      if (dryrun) {
+        console.log('would delete ' + emptyDir);
+      } else {
+        console.log('deleting ' + emptyDir);
+        await rmdirPromise(emptyDir);
+      }
     } catch (error) {
-      throw new Error('Failed to unlink.'
+      throw new Error('Failed to rmdir.'
         + '\n  emptyDir: ' + emptyDir
         + '\n  error:\n' + JSON.stringify(error, null, 2));
     }
@@ -44,6 +49,15 @@ async function getEmptyDirs(basepath: string, relativePath: string): Promise<Arr
       + '\n  error:\n' + error);
   }
 
-  if (!dirents.length)
-    return [this];
+  if (!dirents.length) {
+    return [absolutePath];
+  }
+
+  let output = [];
+  for (const dirent of dirents) {
+    if (!dirent.isDirectory())
+      continue;
+    output = output.concat(await getEmptyDirs(basepath, path.join(relativePath, dirent.name)));
+  }
+  return output;
 }
