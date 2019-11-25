@@ -139,6 +139,19 @@ yargs.command(
       .version(false),
   run(update));
 
+/** @typedef {yargs.Arguments<{name: string, dryrun: boolean}>} DeleteEmptydirsArgs */
+yargs.command(
+  'delete-emptydirs <name>',
+  'Deletes all empty directories inside the tree named <name>',
+  yargs => yargs
+      .option('dryrun', {
+        description: 'Prints out empty directories without deleting them',
+        default: false
+      })
+      .help(false)
+      .version(false),
+  run(deleteEmptydirs));
+
 /** @typedef {yargs.Arguments<{nocache: boolean}>} UpdateAllArgs */
 yargs.command(
   'update-all',

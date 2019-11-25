@@ -5,6 +5,7 @@
   "main": "pismo.js",
   "scripts": {
     "tsc": "tsc -p .",
+    "watch": "tsc -w -p .",
     "link": "npm link",
     "upload-file": "node upload-file.js",
     "test": "node src/unittest.js",

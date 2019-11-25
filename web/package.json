@@ -16,6 +16,7 @@
     "typescript": "3.6.2"
   },
   "scripts": {
+    "static": "npm run build && npx serve -s build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",

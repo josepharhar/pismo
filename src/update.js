@@ -15,6 +15,7 @@ import * as pismoutil from './pismoutil.js';
 import * as diff from './diff.js';
 //import * as {TreeFile} from './treefile.js';
 import * as merge from './merge.js';
+import {deleteEmptydirs} from './deleteEmptydirs';
 
 const readFilePromise = util.promisify(fs.readFile);
 const readdirPromise = util.promisify(fs.readdir);
@@ -326,6 +327,6 @@ export async function update(argv) {
 export async function updateAll(argv) {
   const treeNamesToPaths = await pismoutil.getTreeNamesToPaths();
   for (const treename of Object.keys(treeNamesToPaths)) {
-    updateInternal(treename, argv.nocache);
+    await updateInternal(treename, argv.nocache);
   }
 }
