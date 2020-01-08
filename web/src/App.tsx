@@ -45,9 +45,13 @@ class App extends React.Component {
     }
 
     const {leftBranchName, rightBranchName} = await new Promise(resolve => {
-      const branchesPicker = <BranchesPicker getTreesResponse={trees} onBranchesPicked={resolve} />
+      const statusUpdater = <StatusUpdater />;
+      const branchesPicker = <BranchesPicker getTreesResponse={trees} onBranchesPicked={resolve} />;
+      const remoteFetcher = <RemoteFetcher />;
+      const remoteUpdater = <RemoteUpdater />;
+      const localUpdater = <LocalUpdater />;
       this.setState({
-        currentComponent: branchesPicker
+        currentComponent: <div>[branchesPicker, remoteFetcher, remoteUpdater, localUpdater]</div>
       });
     });
 
@@ -112,3 +116,26 @@ export default App;
 // 4. delete both files
 
 // TODO make it so you can apply a preset to all the files from the toolbar?
+
+
+
+// i need to make the frontend do more than just this one use case.
+// i need to change the backend to make it have a centralized task server and get rid of the cli stuff
+// i need the frontend to be able to have a sort of task view and see what its doing and get all the progress for it
+
+// the ui:
+// when i connect to a backend, i want to
+// 1. see the tasks it has going
+//    - be able to pull up a detailed view that constantly updates to show how far it is, what its doing, etc.
+// 2. see its remotes, remove/add/fetchfrom remotes
+// 3. see the branches, remove/add/scan branches
+// 4. compare/merge branches
+
+// and how should i populate all this information?
+// i could:
+// - make the server render the html with the information
+// - make http endpoints for all the needed underlying information
+// - make a websocket connection
+// making a websocket sounds like a better version of the endpoints idea... or is it?
+// because what happens if you lose the websocket or something?
+// i guess ill just keep the current architecture, because changing things would suck
