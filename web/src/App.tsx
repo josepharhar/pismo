@@ -6,6 +6,8 @@ import LoadingScreen from './LoadingScreen';
 import BranchesPicker from './BranchesPicker';
 import TreeFilesComparer from './TreeFilesComparer';
 import { GetTreesResponse } from './PismoTypes';
+import RemotesViewer from './RemotesViewer';
+import BranchesViewer from './BranchesViewer';
 
 class App extends React.Component {
   state: { currentComponent: ReactNode };
@@ -44,27 +46,26 @@ class App extends React.Component {
       return;
     }
 
-    const {leftBranchName, rightBranchName} = await new Promise(resolve => {
-      const statusUpdater = <StatusUpdater />;
-      const branchesPicker = <BranchesPicker getTreesResponse={trees} onBranchesPicked={resolve} />;
-      const remoteFetcher = <RemoteFetcher />;
-      const remoteUpdater = <RemoteUpdater />;
-      const localUpdater = <LocalUpdater />;
+    const onBranchesPicked = (branchNames: {leftBranchName: string, rightBranchName: string}) => {
+      const comparer = <TreeFilesComparer
+        serverAddress={serverAddress}
+        hostname={serverAddress}
+        getTreesResponse={trees}
+        getRemotesResponse={remotes}
+        leftBranchName={branchNames.leftBranchName}
+        rightBranchName={branchNames.rightBranchName} />;
       this.setState({
-        currentComponent: <div>[branchesPicker, remoteFetcher, remoteUpdater, localUpdater]</div>
+        currentComponent: comparer
       });
-    });
+    };
 
-    const comparer = <TreeFilesComparer
-      serverAddress={serverAddress}
-      hostname={serverAddress}
-      getTreesResponse={trees}
-      getRemotesResponse={remotes}
-      leftBranchName={leftBranchName}
-      rightBranchName={rightBranchName} />;
     this.setState({
-      currentComponent: comparer
-    });
+      currentComponent: <div className="pismo-app-main-container">{[
+        <RemotesViewer pismoClient={pismoClient} />,
+        <BranchesViewer pismoClient={pismoClient} />,
+        <BranchesPicker getTreesResponse={trees} onBranchesPicked={onBranchesPicked} />
+      ]}</div>
+    })
   }
 
   render() {

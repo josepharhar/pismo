@@ -35,6 +35,7 @@ export interface MergeFile {
   operations: Array<Operation>;
 }
 
+export const GetTrees = 'get-trees';
 export interface GetTreesRequest {
   includeRemotes: boolean;
 }
@@ -44,9 +45,23 @@ export interface GetTreesResponse {
     treefile: TreeFile;
   }>;
 }
+
+export const GetRemotes = 'get-remotes';
 export interface GetRemotesResponse {
   remotes: Array<{
     name: string;
     url: string;
   }>;
+}
+
+export interface Request {};
+
+export const DeleteTree = 'delete-tree';
+export interface DeleteTreeRequest extends Request {
+  treename: string;
+}
+
+export const UpdateTree = 'update-tree';
+export interface UpdateTreeRequest {
+  treename: string;
 }

@@ -110,3 +110,7 @@ table.table-borders>tbody>tr>td{
 .strikethrough {
   text-decoration: line-through;
 }
+
+.pismo-app-main-container>div {
+  border: 1px solid black;
+}

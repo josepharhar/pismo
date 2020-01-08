@@ -53,6 +53,7 @@ class BranchesPicker extends React.Component<Props> {
   render() {
     return (
       <div className="branches-picker">
+        <p>merge branches</p>
         <div className="split-container">
           <div className="split-child">
             {this.renderBranches('left')}
@@ -68,7 +69,7 @@ class BranchesPicker extends React.Component<Props> {
                 rightBranchName: this.state.right
               });
             }}>
-            ikuzo
+            merge...
           </button>
         </div>
       </div>
