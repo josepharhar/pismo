@@ -68,7 +68,6 @@ export async function applyInternal(mergefile) {
     console.log('applying operation. operator: ' + operator + ', operands: ' + JSON.stringify(operands));
     //let srcFilepath = null, destFilepath = null;
 
-    /** @type {!Array<!Branch>} */
     const operandBranches = operands.map(operand => {
       if (operand.tree === 'base') {
         return new Branch(mergefile.baseBranch);
