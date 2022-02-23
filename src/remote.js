@@ -308,8 +308,13 @@ export class Remote {
         relativePath: relativePath
       };
 
-      await new Promise(resolve => {
+      await new Promise((resolve, reject) => {
         mkdirp(path.dirname(absoluteLocalPath), error => {
+          if (error) {
+            console.log('got error while calling mkdirp on path: ' + path.dirname(absoluteLocalPath));
+            console.log(error);
+            reject(error);
+          }
           resolve();
         })
       });
