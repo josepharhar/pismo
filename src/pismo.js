@@ -11,7 +11,7 @@ import * as yargs from 'yargs';
 
 import {list} from './list.js';
 import {add} from './add.js';
-import {update, updateAll} from './update.js';
+import {update, updateAll, clearAll} from './update.js';
 import {remove} from './remove.js';
 import {merge} from './merge.js';
 import {diff, dupes} from './diff.js';
@@ -165,6 +165,14 @@ yargs.command(
       .help(false)
       .version(false),
   run(updateAll));
+
+yargs.command(
+  'clear-all',
+  'Removes all saved hashes for each file',
+  yargs => yargs
+    .help(false)
+    .version(false),
+  run(clearAll));
 
 /** @typedef {yargs.Arguments<{base: string, other: string}>} DiffArgs */
 yargs.command(

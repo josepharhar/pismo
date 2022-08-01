@@ -330,3 +330,21 @@ export async function updateAll(argv) {
     await updateInternal(treename, argv.nocache);
   }
 }
+
+export async function clearAll(argv) {
+  const treeNamesToPaths = await pismoutil.getTreeNamesToPaths();
+  for (const treename of Object.keys(treeNamesToPaths)) {
+    const treepath = treeNamesToPaths[treename];
+    const treefile = await pismoutil.readFileToJson(treepath);
+
+    treefile.files = [];
+
+    const writeFileError = await new Promise(resolve => {
+      fs.writeFile(treepath, JSON.stringify(treefile, null, 3), resolve);
+    });
+    if (writeFileError) {
+      logError(`Failed to write updated tree file to path: ${treepath}`);
+      throw writeFileError;
+    }
+  }
+}
