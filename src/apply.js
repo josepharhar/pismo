@@ -100,6 +100,7 @@ export async function applyInternal(mergefile) {
             + `\n    to: ${destBranch.rawString()} ${destRelativePath}`);
           throw error;
         }
+        break;
 
       case 'cp':
         if (srcBranch.remote() && destBranch.remote()) {
