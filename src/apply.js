@@ -124,6 +124,7 @@ export async function applyInternal(mergefile) {
             srcBranch.name(),
             srcRelativePath);
           setFileTime(absoluteLocalDestPath, srcFileTime);
+          // TODO what about permissions? i guess this program doesn't really track permissions, i should make permissions on linux match the parent directory. i wonder if thats what happens by default when creating a file like this...?
 
         } else if (!srcBranch.remote() && destBranch.remote()) {
           // copying srcBranch[srcRelativePath] (local)
