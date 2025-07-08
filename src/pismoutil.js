@@ -371,12 +371,14 @@ export function dateToString(date) {
  */
 export async function streamToString(stream) {
   return new Promise((resolve, reject) => {
-    let chunks = '';
+    const chunks = [];
     stream.on('data', chunk => {
-      chunks += chunk;
+      chunks.push(chunk);
     });
     stream.on('error', reject);
-    stream.on('end', () => resolve(chunks));
+    stream.on('end', () => {
+      resolve(Buffer.concat(chunks).toString());
+    });
   });
 }
 
